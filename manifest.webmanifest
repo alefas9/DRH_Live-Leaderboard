@@ -1,0 +1,13 @@
+{
+  "name": "DRH — Drone Racing Hellas",
+  "short_name": "DRH",
+  "description": "Ζωντανές κατατάξεις, βαθμολογία σεζόν και head-to-head μονομαχίες",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#0a0a0f",
+  "theme_color": "#0a0a0f",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "drh-badge.png", "sizes": "480x480", "type": "image/png" }
+  ]
+}
