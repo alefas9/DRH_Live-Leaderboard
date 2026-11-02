@@ -31,16 +31,17 @@ function heroCanvas() {
     gates = [];
     const rows = 9;
     for (let i = 0; i < rows; i++) gates.push({ z: i / rows });
-    // star / dust particles
+    // star / dust particles — livelier: faster, with trails
     particles = [];
-    const n = Math.min(160, Math.floor(W * H / 14000 / devicePixelRatio));
+    const n = Math.min(150, Math.floor(W * H / 15000 / devicePixelRatio));
     for (let i = 0; i < n; i++) particles.push({
       x: Math.random() * W, y: Math.random() * H,
-      vx: (Math.random() - .5) * .18 * devicePixelRatio,
-      vy: (Math.random() - .5) * .18 * devicePixelRatio,
-      r: Math.random() * 1.6 + .4,
-      c: Math.random() < .16 ? COLORS.fuchsia : (Math.random() < .3 ? COLORS.cyan : "#8b93b8"),
-      tw: Math.random() * Math.PI * 2
+      vx: (Math.random() - .5) * .85 * devicePixelRatio,
+      vy: (Math.random() - .5) * .85 * devicePixelRatio,
+      r: Math.random() * 2 + .5,
+      c: Math.random() < .18 ? COLORS.fuchsia : (Math.random() < .34 ? COLORS.cyan : "#aab2d0"),
+      tw: Math.random() * Math.PI * 2,
+      px: null, py: null
     });
   }
   let t = 0;
@@ -64,14 +65,32 @@ function heroCanvas() {
       ctx.beginPath(); ctx.moveTo(W / 2 + i * 30, hz); ctx.lineTo(x, H); ctx.stroke();
     }
 
-    // particles
+    // particles with motion trails (matches the drone light-traces bg)
     for (const p of particles) {
+      p.px = p.x; p.py = p.y;
+      // gentle wandering so paths curve like flight lines
+      p.vx += (Math.random() - .5) * .035 * devicePixelRatio;
+      p.vy += (Math.random() - .5) * .035 * devicePixelRatio;
+      // clamp speed
+      const sp = Math.hypot(p.vx, p.vy), maxSp = 1.15 * devicePixelRatio;
+      if (sp > maxSp) { p.vx = p.vx / sp * maxSp; p.vy = p.vy / sp * maxSp; }
       p.x += p.vx; p.y += p.vy;
       const dx = p.x - mouse.x, dy = p.y - mouse.y, d2 = dx * dx + dy * dy;
-      if (d2 < 16000 * devicePixelRatio) { p.x += dx * .012; p.y += dy * .012; }
-      if (p.x < 0) p.x = W; if (p.x > W) p.x = 0; if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
+      if (d2 < 22000 * devicePixelRatio) { p.vx += dx / Math.max(Math.sqrt(d2), 1) * .5; p.vy += dy / Math.max(Math.sqrt(d2), 1) * .5; }
+      let wrapped = false;
+      if (p.x < -20) { p.x = W + 20; wrapped = true; } if (p.x > W + 20) { p.x = -20; wrapped = true; }
+      if (p.y < -20) { p.y = H + 20; wrapped = true; } if (p.y > H + 20) { p.y = -20; wrapped = true; }
+      if (wrapped) { p.px = p.x; p.py = p.y; }
       const tw = .5 + .5 * Math.sin(t * 2 + p.tw);
-      ctx.globalAlpha = .25 + .55 * tw;
+      // trail line
+      if (p.px !== null && !wrapped) {
+        ctx.globalAlpha = .22 + .3 * tw;
+        ctx.strokeStyle = p.c;
+        ctx.lineWidth = Math.max(.6, p.r * .55) * devicePixelRatio;
+        ctx.beginPath(); ctx.moveTo(p.px, p.py); ctx.lineTo(p.x, p.y); ctx.stroke();
+      }
+      // head dot
+      ctx.globalAlpha = .45 + .5 * tw;
       ctx.fillStyle = p.c;
       ctx.beginPath(); ctx.arc(p.x, p.y, p.r * devicePixelRatio, 0, 7); ctx.fill();
     }
@@ -366,65 +385,84 @@ function drawChart(d) {
   }
 }
 
-// ------------------------------------------------------------------ duels (only real ones from the bot)
+// ------------------------------------------------------------------ duels (real ones from the bot: active + recently resolved)
+function duelWinner(p) {
+  const ta = p.best_time_a, tb = p.best_time_b;
+  if (ta == null && tb == null) return null;
+  if (ta == null) return p.pilot_b;
+  if (tb == null) return p.pilot_a;
+  return ta < tb ? p.pilot_a : p.pilot_b;
+}
+
 function buildDuels(d) {
   const box = $("#duels");
-  const real = d.duels || [];
+  const all = d.duels || [];
+  const active = all.filter(p => !p.resolved);
+  const resolved = all.filter(p => p.resolved).slice(-3).reverse(); // τελευταία 3 λυμένα
   const count = $("#duels-count");
-  if (!real.length) {
-    count.textContent = "0 LIVE";
-    box.innerHTML = `
+  count.textContent = active.length + " LIVE";
+  count.style.background = active.length ? "rgba(239,68,68,.12)" : "rgba(251,146,60,.12)";
+  count.style.color = active.length ? "var(--red)" : "var(--orange)";
+
+  let html = "";
+
+  if (active.length) {
+    html += `<div class="duel-sep">⚡ ΕΝΕΡΓΑ</div>`;
+    html += active.map(p => {
+      const ta = p.best_time_a, tb = p.best_time_b;
+      const lead = duelWinner(p);
+      return `
+      <div class="duel">
+        <div class="who">
+          <div class="n${lead === p.pilot_a ? " w" : ""}">${esc(p.pilot_a)}</div>
+          <div class="s">${ta != null ? Number(ta).toFixed(3) + "s" : "— ακόμα χρόνο"}</div>
+        </div>
+        <div class="mid"><div class="score"><b>${ta != null ? Number(ta).toFixed(3) : "—"}</b><span class="d">vs</span><b>${tb != null ? Number(tb).toFixed(3) : "—"}</b></div>
+          <div class="duel-track">${esc(p.track || "")}${p.deadline ? " · λήγει " + new Date(p.deadline).toLocaleDateString("el-GR", { day: "numeric", month: "short" }) : ""}</div>
+        </div>
+        <div class="who">
+          <div class="n${lead === p.pilot_b ? " w" : ""}">${esc(p.pilot_b)}</div>
+          <div class="s">${tb != null ? Number(tb).toFixed(3) + "s" : "— ακόμα χρόνο"}</div>
+        </div>
+      </div>`;
+    }).join("");
+  }
+
+  if (resolved.length) {
+    html += `<div class="duel-sep">🏁 ΟΛΟΚΛΗΡΩΜΕΝΑ</div>`;
+    html += resolved.map(p => {
+      const w = duelWinner(p);
+      return `
+      <div class="duel done">
+        <div class="who">
+          <div class="n${w === p.pilot_a ? " w" : ""}">${esc(p.pilot_a)}</div>
+          <div class="s">${p.best_time_a != null ? Number(p.best_time_a).toFixed(3) + "s" : "—"}</div>
+        </div>
+        <div class="mid">
+          <div class="score"><b>${p.best_time_a != null ? Number(p.best_time_a).toFixed(3) : "—"}</b><span class="d">—</span><b>${p.best_time_b != null ? Number(p.best_time_b).toFixed(3) : "—"}</b></div>
+          <div class="duel-track">${w ? "🏆 " + esc(w) : "άκυρο"}</div>
+        </div>
+        <div class="who">
+          <div class="n${w === p.pilot_b ? " w" : ""}">${esc(p.pilot_b)}</div>
+          <div class="s">${p.best_time_b != null ? Number(p.best_time_b).toFixed(3) + "s" : "—"}</div>
+        </div>
+      </div>`;
+    }).join("");
+  }
+
+  if (!html) {
+    html = `
       <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:36px 12px;gap:8px">
         <div style="font-size:32px">⚔️</div>
-        <div style="color:rgba(255,255,255,.6);font-size:14px;font-weight:700">Καμία ενεργή μονομαχία</div>
-        <div style="color:rgba(255,255,255,.4);font-size:12px">Όταν το DRH bot ορίσει duels, θα εμφανιστούν εδώ αυτόματα.</div>
+        <div style="color:rgba(255,255,255,.6);font-size:14px;font-weight:700">Καμία μονομαχία ακόμα</div>
+        <div style="color:rgba(255,255,255,.4);font-size:12px">Όταν οριστούν duels, θα εμφανιστούν εδώ αυτόματα.</div>
       </div>`;
-    return;
   }
-  count.textContent = real.length + " LIVE";
-  box.innerHTML = real.map(p => {
-    const a = p.pilot_a || {}, b = p.pilot_b || {};
-    const an = a.pilot || a.name || "?", bn = b.pilot || b.name || "?";
-    const as = a.score ?? a.wins ?? "—", bs = b.score ?? b.wins ?? "—";
-    return `
-      <div class="duel">
-        <div class="who"><div class="n">${esc(an)}</div><div class="s">${esc(a.time != null ? Number(a.time).toFixed(3) + "s" : (a.quad || ""))}</div></div>
-        <div class="mid"><div class="score"><b>${as}</b><span class="d">—</span><b>${bs}</b></div></div>
-        <div class="who"><div class="n">${esc(bn)}</div><div class="s">${esc(b.time != null ? Number(b.time).toFixed(3) + "s" : (b.quad || ""))}</div></div>
-      </div>`;
-  }).join("");
+
+  box.innerHTML = html;
 }
 
-// ------------------------------------------------------------------ quad meta
-function drawDonut(d) {
-  const cv = $("#donut"), ctx = cv.getContext("2d");
-  const dpr = devicePixelRatio || 1, W = cv.offsetWidth, H = cv.offsetHeight;
-  cv.width = W * dpr; cv.height = H * dpr; ctx.scale(dpr, dpr);
-  const cx = W / 2, cy = H / 2, R = W / 2 - 6, r = R * .62;
 
-  const entries = Object.entries(d.quadCount).sort((a, b) => b[1] - a[1]);
-  const total = entries.reduce((s, e) => s + e[1], 0) || 1;
-  const palette = [COLORS.cyan, COLORS.fuchsia, COLORS.violet, COLORS.orange, COLORS.emerald, COLORS.yellow, "#94a3b8"];
-  $("#donut-b").textContent = total;
-
-  let a0 = -Math.PI / 2;
-  entries.forEach(([name, n], i) => {
-    const a1 = a0 + n / total * Math.PI * 2;
-    ctx.beginPath(); ctx.arc(cx, cy, R, a0, a1); ctx.arc(cx, cy, r, a1, a0, true); ctx.closePath();
-    ctx.fillStyle = palette[i % palette.length]; ctx.globalAlpha = .9; ctx.fill();
-    // gap
-    ctx.strokeStyle = "#0a0a0f"; ctx.lineWidth = 3; ctx.stroke();
-    a0 = a1;
-  });
-  ctx.globalAlpha = 1;
-
-  $("#meta-list").innerHTML = entries.map(([name, n], i) => `
-    <div class="mrow">
-      <span class="sw" style="background:${palette[i % palette.length]}"></span>
-      <span class="nm">${esc(name)}</span>
-      <span class="pc">${Math.round(n / total * 100)}%</span>
-    </div>`).join("");
-}
 
 // ------------------------------------------------------------------ archive
 function buildArchive(d) {
@@ -573,7 +611,6 @@ function cardGlow() {
     buildLeaderboard(d);
     drawChart(d);
     buildDuels(d);
-    drawDonut(d);
     buildArchive(d);
     buildSeasonStats(d);
     cardGlow();

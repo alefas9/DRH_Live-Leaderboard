@@ -94,7 +94,11 @@ const FALLBACK = {
       winner: "ZOUP", best_time: 76.192, pilots_count: 11, records_broken: 71,
       quads: { ZOUP: "Bahamut", Exo_FPV: "Bahamut", TettixPro: "Five33 Switchback", DedalosFPV: "Bahamut", Cbeikos: "Five33 Switchback", dimbazus: "Bahamut", Liapos: "Bahamut", Agorastos: "Carbix Zero", Torque72: "Five33 Switchback", Pontikos: null, Gaston_FPV: "Five33 Switchback" } }
   ],
-  duels: []
+  duels: [
+    { pilot_a: 'Exo_FPV', pilot_b: 'ZOUP', track: 'SimRushWeek-5', created_at: '2026-11-01T10:00:00', deadline: '2026-11-04T10:00:00', best_time_a: 39.312, best_time_b: 40.165, resolved: false },
+    { pilot_a: 'TettixPro', pilot_b: 'DedalosFPV', track: 'SimRush Week1', created_at: '2026-10-12T10:00:00', deadline: '2026-10-15T10:00:00', best_time_a: 44.709, best_time_b: 50.564, resolved: true },
+    { pilot_a: 'tomahok', pilot_b: 'Cbeikos', track: 'SimRushWeek2', created_at: '2026-10-18T10:00:00', deadline: '2026-10-21T10:00:00', best_time_a: 128.807, best_time_b: 132.451, resolved: true }
+  ]
 };
 
 const DATA_URL = "https://raw.githubusercontent.com/alefas9/velocidrone-bot/main/site_data.json";

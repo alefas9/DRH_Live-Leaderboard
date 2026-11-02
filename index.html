@@ -37,10 +37,12 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
 
 /* ---------- HERO ---------- */
 #hero{position:relative;min-height:100svh;display:flex;flex-direction:column;overflow:hidden}
+.hero-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.85;animation:bgDrift 26s ease-in-out infinite alternate;transform-origin:center}
+@keyframes bgDrift{0%{transform:scale(1.02) translate(0,0)}50%{transform:scale(1.07) translate(-1.2%,.8%)}100%{transform:scale(1.04) translate(1%, -.6%)}}
 #bg-canvas{position:absolute;inset:0;width:100%;height:100%}
 .hero-vignette{position:absolute;inset:0;background:
-  radial-gradient(ellipse 80% 60% at 50% 40%,transparent 40%,rgba(10,10,15,.85) 100%),
-  linear-gradient(to bottom,rgba(10,10,15,.4),transparent 30%,transparent 60%,var(--bg) 100%);pointer-events:none}
+  radial-gradient(ellipse 80% 60% at 50% 40%,rgba(10,10,15,.25) 0%,rgba(10,10,15,.72) 78%),
+  linear-gradient(to bottom,rgba(10,10,15,.55),rgba(10,10,15,.25) 30%,rgba(10,10,15,.35) 60%,var(--bg) 100%);pointer-events:none}
 .top-nav{position:relative;z-index:10;display:flex;align-items:center;justify-content:center;padding:20px 24px;max-width:1700px;margin:0 auto;width:100%}
 .nav-links{display:flex;gap:34px;align-items:center}
 .nav-links a{color:rgba(255,255,255,.55);text-decoration:none;font-weight:600;font-size:14px;transition:color .2s}
@@ -88,10 +90,10 @@ h1.hero-title .grad{background:linear-gradient(100deg,var(--cyan) 10%,var(--fuch
 .scroll-hint{display:none}
 
 /* ---------- COUNTDOWN ---------- */
-.countdown-bar{position:relative;z-index:6;max-width:1700px;margin:0 auto;width:100%;padding:0 24px}
+.countdown-bar{position:relative;z-index:6;max-width:1700px;margin:0 auto;width:100%;padding:18px 24px 0}
 .cd-card{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;
   background:linear-gradient(100deg,rgba(34,211,238,.08),rgba(232,121,249,.08));
-  border:1px solid rgba(34,211,238,.25);border-radius:18px;padding:18px 28px;transform:translateY(-50%);backdrop-filter:blur(10px)}
+  border:1px solid rgba(34,211,238,.25);border-radius:18px;padding:18px 28px;backdrop-filter:blur(10px)}
 .cd-left{display:flex;align-items:center;gap:16px}
 .cd-label{font-family:var(--font-mono);font-size:11px;letter-spacing:.25em;color:var(--cyan);text-transform:uppercase}
 .cd-track{font-family:var(--font-display);font-weight:900;font-size:20px;letter-spacing:-.01em}
@@ -229,30 +231,22 @@ main{position:relative;max-width:1700px;margin:0 auto;padding:0 24px 80px}
 .lg-item .sw{width:16px;height:4px;border-radius:2px}
 .lg-item.off{opacity:.35}
 
-/* ---------- H2H DUELS ---------- */
+/* ---------- DUELS ---------- */
 .duel{display:flex;align-items:center;gap:12px;padding:16px 14px;border-radius:16px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);margin-bottom:12px;transition:border .2s}
 .duel:hover{border-color:rgba(251,146,60,.35)}
+.duel.done{opacity:.75}
 .duel .who{flex:1;min-width:0;text-align:center}
 .duel .who .n{font-weight:800;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.duel .who .s{font-size:11px;color:rgba(255,255,255,.4);margin-top:2px}
+.duel .who .n.w{color:var(--yellow);text-shadow:0 0 14px rgba(250,204,21,.4)}
+.duel .who .s{font-size:11px;color:rgba(255,255,255,.4);margin-top:2px;font-family:var(--font-mono)}
 .duel .mid{display:flex;flex-direction:column;align-items:center;gap:4px;flex-shrink:0}
-.duel .score{font-family:var(--font-mono);font-weight:700;font-size:19px;letter-spacing:.05em;padding:6px 16px;border-radius:12px;background:rgba(251,146,60,.1);border:1px solid rgba(251,146,60,.3)}
+.duel .score{font-family:var(--font-mono);font-weight:700;font-size:16px;letter-spacing:.02em;padding:6px 16px;border-radius:12px;background:rgba(251,146,60,.1);border:1px solid rgba(251,146,60,.3)}
 .duel .score b:first-child{color:var(--cyan)} .duel .score b:last-child{color:var(--fuchsia)}
 .duel .score .d{color:rgba(255,255,255,.3);margin:0 8px}
-.duel-note{font-size:11px;color:rgba(255,255,255,.35);text-align:center;margin-top:4px}
-
-/* ---------- QUAD META DONUT ---------- */
-.meta-flex{display:flex;gap:28px;align-items:center;flex-wrap:wrap}
-.donut-wrap{position:relative;width:170px;height:170px;flex-shrink:0}
-#donut{width:100%;height:100%}
-.donut-c{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
-.donut-c .b{font-family:var(--font-display);font-weight:900;font-size:30px}
-.donut-c .s{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.45);margin-top:2px}
-.meta-list{flex:1;min-width:220px;display:flex;flex-direction:column;gap:10px}
-.mrow{display:flex;align-items:center;gap:12px;font-size:13px}
-.mrow .sw{width:10px;height:10px;border-radius:3px;flex-shrink:0}
-.mrow .nm{flex:1;color:rgba(255,255,255,.75);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.mrow .pc{font-family:var(--font-mono);font-weight:700}
+.duel-track{font-size:10px;color:rgba(255,255,255,.4);letter-spacing:.04em;text-transform:uppercase;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.duel-sep{font-family:var(--font-mono);font-size:10px;letter-spacing:.25em;color:rgba(255,255,255,.35);margin:16px 0 10px;display:flex;align-items:center;gap:10px}
+.duel-sep::after{content:"";flex:1;height:1px;background:rgba(255,255,255,.08)}
+.duel-sep:first-child{margin-top:0}
 
 /* ---------- ARCHIVE ---------- */
 .acc-item{border-bottom:1px solid rgba(255,255,255,.07)}
@@ -346,8 +340,7 @@ footer{border-top:1px solid var(--line);padding:40px 24px 48px;background:linear
   .lb-row .gap{display:none}
   .pod .block{border-radius:10px 10px 0 0}
   .dr-stats{grid-template-columns:repeat(2,1fr)}
-  .cd-card{transform:none;margin-top:16px}
-  .countdown-bar{padding:0 16px}
+  .countdown-bar{padding:14px 16px 0}
   main{padding:0 16px 60px}
 }
 @media(prefers-reduced-motion:reduce){
@@ -359,6 +352,7 @@ footer{border-top:1px solid var(--line);padding:40px 24px 48px;background:linear
 
 <!-- ======================= HERO ======================= -->
 <header id="hero">
+  <img class="hero-bg" src="bg-traces.webp" alt="" aria-hidden="true">
   <canvas id="bg-canvas"></canvas>
   <div class="hero-vignette"></div>
 
@@ -436,8 +430,8 @@ footer{border-top:1px solid var(--line);padding:40px 24px 48px;background:linear
     <div class="section-head">
       <div class="sh-left">
         <div class="kick" style="color:var(--fuchsia)">SEASON 2026</div>
-        <h2>ΤΟ <span style="color:var(--fuchsia)">ΣΙΝΕΜΑ</span> ΤΗΣ ΣΕΖΟΝ</h2>
-        <p>Πώς συσσωρεύονται οι βαθμοί για τους κορυφαίους πιλότους, εβδομάδα με εβδομάδα.</p>
+        <h2>Η ΣΕΖΟΝ <span style="color:var(--fuchsia)">ΜΕ ΜΙΑ ΜΑΤΙΑ</span></h2>
+        <p>Ό,τι έχει γίνει μέχρι τώρα — μια ματιά αρκεί.</p>
       </div>
     </div>
 
@@ -463,25 +457,10 @@ footer{border-top:1px solid var(--line);padding:40px 24px 48px;background:linear
       <div style="display:flex;flex-direction:column;gap:24px">
         <div class="card" id="duels-card">
           <div class="card-head">
-            <h3>ACTIVE <i style="color:var(--orange)">DUELS</i></h3>
+            <h3>DRH <i style="color:var(--orange)">DUELS</i></h3>
             <span class="tag" id="duels-count" style="background:rgba(251,146,60,.12);color:var(--orange)">0 LIVE</span>
           </div>
           <div id="duels"></div>
-          <div class="duel-note">Μονομαχίες που όρισε το DRH bot — εμφανίζονται εδώ αυτόματα.</div>
-        </div>
-
-        <div class="card">
-          <div class="card-head">
-            <h3>QUAD <i style="color:var(--violet)">META</i></h3>
-            <span class="tag" style="background:rgba(167,139,250,.12);color:var(--violet)">FIELD REPORT</span>
-          </div>
-          <div class="meta-flex">
-            <div class="donut-wrap">
-              <canvas id="donut"></canvas>
-              <div class="donut-c"><div class="b" id="donut-b">—</div><div class="s">entries</div></div>
-            </div>
-            <div class="meta-list" id="meta-list"></div>
-          </div>
         </div>
       </div>
     </div>
