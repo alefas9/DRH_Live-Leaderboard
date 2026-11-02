@@ -41,12 +41,8 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
 .hero-vignette{position:absolute;inset:0;background:
   radial-gradient(ellipse 80% 60% at 50% 40%,transparent 40%,rgba(10,10,15,.85) 100%),
   linear-gradient(to bottom,rgba(10,10,15,.4),transparent 30%,transparent 60%,var(--bg) 100%);pointer-events:none}
-.top-nav{position:relative;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:20px 24px;max-width:1700px;margin:0 auto;width:100%}
-.nav-logo{display:flex;align-items:center;gap:14px}
-.nav-logo img{height:44px;width:auto;filter:drop-shadow(0 0 18px rgba(34,211,238,.35))}
-.nav-logo span{font-family:var(--font-display);font-weight:900;letter-spacing:-.02em;font-size:20px}
-.nav-logo span em{font-style:normal;color:var(--cyan)}
-.nav-links{display:flex;gap:28px;align-items:center}
+.top-nav{position:relative;z-index:10;display:flex;align-items:center;justify-content:center;padding:20px 24px;max-width:1700px;margin:0 auto;width:100%}
+.nav-links{display:flex;gap:34px;align-items:center}
 .nav-links a{color:rgba(255,255,255,.55);text-decoration:none;font-weight:600;font-size:14px;transition:color .2s}
 .nav-links a:hover{color:#fff}
 .live-pill{display:flex;align-items:center;gap:8px;padding:8px 16px;border:1px solid rgba(239,68,68,.4);border-radius:999px;background:rgba(239,68,68,.08);font-size:12px;font-weight:700;letter-spacing:.1em}
@@ -55,7 +51,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
 
 .hero-center{position:relative;z-index:5;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 24px;gap:0}
 .hero-badge-wrap{position:relative;margin-bottom:28px}
-.hero-badge-wrap img{height:150px;width:auto;animation:breathe 3.2s ease-in-out infinite;filter:drop-shadow(0 0 40px rgba(34,211,238,.3))}
+.hero-badge-wrap img{height:260px;width:auto;animation:breathe 3.2s ease-in-out infinite;filter:drop-shadow(0 0 40px rgba(34,211,238,.3))}
 @keyframes breathe{0%,100%{filter:drop-shadow(0 0 25px rgba(34,211,238,.2))}50%{filter:drop-shadow(0 0 55px rgba(232,121,249,.45))}}
 .hero-kicker{font-family:var(--font-mono);font-size:13px;letter-spacing:.35em;color:var(--cyan);text-transform:uppercase;margin-bottom:18px;opacity:0;animation:rise .8s .2s forwards}
 h1.hero-title{font-family:var(--font-display);font-weight:900;font-size:clamp(3rem,9vw,7.5rem);line-height:.92;letter-spacing:-.03em;text-transform:uppercase}
@@ -89,10 +85,7 @@ h1.hero-title .grad{background:linear-gradient(100deg,var(--cyan) 10%,var(--fuch
 .tick-item b{color:#fff}
 .tick-item .win{color:var(--yellow)}
 
-.scroll-hint{position:relative;z-index:5;display:flex;flex-direction:column;align-items:center;gap:6px;padding:18px 0 22px;color:rgba(255,255,255,.35);font-size:11px;letter-spacing:.25em;text-transform:uppercase}
-.scroll-hint .mouse{width:22px;height:36px;border:2px solid rgba(255,255,255,.3);border-radius:12px;position:relative}
-.scroll-hint .mouse::after{content:"";position:absolute;left:50%;top:6px;width:3px;height:7px;margin-left:-1.5px;border-radius:2px;background:var(--cyan);animation:wheel 1.6s infinite}
-@keyframes wheel{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(12px)}}
+.scroll-hint{display:none}
 
 /* ---------- COUNTDOWN ---------- */
 .countdown-bar{position:relative;z-index:6;max-width:1700px;margin:0 auto;width:100%;padding:0 24px}
@@ -370,13 +363,8 @@ footer{border-top:1px solid var(--line);padding:40px 24px 48px;background:linear
   <div class="hero-vignette"></div>
 
   <nav class="top-nav">
-    <div class="nav-logo">
-      <img src="drh-badge.png" alt="DRH badge">
-      <span>DRONE RACING <em>HELLAS</em></span>
-    </div>
     <div class="nav-links">
       <a href="#live">Live</a>
-      <a href="#titlefight">Battle</a>
       <a href="#season">Season</a>
       <a href="#archive">Archive</a>
       <span class="live-pill"><span class="dot"></span>LIVE</span>
@@ -392,12 +380,11 @@ footer{border-top:1px solid var(--line);padding:40px 24px 48px;background:linear
     <div class="hero-stats" id="hero-stats"></div>
     <div class="hero-cta">
       <a href="#live" style="text-decoration:none"><button class="btn btn-primary">▸ Live Leaderboard</button></a>
-      <a href="#titlefight" style="text-decoration:none"><button class="btn btn-ghost">Τίτλος 2026</button></a>
+      <a href="#season" style="text-decoration:none"><button class="btn btn-ghost">Μαχη της Σεζον 2026</button></a>
     </div>
   </div>
 
   <div class="hero-ticker"><div class="ticker-track" id="ticker"></div></div>
-  <div class="scroll-hint"><div class="mouse"></div>κύλιση</div>
 </header>
 
 <!-- countdown -->
@@ -416,18 +403,6 @@ footer{border-top:1px solid var(--line);padding:40px 24px 48px;background:linear
 
 <!-- ======================= MAIN ======================= -->
 <main>
-
-  <!-- TITLE FIGHT -->
-  <section id="titlefight" class="reveal">
-    <div class="titlefight">
-      <div class="tf-head">
-        <span class="chip l">● Title Fight</span>
-        <span class="chip r" id="tf-weeks">SEASON 2026</span>
-      </div>
-      <div class="tf-grid" id="tf-grid"></div>
-      <div class="tf-bar"><div class="pa" id="tf-pa"></div><div class="pb" id="tf-pb"></div></div>
-    </div>
-  </section>
 
   <!-- LIVE LEADERBOARD -->
   <section id="live" class="reveal">
@@ -456,7 +431,7 @@ footer{border-top:1px solid var(--line);padding:40px 24px 48px;background:linear
     <div class="err-banner" id="err-banner">⚠ Δεν φτάνει το live data — δείχνουμε το τελευταίο snapshot. <button id="retry-btn" style="color:var(--cyan);font-weight:700;text-decoration:underline">Δοκίμασε ξανά</button></div>
   </section>
 
-  <!-- SEASON: chart + duels + meta -->
+  <!-- SEASON: title fight + chart + duels + meta -->
   <section id="season" class="reveal">
     <div class="section-head">
       <div class="sh-left">
@@ -464,6 +439,15 @@ footer{border-top:1px solid var(--line);padding:40px 24px 48px;background:linear
         <h2>ΤΟ <span style="color:var(--fuchsia)">ΣΙΝΕΜΑ</span> ΤΗΣ ΣΕΖΟΝ</h2>
         <p>Πώς συσσωρεύονται οι βαθμοί για τους κορυφαίους πιλότους, εβδομάδα με εβδομάδα.</p>
       </div>
+    </div>
+
+    <div class="titlefight" style="margin-bottom:24px">
+      <div class="tf-head">
+        <span class="chip l">● Title Fight</span>
+        <span class="chip r" id="tf-weeks">SEASON 2026</span>
+      </div>
+      <div class="tf-grid" id="tf-grid"></div>
+      <div class="tf-bar"><div class="pa" id="tf-pa"></div><div class="pb" id="tf-pb"></div></div>
     </div>
 
     <div class="grid-2">
@@ -479,11 +463,11 @@ footer{border-top:1px solid var(--line);padding:40px 24px 48px;background:linear
       <div style="display:flex;flex-direction:column;gap:24px">
         <div class="card" id="duels-card">
           <div class="card-head">
-            <h3>ALL-TIME <i style="color:var(--orange)">HEAD-TO-HEAD</i></h3>
-            <span class="tag" style="background:rgba(251,146,60,.12);color:var(--orange)">ΣΤΑΤΙΣΤΙΚΟ</span>
+            <h3>ACTIVE <i style="color:var(--orange)">DUELS</i></h3>
+            <span class="tag" id="duels-count" style="background:rgba(251,146,60,.12);color:var(--orange)">0 LIVE</span>
           </div>
           <div id="duels"></div>
-          <div class="duel-note">Δεν είναι επίσημες μονομαχίες — υπολογίζεται από τα αποτελέσματα: ποιος είχε καλύτερο χρόνο όποτε πετούσαν και οι δύο στο ίδιο track.</div>
+          <div class="duel-note">Μονομαχίες που όρισε το DRH bot — εμφανίζονται εδώ αυτόματα.</div>
         </div>
 
         <div class="card">

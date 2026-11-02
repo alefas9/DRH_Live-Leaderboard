@@ -95,7 +95,7 @@ function heroTitle() {
     w.style.whiteSpace = "nowrap";
     for (const ch of word) {
       const s = document.createElement("span");
-      s.className = "l" + (i > 12 ? " grad" : "");
+      s.className = "l" + (i >= 11 ? " grad" : ""); // "HELLAS" = letters 11-16, whole word gets gradient
       s.textContent = ch;
       s.style.animationDelay = (0.35 + i * 0.045) + "s";
       w.appendChild(s); i++;
@@ -366,34 +366,33 @@ function drawChart(d) {
   }
 }
 
-// ------------------------------------------------------------------ duels (h2h + live duels from bot)
+// ------------------------------------------------------------------ duels (only real ones from the bot)
 function buildDuels(d) {
   const box = $("#duels");
-  const real = (d.duels || []).slice(0, 4);
-  if (real.length) {
-    // real duels provided by the bot — render as active challenges
-    box.innerHTML = real.map(p => `
-      <div class="duel">
-        <div class="who"><div class="n">${esc(p.pilot_a)}</div><div class="s">${esc(p.track || "")}</div></div>
-        <div class="mid"><div class="score"><b>${p.score_a ?? 0}</b><span class="d">—</span><b>${p.score_b ?? 0}</b></div></div>
-        <div class="who"><div class="n">${esc(p.pilot_b)}</div><div class="s">${p.status || ""}</div></div>
-      </div>`).join("") + `<div class="duel-note">Ενεργές μονομαχίες από το DRH bot.</div>`;
+  const real = d.duels || [];
+  const count = $("#duels-count");
+  if (!real.length) {
+    count.textContent = "0 LIVE";
+    box.innerHTML = `
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:36px 12px;gap:8px">
+        <div style="font-size:32px">⚔️</div>
+        <div style="color:rgba(255,255,255,.6);font-size:14px;font-weight:700">Καμία ενεργή μονομαχία</div>
+        <div style="color:rgba(255,255,255,.4);font-size:12px">Όταν το DRH bot ορίσει duels, θα εμφανιστούν εδώ αυτόματα.</div>
+      </div>`;
     return;
   }
-  const pairs = Object.values(d.h2h);
-  // interesting: pairs with most races + close scores, plus anything involving top pilots
-  const score = p => p.aw + p.bw;
-  pairs.sort((a, b) => score(b) - score(a) || Math.abs(a.aw - a.bw) - Math.abs(b.aw - b.bw));
-  const top = new Set([d.titleFight.a.pilot, d.titleFight.b.pilot, ...((d.season_standings["5inch"] || []).slice(0, 4).map(s => s.pilot))]);
-  let picked = pairs.filter(p => top.has(p.a) || top.has(p.b)).slice(0, 4);
-  if (picked.length < 3) picked = pairs.slice(0, 4);
-  if (!picked.length) { $("#duels").innerHTML = `<div class="duel-note">Ακόμα δεν υπάρχουν μονομαχίες.</div>`; return; }
-  $("#duels").innerHTML = picked.map(p => `
-    <div class="duel">
-      <div class="who"><div class="n">${esc(p.a)}</div><div class="s">${p.aw} νίκες</div></div>
-      <div class="mid"><div class="score"><b>${p.aw}</b><span class="d">—</span><b>${p.bw}</b></div></div>
-      <div class="who"><div class="n">${esc(p.b)}</div><div class="s">${p.bw} νίκες</div></div>
-    </div>`).join("");
+  count.textContent = real.length + " LIVE";
+  box.innerHTML = real.map(p => {
+    const a = p.pilot_a || {}, b = p.pilot_b || {};
+    const an = a.pilot || a.name || "?", bn = b.pilot || b.name || "?";
+    const as = a.score ?? a.wins ?? "—", bs = b.score ?? b.wins ?? "—";
+    return `
+      <div class="duel">
+        <div class="who"><div class="n">${esc(an)}</div><div class="s">${esc(a.time != null ? Number(a.time).toFixed(3) + "s" : (a.quad || ""))}</div></div>
+        <div class="mid"><div class="score"><b>${as}</b><span class="d">—</span><b>${bs}</b></div></div>
+        <div class="who"><div class="n">${esc(bn)}</div><div class="s">${esc(b.time != null ? Number(b.time).toFixed(3) + "s" : (b.quad || ""))}</div></div>
+      </div>`;
+  }).join("");
 }
 
 // ------------------------------------------------------------------ quad meta
