@@ -212,7 +212,7 @@ function buildLeaderboard(d) {
   // week progress
   const flown = new Set(cur.map(r => r.pilot)).size, total = sea.length || 1;
   const pct = Math.round(flown / total * 100);
-  $("#wp-txt").innerHTML = `ΕΒΔΟΜΑΡΑ ΣΕ ΕΞΕΛΙΞΗ · <b>${flown}/${total}</b> πιλότοι έχουν πετάξει`;
+  $("#wp-txt").innerHTML = `ΕΒΔΟΜΑΔΑ ΣΕ ΕΞΕΛΙΞΗ · <b>${flown}/${total}</b> πιλότοι έχουν πετάξει`;
   $("#wp-pct").textContent = pct + "%";
   requestAnimationFrame(() => $("#wp-fill").style.width = pct + "%");
 
