@@ -366,8 +366,20 @@ function drawChart(d) {
   }
 }
 
-// ------------------------------------------------------------------ duels (h2h)
+// ------------------------------------------------------------------ duels (h2h + live duels from bot)
 function buildDuels(d) {
+  const box = $("#duels");
+  const real = (d.duels || []).slice(0, 4);
+  if (real.length) {
+    // real duels provided by the bot — render as active challenges
+    box.innerHTML = real.map(p => `
+      <div class="duel">
+        <div class="who"><div class="n">${esc(p.pilot_a)}</div><div class="s">${esc(p.track || "")}</div></div>
+        <div class="mid"><div class="score"><b>${p.score_a ?? 0}</b><span class="d">—</span><b>${p.score_b ?? 0}</b></div></div>
+        <div class="who"><div class="n">${esc(p.pilot_b)}</div><div class="s">${p.status || ""}</div></div>
+      </div>`).join("") + `<div class="duel-note">Ενεργές μονομαχίες από το DRH bot.</div>`;
+    return;
+  }
   const pairs = Object.values(d.h2h);
   // interesting: pairs with most races + close scores, plus anything involving top pilots
   const score = p => p.aw + p.bw;
