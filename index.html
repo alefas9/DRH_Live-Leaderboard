@@ -161,8 +161,8 @@ main{position:relative;max-width:1700px;margin:0 auto;padding:0 24px 80px}
 
 /* ---------- CARDS / GRID ---------- */
 .grid-2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(480px,100%),1fr));gap:24px}
-.card{position:relative;background:var(--card);border-radius:24px;z-index:0}
-.card::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;
+.card{position:relative;background:var(--card);border:1px solid var(--line);border-radius:24px;padding:clamp(20px,3vw,32px);z-index:0}
+.card::before{content:"";position:absolute;inset:-1px;border-radius:inherit;padding:1.5px;
   background:conic-gradient(from var(--led-angle,0deg),var(--cyan) 0%,var(--fuchsia) 25%,transparent 42%,transparent 58%,var(--fuchsia) 75%,var(--cyan) 100%);
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
   -webkit-mask-composite:xor;mask-composite:exclude;
@@ -173,8 +173,7 @@ main{position:relative;max-width:1700px;margin:0 auto;padding:0 24px 80px}
 .card::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:0;transition:opacity .4s;
   background:radial-gradient(520px circle at var(--mx,50%) var(--my,50%),rgba(34,211,238,.08),transparent 45%);z-index:1}
 .card:hover::after{opacity:1}
-.card-inner{position:relative;z-index:2;background:var(--card);border-radius:inherit;height:100%}
-.card-inner{padding:clamp(20px,3vw,32px)}
+.card>*{position:relative;z-index:2}
 .card-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:20px;flex-wrap:wrap}
 .card-head h3{font-family:var(--font-display);font-weight:900;font-size:clamp(1.25rem,2.2vw,1.7rem);letter-spacing:-.02em;text-transform:uppercase}
 .card-head h3 i{font-style:normal}
@@ -430,7 +429,7 @@ footer{border-top:1px solid var(--line);padding:40px 24px 48px;background:linear
       </div>
     </div>
 
-    <div class="card"><div class="card-inner">
+    <div class="card">
       <div class="week-progress" id="week-progress">
         <div class="wp-txt" id="wp-txt"></div>
         <div class="wp-bar"><div class="wp-fill" id="wp-fill"></div></div>
@@ -439,7 +438,7 @@ footer{border-top:1px solid var(--line);padding:40px 24px 48px;background:linear
       <div id="podium-box"></div>
       <div class="lb-table" id="lb-body"></div>
       <button class="show-more" id="lb-more" style="display:none">VIEW FULL RANKINGS ▾</button>
-    </div></div>
+    </div>
     <div class="err-banner" id="err-banner">⚠ Δεν φτάνει το live data — δείχνουμε το τελευταίο snapshot. <button id="retry-btn" style="color:var(--cyan);font-weight:700;text-decoration:underline">Δοκίμασε ξανά</button></div>
   </section>
 
@@ -454,23 +453,23 @@ footer{border-top:1px solid var(--line);padding:40px 24px 48px;background:linear
     </div>
 
     <div class="grid-2">
-      <div class="card"><div class="card-inner">
+      <div class="card">
         <div class="card-head">
           <h3>POINTS <i style="color:var(--cyan)">PROGRESSION</i></h3>
           <span class="tag" style="background:rgba(34,211,238,.12);color:var(--cyan)">TOP 6</span>
         </div>
         <div class="chart-wrap"><canvas id="progress-chart"></canvas></div>
         <div class="chart-legend" id="chart-legend"></div>
-      </div></div>
+      </div>
 
       <div style="display:flex;flex-direction:column;gap:24px">
-        <div class="card" id="duels-card"><div class="card-inner">
+        <div class="card" id="duels-card">
           <div class="card-head">
             <h3>DRH <i style="color:var(--orange)">DUELS</i></h3>
             <span class="tag" id="duels-count" style="background:rgba(251,146,60,.12);color:var(--orange)">0 LIVE</span>
           </div>
           <div id="duels"></div>
-        </div></div>
+        </div>
 
         <div class="titlefight compact">
           <div class="tf-head">
