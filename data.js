@@ -101,7 +101,7 @@ const FALLBACK = {
   ]
 };
 
-const DATA_URL = "https://raw.githubusercontent.com/alefas9/velocidrone-bot/main/site_data.json";
+const DATA_URL = "https://raw.githubusercontent.com/alefas9/velocidrone-bot-data/main/site_data.json";
 const REFRESH_MS = 5 * 60 * 1000;
 
 // ---- derived data ----------------------------------------------------------
