@@ -1,5 +1,9 @@
 // DRH Leaderboard — data layer
-// Fetches live from the same source as the React app, with local fallback snapshot.
+// Fetches live from the bot's site_data.json, with local fallback snapshot.
+// Class-agnostic: supports any number of classes (5inch, tinywhoop, ...)
+// discovered dynamically from the payload. New classes appear automatically
+// as soon as the bot exports them — no frontend change needed.
+
 const FALLBACK = {
   generated_at: "2026-11-02T20:30:02.965744",
   season: 2026,
@@ -101,60 +105,91 @@ const FALLBACK = {
   ]
 };
 
-const DATA_URL = "https://raw.githubusercontent.com/alefas9/velocidrone-bot-data/main/site_data.json";
+const DATA_URL = "https://raw.githubusercontent.com/alefas9/velocidrone-bot/main/site_data.json";
 const REFRESH_MS = 5 * 60 * 1000;
+const DEFAULT_CLASS = "5inch";
 
-// ---- derived data ----------------------------------------------------------
+// ---- class helpers -----------------------------------------------------------
 
-function computeDerived(d) {
-  const weeks = (d.history || []).map((h, i) => ({
-    n: i + 1,
-    label: "W" + (i + 1),
-    track: h.track,
-    date: h.date,
-    winner: h.winner,
-    best: h.best_time,
-    records: h.records_broken || 0,
-    pilots: h.pilots_count || (h.results || []).length,
-    results: (h.results || []).map((r, j) => ({ ...r, rank: j + 1 })),
-    quads: h.quads || {}
-  }));
+// Pretty labels per class; unknown classes get a best-effort prettified name.
+const CLASS_LABELS = {
+  "5inch": '5"',
+  "tinywhoop": "TinyWhoop",
+  "whoop": "TinyWhoop",
+  "micro": "Micro",
+  "7inch": '7"'
+};
+function classLabel(cls) {
+  if (CLASS_LABELS[cls]) return CLASS_LABELS[cls];
+  return String(cls).replace(/[_-]+/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+}
+
+// Union of class keys from every place they can appear in the payload.
+// `5inch` always first (default), then whatever else the bot exports, in
+// first-seen order. TinyWhoop (or anything new) shows up automatically.
+function discoverClasses(d) {
+  const found = [];
+  const push = (c) => { if (c && !found.includes(c)) found.push(c); };
+  Object.keys(d.current_leaderboard || {}).forEach(push);
+  Object.keys(d.season_standings || {}).forEach(push);
+  (d.history || []).forEach(h => push(h.class || DEFAULT_CLASS));
+  if (!found.length) found.push(DEFAULT_CLASS);
+  found.sort((a, b) => (a === DEFAULT_CLASS ? -1 : b === DEFAULT_CLASS ? 1 : 0));
+  return found;
+}
+
+// ---- derived data (per class) ------------------------------------------------
+
+function computeDerived(d, cls) {
+  cls = cls || DEFAULT_CLASS;
+  const standings = (d.season_standings && d.season_standings[cls]) || [];
+  const currentLb = (d.current_leaderboard && d.current_leaderboard[cls]) || [];
+
+  // history weeks of THIS class only — untagged entries count as the default class
+  const weeks = (d.history || [])
+    .filter(h => (h.class || DEFAULT_CLASS) === cls)
+    .map((h, i) => ({
+      n: i + 1,
+      label: "W" + (i + 1),
+      track: h.track,
+      date: h.date,
+      winner: h.winner,
+      best: h.best_time,
+      records: h.records_broken || 0,
+      pilots: h.pilots_count || (h.results || []).length,
+      results: (h.results || []).map((r, j) => ({ ...r, rank: j + 1 })),
+      quads: h.quads || {}
+    }));
 
   // cumulative points progression per pilot
   const progression = {}; // pilot -> [cumPoints after each week]
   const pilots = new Set();
   weeks.forEach(w => w.results.forEach(r => pilots.add(r.pilot)));
   pilots.forEach(p => progression[p] = []);
-  let cum = {};
+  const cum = {};
   [...pilots].forEach(p => (cum[p] = 0));
   weeks.forEach(w => {
     w.results.forEach(r => (cum[r.pilot] = (cum[r.pilot] || 0) + (r.points || 0)));
     [...pilots].forEach(p => progression[p].push(cum[p] || 0));
   });
+  // pilots in standings but never in a week's results (new season, no flights yet):
+  // give them a flat zero line so charts/lookups never hit undefined.
+  standings.forEach(s => { if (!progression[s.pilot]) progression[s.pilot] = weeks.map(() => 0); });
 
-  // head-to-head wins
-  const h2h = {};
-  const names = [...pilots];
-  for (let i = 0; i < names.length; i++) {
-    for (let j = i + 1; j < names.length; j++) {
-      const a = names[i], b = names[j];
-      let aw = 0, bw = 0;
-      weeks.forEach(w => {
-        const ra = w.results.find(r => r.pilot === a);
-        const rb = w.results.find(r => r.pilot === b);
-        if (ra && rb) { if (ra.time < rb.time) aw++; else if (rb.time < ra.time) bw++; }
-      });
-      if (aw + bw > 0) h2h[a + "|" + b] = { a, b, aw, bw };
-    }
-  }
-
-  // per-pilot profile cards
-  const standings = d.season_standings["5inch"] || [];
+  // per-pilot profile cards — built from standings AND current leaderboard,
+  // so a brand-new pilot with no season points still opens a drawer.
   const profiles = {};
-  standings.forEach(s => {
-    const weekResults = weeks.map(w => w.results.find(r => r.pilot === s.pilot)).map((r, i) => r ? { week: i + 1, ...r } : null);
-    const quadsUsed = [...new Set(weeks.map(w => w.quads[s.pilot]).filter(Boolean))];
-    profiles[s.pilot] = {
+  const profileSeeds = new Map();
+  standings.forEach(s => profileSeeds.set(s.pilot, { ...s }));
+  currentLb.forEach(r => {
+    if (!profileSeeds.has(r.pilot)) profileSeeds.set(r.pilot, { pilot: r.pilot, points: 0, wins: 0, podiums: 0, best: null });
+  });
+  profileSeeds.forEach((s, name) => {
+    const weekResults = weeks.map(w => w.results.find(r => r.pilot === name)).map((r, i) => r ? { week: i + 1, ...r } : null);
+    const quadsUsed = [...new Set(weeks.map(w => w.quads[name]).filter(Boolean))];
+    const cur = currentLb.find(r => r.pilot === name);
+    if (cur && cur.quad && !quadsUsed.includes(cur.quad)) quadsUsed.push(cur.quad);
+    profiles[name] = {
       ...s,
       weeks: weekResults,
       quads: quadsUsed,
@@ -170,46 +205,90 @@ function computeDerived(d) {
   // quad meta
   const quadCount = {};
   weeks.forEach(w => Object.values(w.quads || {}).forEach(q => { if (q) quadCount[q] = (quadCount[q] || 0) + 1; }));
-  (d.current_leaderboard["5inch"] || []).forEach(r => { if (r.quad) quadCount[r.quad] = (quadCount[r.quad] || 0) + 1; });
+  currentLb.forEach(r => { if (r.quad) quadCount[r.quad] = (quadCount[r.quad] || 0) + 1; });
 
   const totalRecords = weeks.reduce((s, w) => s + (w.records || 0), 0);
   const totalPoints = standings.reduce((s, p) => s + (p.points || 0), 0);
+  const seasonBest = weeks.length ? Math.min(...weeks.map(w => (w.best == null ? Infinity : w.best))) : null;
 
-  // next track estimate: weekly drop, Sat ~18:00 local, from last history date
-  const lastDate = weeks.length ? new Date(weeks[weeks.length - 1].date) : new Date();
+  // next track estimate: weekly drop, Sat ~18:00 local, from last history date (any class)
+  const allWeeks = d.history || [];
+  const lastDate = allWeeks.length ? new Date(allWeeks[allWeeks.length - 1].date) : new Date();
   let next = new Date(lastDate);
   next.setDate(next.getDate() + 7);
   const now = new Date();
-  if (next < now) { // already passed — next week from now
+  if (next < now) { // already passed — next Saturday from now
     next = new Date(now);
     next.setDate(next.getDate() + ((6 - now.getDay() + 7) % 7 || 7));
     next.setHours(18, 0, 0, 0);
   }
 
-  // title fight: top-2
-  const s1 = standings[0], s2 = standings[1];
+  // title fight: top-2 — tolerate classes with 0 or 1 pilot
+  const s1 = standings[0] || null;
+  const s2 = standings[1] || null;
+
+  // ---- v2 fields (από το νέο export του bot — όλα optional, με safe defaults)
+
+  // track -> class map, για να φιλτράρεται το improvement feed ανά κλάση
+  const trackClass = {};
+  (d.history || []).forEach(h => { trackClass[h.track] = h.class || DEFAULT_CLASS; });
+
+  // improvement feed: PB events της κλάσης (ή track που δεν έχει ταξινομηθεί ακόμα)
+  const feed = (d.improvements || []).filter(r => !trackClass[r.track] || trackClass[r.track] === cls);
+
+  // per-pilot PB σύνοψη -> μέσα στα profiles
+  Object.values(profiles).forEach(p => {
+    const st = (d.pilot_stats || {})[p.pilot];
+    p.pbs = st ? st.pbs : 0;
+    p.tracksImproved = st ? st.tracks_improved : 0;
+    p.bestImprovementPct = st ? st.best_improvement_pct : 0;
+  });
 
   return {
-    ...d, weeks, progression, h2h, profiles, quadCount, totalRecords, totalPoints, nextTrackAt: next.toISOString(), titleFight: { a: s1, b: s2, gap: s1.points - s2.points }
+    cls,
+    weeks, progression, profiles, quadCount, totalRecords, totalPoints, seasonBest,
+    standings, currentLb,
+    nextTrackAt: next.toISOString(),
+    titleFight: { a: s1, b: s2, gap: s1 && s2 ? s1.points - s2.points : null },
+    feed,
+    potw: d.pilot_of_the_week || null,
+    hotBattles: d.hot_battles || []
   };
 }
 
-// ---- loader ----------------------------------------------------------------
+// ---- loader --------------------------------------------------------------------
 
-let state = { data: null, derived: null, error: false, updatedAt: null };
+let state = {
+  data: null,          // raw payload
+  classes: [DEFAULT_CLASS],
+  derivedByClass: {},  // cls -> derived
+  error: false,
+  updatedAt: null
+};
 let initStarted = false;
+
+function buildState(json, error) {
+  const classes = discoverClasses(json);
+  const derivedByClass = {};
+  classes.forEach(c => { derivedByClass[c] = computeDerived(json, c); });
+  state = { data: json, classes, derivedByClass, error, updatedAt: new Date() };
+}
 
 async function fetchNow() {
   try {
     const res = await fetch(DATA_URL, { cache: "no-store" });
     if (!res.ok) throw new Error("bad status " + res.status);
     const json = await res.json();
+    // minimal shape validation — a malformed payload must not kill the UI
+    if (!json || typeof json !== "object" || !json.season_standings || !json.current_leaderboard) {
+      throw new Error("unexpected payload shape");
+    }
     if (!json.history) json.history = state.data ? state.data.history : FALLBACK.history;
-    state = { data: json, derived: computeDerived(json), error: false, updatedAt: new Date() };
+    if (!json.duels) json.duels = [];
+    buildState(json, false);
   } catch (e) {
     console.warn("[DRH] live fetch failed, using fallback:", e.message);
-    const json = state.data || FALLBACK;
-    state = { data: json, derived: computeDerived(json), error: true, updatedAt: new Date() };
+    buildState(state.data || FALLBACK, true);
   }
   return state;
 }

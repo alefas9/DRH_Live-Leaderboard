@@ -348,17 +348,49 @@ footer{border-top:1px solid var(--line);padding:40px 24px 48px;background:linear
 .skel::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.07),transparent);animation:sk 1.4s infinite}
 @keyframes sk{to{transform:translateX(100%)}}
 
+/* ---------- IMPROVEMENT FEED ---------- */
+.feed-row{display:flex;align-items:center;gap:12px;padding:10px 8px;border-bottom:1px solid rgba(255,255,255,.05);font-size:13px}
+.feed-row:last-child{border-bottom:none}
+.feed-row .nm{font-weight:700;cursor:pointer;min-width:110px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.feed-row .nm:hover{color:var(--emerald)}
+.feed-row .fr-track{flex:1;min-width:0;color:rgba(255,255,255,.4);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-transform:uppercase;letter-spacing:.04em}
+.feed-row .fr-delta{font-family:var(--font-mono);font-weight:700;font-size:12px;color:var(--emerald);background:rgba(52,211,153,.1);padding:3px 9px;border-radius:8px;white-space:nowrap}
+.feed-row .fr-first{font-family:var(--font-mono);font-size:9px;letter-spacing:.12em;color:var(--cyan);background:rgba(34,211,238,.08);padding:4px 8px;border-radius:8px;white-space:nowrap}
+.feed-row .t{color:var(--cyan);font-size:13px}
+.feed-row .fr-date{font-family:var(--font-mono);font-size:11px;color:rgba(255,255,255,.35);width:52px;text-align:right;flex-shrink:0}
+
+/* ---------- CLASS SWITCHER ---------- */
+.class-bar{position:relative;z-index:6;max-width:1700px;margin:14px auto 0;width:100%;padding:0 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.cb-label{font-family:var(--font-mono);font-size:11px;letter-spacing:.25em;color:rgba(255,255,255,.45);text-transform:uppercase}
+.cls-pill{border:1px solid var(--line)}
+.cls-pill.on{border-color:transparent}
+
 /* ---------- RESPONSIVE ---------- */
 @media(max-width:760px){
   .nav-links a:not(.keep){display:none}
+  .hero-badge-wrap img{height:180px}
   .tf-grid{grid-template-columns:1fr}
   .tf-vs{flex-direction:row;justify-content:center}
   .lb-row .qd{display:none}
   .lb-row .gap{display:none}
   .pod .block{border-radius:10px 10px 0 0}
+  .podium{gap:6px}
+  .pod .name{font-size:.8rem}
   .dr-stats{grid-template-columns:repeat(2,1fr)}
   .countdown-bar{padding:14px 16px 0}
+  .cd-card{justify-content:center;text-align:center}
+  .cd-num{font-size:22px}
+  .cd-unit{min-width:44px}
+  .class-bar{padding:0 16px;margin-top:12px}
+  .chart-wrap{height:240px}
+  .duel{flex-wrap:wrap;justify-content:center}
+  .duel .who{flex:1 1 40%}
+  .duel .mid{order:3;flex-basis:100%;margin-top:10px}
+  .feed-row{flex-wrap:wrap;gap:6px}
+  .feed-row .fr-track{order:5;flex-basis:100%}
+  .feed-row .nm{min-width:0;flex:1}
   main{padding:0 16px 60px}
+  .btn{padding:14px 24px;font-size:14px}
 }
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
@@ -412,6 +444,12 @@ footer{border-top:1px solid var(--line);padding:40px 24px 48px;background:linear
   </div>
 </div>
 
+<!-- class switcher (κρυφή όταν υπάρχει μία μόνο κατηγορία) -->
+<div class="class-bar" id="class-bar" style="display:none">
+  <span class="cb-label">Κατηγορία</span>
+  <div class="pills" id="class-pills"></div>
+</div>
+
 <!-- ======================= MAIN ======================= -->
 <main>
 
@@ -440,6 +478,17 @@ footer{border-top:1px solid var(--line);padding:40px 24px 48px;background:linear
       <button class="show-more" id="lb-more" style="display:none">VIEW FULL RANKINGS ▾</button>
     </div>
     <div class="err-banner" id="err-banner">⚠ Δεν φτάνει το live data — δείχνουμε το τελευταίο snapshot. <button id="retry-btn" style="color:var(--cyan);font-weight:700;text-decoration:underline">Δοκίμασε ξανά</button></div>
+
+    <!-- IMPROVEMENT FEED -->
+    <div class="card" style="margin-top:24px">
+      <div class="card-head">
+        <h3>IMPROVEMENT <i style="color:var(--emerald)">FEED</i></h3>
+        <span class="tag" id="feed-count" style="background:rgba(52,211,153,.12);color:var(--emerald)">0 PBs</span>
+      </div>
+      <p style="color:rgba(255,255,255,.45);font-size:13px;margin:-8px 0 14px">Κάθε νέο προσωπικό ρεκόρ, όπως καταγράφεται — η βελτίωση μετράει παντού, όχι μόνο στο podium.</p>
+      <div id="feed-list"></div>
+      <button class="show-more" id="feed-more" style="display:none"></button>
+    </div>
   </section>
 
   <!-- SEASON: chart + duels + title fight -->
@@ -463,6 +512,14 @@ footer{border-top:1px solid var(--line);padding:40px 24px 48px;background:linear
       </div>
 
       <div style="display:flex;flex-direction:column;gap:24px">
+        <div class="card" id="potw-card" style="display:none">
+          <div class="card-head">
+            <h3>PILOT OF <i style="color:var(--emerald)">THE WEEK</i></h3>
+            <span class="tag" style="background:rgba(52,211,153,.12);color:var(--emerald)">📈 ΠΡΟΟΔΟΣ</span>
+          </div>
+          <div id="potw-body"></div>
+        </div>
+
         <div class="card" id="duels-card">
           <div class="card-head">
             <h3>DRH <i style="color:var(--orange)">DUELS</i></h3>
