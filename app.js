@@ -221,11 +221,11 @@ function buildTitleFight(d) {
 let lbMode = "current", lbExpanded = false;
 const prevRanksByKey = {}; // per class+mode — movement arrows
 
-function buildLeaderboard(d, raw) {
+function buildLeaderboard(d, raw, isErr) {
   const cur = d.currentLb;
   const sea = d.standings;
   $("#live-track-name").textContent = ((raw.current_track || "") + " · " + classLabel(d.cls)).toUpperCase();
-  $("#live-updated").textContent = new Date(raw.generated_at).toLocaleString("el-GR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+  $("#live-updated").textContent = new Date(raw.generated_at).toLocaleString("el-GR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) + (isErr ? " · SNAPSHOT" : "");
 
   // week progress
   const flown = new Set(cur.map(r => r.pilot)).size, total = sea.length || Math.max(flown, 1);
@@ -509,7 +509,9 @@ function duelWinner(p) {
 
 function buildDuels(raw, d) {
   const box = $("#duels");
-  const all = raw.duels || [];
+  // δύο σχήματα: παλιό array [...] ή νέο {active:[...], recent_resolved:[...]}
+  const du = raw.duels;
+  const all = Array.isArray(du) ? du : [...((du && du.active) || []), ...((du && du.recent_resolved) || [])];
   const active = all.filter(p => !p.resolved);
   const resolved = all.filter(p => p.resolved).slice(-3).reverse(); // τελευταία 3 λυμένα
   const battles = (d && d.hotBattles) || [];
@@ -746,7 +748,7 @@ function cardGlow() {
     buildHeroStats(d);
     startCountdown(state.data);
     buildTitleFight(d);
-    buildLeaderboard(d, state.data);
+    buildLeaderboard(d, state.data, state.error);
     buildFeed(d);
     chart.update(d);
     buildDuels(state.data, d);
@@ -782,11 +784,11 @@ function cardGlow() {
     p.classList.add("on");
     if (p.dataset.lb === "season") p.classList.add("f");
     lbMode = p.dataset.lb; lbExpanded = false;
-    buildLeaderboard(state.derivedByClass[activeClass], state.data);
+    buildLeaderboard(state.derivedByClass[activeClass], state.data, state.error);
   }));
 
   // show more
-  $("#lb-more").addEventListener("click", () => { lbExpanded = !lbExpanded; buildLeaderboard(state.derivedByClass[activeClass], state.data); });
+  $("#lb-more").addEventListener("click", () => { lbExpanded = !lbExpanded; buildLeaderboard(state.derivedByClass[activeClass], state.data, state.error); });
   const feedMore = $("#feed-more");
   if (feedMore) feedMore.addEventListener("click", () => { feedExpanded = !feedExpanded; buildFeed(state.derivedByClass[activeClass]); });
 
