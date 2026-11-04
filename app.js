@@ -656,13 +656,80 @@ function buildSeasonStats(d, st) {
 }
 
 // ------------------------------------------------------------------ drawer
-function openDrawer(pilotName, d) {
+function openDrawer(pilotName, d, raw) {
   const p = d.profiles[pilotName];
   if (!p) return; // pilot unknown in this class — don't open an empty drawer
   const cur = d.currentLb.find(r => r.pilot === pilotName);
-  $("#dr-av").textContent = initials(pilotName);
+  const rankIdx = d.standings.findIndex(s => s.pilot === pilotName);
+  const rank = rankIdx >= 0 ? rankIdx + 1 : null;
+  const rankCol = rank === 1 ? "var(--yellow)" : rank === 2 ? "#cbd5e1" : rank === 3 ? "var(--amber)" : "var(--cyan)";
+  const rankGlow = rank === 1 ? "rgba(250,204,21,.3)" : rank === 2 ? "rgba(203,213,225,.22)" : rank === 3 ? "rgba(251,146,60,.26)" : "rgba(34,211,238,.22)";
+
+  // --- hero (χρώμα ανάλογα με τη θέση στη σεζόν) ---
+  const hero = $("#dr-hero");
+  hero.style.setProperty("--dr-glow", rankGlow);
+  const av = $("#dr-av");
+  av.textContent = initials(pilotName);
+  av.style.borderColor = rankCol;
+  av.style.color = rankCol;
+  av.style.boxShadow = `0 0 36px ${rankGlow}`;
   $("#dr-nm").textContent = pilotName;
-  $("#dr-qd").textContent = (p.quads && p.quads.length ? p.quads.join(" · ") : "—") + (cur ? " · NOW ON TRACK" : "");
+  $("#dr-qd").textContent = (p.quads && p.quads.length ? p.quads.join(" · ") : "—");
+
+  // chips: θέση σεζόν + τάση φόρμας + on-track-τώρα
+  const chips = [];
+  if (rank) chips.push(`<span class="dr-chip" style="background:rgba(255,255,255,.07);color:${rankCol}">#${rank} στη σεζόν</span>`);
+  const ranksDone = (p.weeks || []).filter(Boolean).map(w => w.rank);
+  if (ranksDone.length >= 3) {
+    const avg = a => a.reduce((x, y) => x + y, 0) / a.length;
+    const diff = avg(ranksDone.slice(-4, -2)) - avg(ranksDone.slice(-2)); // >0 = βελτίωση θέσης
+    if (diff >= 0.5) chips.push(`<span class="dr-chip" style="background:rgba(52,211,153,.12);color:var(--emerald)">↗ σε άνοδο</span>`);
+    else if (diff <= -0.5) chips.push(`<span class="dr-chip" style="background:rgba(239,68,68,.12);color:var(--red)">↘ σε πτώση</span>`);
+    else chips.push(`<span class="dr-chip" style="background:rgba(255,255,255,.06);color:rgba(255,255,255,.55)">→ σταθερός</span>`);
+  }
+  if (cur) chips.push(`<span class="dr-chip" style="background:rgba(34,211,238,.12);color:var(--cyan)">● on track τώρα</span>`);
+  $("#dr-chips").innerHTML = chips.join("");
+
+  // --- badges: μόνο όσα έχουν κερδηθεί πραγματικά ---
+  const badges = [];
+  if (p.wins > 0) badges.push(["🏆", `${p.wins} ${p.wins === 1 ? "νίκη" : "νίκες"}`, "rgba(250,204,21,.12)", "var(--yellow)"]);
+  if (p.podiums > p.wins) badges.push(["🥉", `${p.podiums} podiums`, "rgba(251,146,60,.1)", "var(--amber)"]);
+  if ((p.pbs || 0) > 0) badges.push(["📈", `${p.pbs} PBs στη σεζόν`, "rgba(52,211,153,.1)", "var(--emerald)"]);
+  if (p.bestImprovementPct) badges.push(["💥", `−${Number(p.bestImprovementPct).toFixed(1)}% σε μία βελτίωση`, "rgba(52,211,153,.07)", "var(--emerald)"]);
+  const hb = (d.hotBattles || []).find(b => b.leader === pilotName || b.chaser === pilotName);
+  if (hb) badges.push(["🔥", hb.leader === pilotName ? `κρατάει από ${esc(hb.chaser)}` : `κυνηγάει ${esc(hb.leader)}`, "rgba(239,68,68,.1)", "var(--red)"]);
+  if (raw) {
+    const du = raw.duels;
+    const activeD = Array.isArray(du) ? du : ((du && du.active) || []);
+    const myDuel = activeD.find(x => !x.resolved && (x.pilot_a === pilotName || x.pilot_b === pilotName));
+    if (myDuel) badges.push(["⚔️", `μονομαχία vs ${esc(myDuel.pilot_a === pilotName ? myDuel.pilot_b : myDuel.pilot_a)}`, "rgba(251,146,60,.12)", "var(--orange)"]);
+  }
+  $("#dr-badges").innerHTML = badges.length
+    ? badges.map(b => `<span class="dr-badge" style="background:${b[2]};color:${b[3]}">${b[0]} ${b[1]}</span>`).join("")
+    : `<div class="dr-empty">Κανένα badge ακόμα — το πρώτο PB ή podium σε περιμένει.</div>`;
+
+  // --- sparkline χρόνων ανά εβδομάδα (η βελτίωση πάει προς τα πάνω) ---
+  drawSpark(p);
+
+  // --- μάχη με την κορυφή ---
+  const race = $("#dr-race");
+  const leader = d.standings[0];
+  if (leader && leader.points > 0 && leader.pilot !== pilotName) {
+    const gap = leader.points - (p.points || 0);
+    const pct = Math.max(0, Math.min(100, (p.points || 0) / leader.points * 100));
+    race.style.display = "";
+    race.innerHTML = `
+      <div class="rr-head"><span>🎯 Μάχη με την κορυφή</span><span class="mono" style="color:var(--fuchsia)">−${gap} pts</span></div>
+      <div class="rr-bar"><div class="rr-fill" style="width:${pct}%"></div></div>
+      <div class="rr-sub">${p.points || 0} pts έναντι <b style="color:#fff">${leader.points}</b> του <b style="color:var(--yellow)">${esc(leader.pilot)}</b></div>`;
+  } else if (leader && leader.pilot === pilotName && d.standings[1]) {
+    race.style.display = "";
+    race.innerHTML = `
+      <div class="rr-head"><span>👑 Πρωτοπόρος σεζόν</span><span class="mono" style="color:var(--yellow)">+${leader.points - d.standings[1].points} pts</span></div>
+      <div class="rr-bar"><div class="rr-fill" style="width:100%;background:linear-gradient(90deg,var(--yellow),var(--amber))"></div></div>
+      <div class="rr-sub">Οδηγείς με διαφορά από <b style="color:#fff">${esc(d.standings[1].pilot)}</b> — κράτα το!</div>`;
+  } else race.style.display = "none";
+
   const stats = [
     { v: p.points, k: "Points" }, { v: p.wins, k: "Wins" }, { v: p.podiums, k: "Podiums" },
     { v: p.best != null ? Number(p.best).toFixed(3) : "—", k: "Best (s)" },
@@ -691,9 +758,58 @@ function openDrawer(pilotName, d) {
     </div>`;
   }).join("") : `<div class="dr-empty">Ακόμα χωρίς εμφανίσεις στη σεζόν.</div>`;
 
+  $("#drawer").scrollTop = 0;
   $("#overlay").classList.add("on");
   $("#drawer").classList.add("on");
   document.body.style.overflow = "hidden";
+}
+function drawSpark(p) {
+  const cv = $("#dr-spark"), meta = $("#dr-spark-meta");
+  const pts = (p.weeks || []).map((w, i) => (w && w.time != null) ? { i: i + 1, v: w.time } : null).filter(Boolean);
+  if (pts.length < 2) {
+    cv.style.display = "none";
+    meta.innerHTML = `<span style="color:rgba(255,255,255,.35)">Χρειάζονται 2+ εβδομάδες για γράφημα πορείας.</span>`;
+    return;
+  }
+  cv.style.display = "";
+  const dpr = devicePixelRatio || 1;
+  const W = cv.offsetWidth || 380, H = 88;
+  cv.width = W * dpr; cv.height = H * dpr;
+  const ctx = cv.getContext("2d");
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+  const pad = { l: 8, r: 8, t: 10, b: 16 };
+  const lo = Math.min(...pts.map(q => q.v)), hi = Math.max(...pts.map(q => q.v));
+  const span = Math.max(hi - lo, 0.001);
+  const x = k => pad.l + (pts.length === 1 ? 0 : k / (pts.length - 1)) * (W - pad.l - pad.r);
+  // inverted: καλύτερος (μικρότερος) χρόνος πιο ψηλά — η βελτίωση «ανεβαίνει»
+  const y = v => pad.t + (v - lo) / span * (H - pad.t - pad.b);
+  // area fill
+  const grad = ctx.createLinearGradient(0, 0, W, 0);
+  grad.addColorStop(0, "#22d3ee"); grad.addColorStop(1, "#34d399");
+  ctx.beginPath();
+  pts.forEach((q, k) => { k === 0 ? ctx.moveTo(x(k), y(q.v)) : ctx.lineTo(x(k), y(q.v)); });
+  ctx.strokeStyle = grad; ctx.lineWidth = 2.4; ctx.lineJoin = "round"; ctx.stroke();
+  ctx.lineTo(x(pts.length - 1), H - pad.b); ctx.lineTo(x(0), H - pad.b); ctx.closePath();
+  const fill = ctx.createLinearGradient(0, 0, 0, H);
+  fill.addColorStop(0, "rgba(52,211,153,.22)"); fill.addColorStop(1, "rgba(52,211,153,0)");
+  ctx.fillStyle = fill; ctx.fill();
+  // dots — το PB (καλύτερος χρόνος) τονισμένο
+  pts.forEach((q, k) => {
+    const isBest = q.v === lo;
+    ctx.fillStyle = isBest ? "#34d399" : "rgba(255,255,255,.55)";
+    ctx.beginPath(); ctx.arc(x(k), y(q.v), isBest ? 4 : 2.6, 0, 7); ctx.fill();
+    if (isBest) { ctx.strokeStyle = "rgba(52,211,153,.5)"; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(x(k), y(q.v), 7, 0, 7); ctx.stroke(); }
+  });
+  // week labels
+  ctx.fillStyle = "rgba(255,255,255,.35)"; ctx.font = "9px 'JetBrains Mono'"; ctx.textAlign = "center";
+  pts.forEach((q, k) => { if (pts.length <= 10 || k % 2 === 0) ctx.fillText("W" + q.i, x(k), H - 4); });
+  ctx.textAlign = "left";
+  const first = pts[0].v, best = lo;
+  const imp = first > 0 ? (first - best) / first * 100 : 0;
+  meta.innerHTML = `<span>W${pts[0].i} ${Number(first).toFixed(3)}s</span>
+    <span style="color:var(--emerald);font-weight:700">PB ${Number(best).toFixed(3)}s · −${imp.toFixed(1)}%</span>
+    <span>W${pts[pts.length - 1].i} ${Number(pts[pts.length - 1].v).toFixed(3)}s</span>`;
 }
 function closeDrawer() {
   $("#overlay").classList.remove("on");
@@ -799,7 +915,7 @@ function cardGlow() {
     if (nm) {
       const name = nm.dataset.pilot;
       const d = state.derivedByClass[activeClass];
-      if (name && d.profiles[name]) { e.preventDefault(); openDrawer(name, d); }
+      if (name && d.profiles[name]) { e.preventDefault(); openDrawer(name, d, state.data); }
     }
   });
   $("#dr-close").addEventListener("click", closeDrawer);
