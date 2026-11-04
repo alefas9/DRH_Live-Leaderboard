@@ -250,6 +250,9 @@ main{position:relative;max-width:1700px;margin:0 auto;padding:0 24px 80px}
 
 /* ---------- DUELS ---------- */
 .duel{display:flex;align-items:center;gap:12px;padding:16px 14px;border-radius:16px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);margin-bottom:12px;transition:border .2s}
+#duels{flex:1;display:flex;flex-direction:column}
+#duels .duel{flex:1 0 auto}
+#duels>:last-child{margin-bottom:0}
 .duel:hover{border-color:rgba(251,146,60,.35)}
 .duel.done{opacity:.75}
 .duel .who{flex:1;min-width:0;text-align:center}
@@ -592,7 +595,7 @@ footer{border-top:1px solid var(--line);padding:40px 24px 48px;background:linear
       </div>
 
       <div style="display:flex;flex-direction:column;gap:24px">
-        <div class="card" id="duels-card">
+        <div class="card" id="duels-card" style="flex:1;display:flex;flex-direction:column">
           <div class="card-head">
             <h3>DRH <i style="color:var(--orange)">DUELS</i></h3>
             <span class="tag" id="duels-count" style="background:rgba(251,146,60,.12);color:var(--orange)">0 LIVE</span>
