@@ -682,6 +682,19 @@ function buildSpotlight(d, raw) {
       <div class="spot-s">${esc(x.s)}</div>
     </div>`).join("")
     : `<div class="dr-empty" style="padding:20px 6px">Η εβδομάδα μόλις ξεκίνησε — το πρώτο spotlight θα εμφανιστεί αυτόματα.</div>`;
+
+  // τα weekly awards ως badge strip στην ίδια κάρτα
+  const awBox = $("#spotlight-awards");
+  if (awBox) {
+    const aw = raceAwards(d);
+    awBox.innerHTML = aw.map(a => `
+      <div class="spot-award">
+        <span>${a.icon}</span>
+        <span class="sa-label">${esc(a.label)}</span>
+        <b${a.pair ? "" : ` class="nm" data-pilot="${esc(a.pilot)}"`}>${esc(a.pilot)}</b>
+        <span class="mono">${esc(a.value)}</span>
+      </div>`).join("");
+  }
 }
 
 function buildHallOfFame(d) {
@@ -708,13 +721,8 @@ let feedExpanded = false;
 let feedFilter = "ALL";
 const FEED_FILTERS = [
   { id: "ALL", label: "Όλα", color: "#ffffff" },
-  { id: "NOTE", label: "📣 Notes", color: "var(--violet)" },
   { id: "PB", label: "📈 PBs", color: "var(--emerald)" },
-  { id: "NEW", label: "🆕 Νέοι", color: "var(--cyan)" },
-  { id: "BATTLE", label: "⚔️ Battles", color: "var(--red)" },
-  { id: "DUEL", label: "🥊 Duels", color: "var(--orange)" },
-  { id: "AWARD", label: "🏅 Awards", color: "var(--yellow)" },
-  { id: "STREAK", label: "🔥 Streaks", color: "var(--orange)" }
+  { id: "DUEL", label: "🥊 Duels", color: "var(--orange)" }
 ];
 function buildFeed(d, raw) {
   const box = $("#feed-list");
@@ -825,43 +833,21 @@ function buildReveal(raw, d) {
   const rv = raw && raw.track_reveal;
   const id = rv && ytId(rv.youtube || rv.url || rv.id);
   const track = (rv && rv.track) || "";
-  if (id) {
+  const sec = box.closest("section");
+  // χωρίς βίντεο → όλο το section κρυφό (κανένα νεκρό placeholder)
+  if (!id) { if (sec) sec.style.display = "none"; return; }
+  if (sec) sec.style.display = "";
+  {
     box.innerHTML = `
       ${track ? `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
         <span style="font-weight:800;letter-spacing:.04em">${esc(rv.title || ("TRACK REVEAL · " + track))}</span>
         <span class="tag" style="background:rgba(239,68,68,.12);color:var(--red)">${esc(track)}</span>
       </div>` : ""}
       <div class="reveal-vid"><iframe src="https://www.youtube-nocookie.com/embed/${esc(id)}" title="Track reveal" loading="lazy" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>`;
-  } else {
-    box.innerHTML = `
-      <div class="reveal-soon">
-        <div class="ic">🎬</div>
-        <div>
-          <div class="t1">Το reveal του επόμενου track έρχεται σύντομα</div>
-          <div class="t2">Μόλις ανέβει το βίντεο${track ? ` για το <b style="color:#fff">${esc(track)}</b>` : ""}, θα εμφανιστεί εδώ αυτόματα. Μέχρι τότε — μείνε συντονισμένος στο Discord.</div>
-        </div>
-      </div>`;
   }
 }
 
 
-// ------------------------------------------------------------------ pilot of the week
-function buildPotw(d) {
-  const card = $("#potw-card");
-  if (!card) return;
-  const awards = raceAwards(d);
-  if (!awards.length) { card.style.display = "none"; return; }
-  card.style.display = "";
-  $("#potw-body").innerHTML = awards.map(a => `
-    <div class="award-row">
-      <div class="award-ic">${a.icon}</div>
-      <div class="award-main">
-        <div class="award-name">${esc(a.label)}</div>
-        <div class="award-pilot ${a.pair ? "" : "nm"}" ${a.pair ? "" : `data-pilot="${esc(a.pilot)}"`}>${esc(a.pilot)}</div>
-      </div>
-      <div class="award-val">${esc(a.value)}</div>
-    </div>`).join("");
-}
 
 // ------------------------------------------------------------------ duels
 function duelWinner(p) {
@@ -872,6 +858,7 @@ function duelWinner(p) {
   return ta < tb ? p.pilot_a : p.pilot_b;
 }
 
+let duelsExpanded = false;
 function buildDuels(raw, d) {
   const box = $("#duels");
   // δύο σχήματα: παλιό array [...] ή νέο {active:[...], recent_resolved:[...]}
@@ -888,23 +875,38 @@ function buildDuels(raw, d) {
   let html = "";
 
   // hot battles: κλειστές μάχες στην τρέχουσα πίστα (πριν γίνουν duels)
-  if (battles.length) {
+  const hotNow = battles.filter(b => !b.opened);
+  const hotOpened = battles.filter(b => b.opened);
+  if (hotNow.length) {
     html += `<div class="duel-sep">🔥 ΚΑΥΤΑ ΝΤΕΡΜΠΙ</div>
       <div class="duel-sub">🎲 Ποιους θα ρίξει ο race director στην Arena — αυτά τα ζευγάρια είναι ένα challenge μακριά.</div>`;
-    html += battles.map(b => `
+    html += hotNow.map(b => `
       <div class="duel">
         <div class="who"><div class="n">${esc(b.leader)}</div><div class="s">κρατάει</div></div>
         <div class="mid">
-          <div class="score" style="background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.25)"><b>+${Number(b.gap).toFixed(3)}s</b></div>
+          <div class="score" style="background:rgba(239,68,68,.08)"><b>+${Number(b.gap).toFixed(3)}s</b></div>
           <div class="duel-track">${b.days > 0 ? b.days + (b.days === 1 ? " μέρα" : " μέρες") + " κοντά" : "από σήμερα"}</div>
         </div>
         <div class="who"><div class="n">${esc(b.chaser)}</div><div class="s">κυνηγάει</div></div>
       </div>`).join("");
   }
+  if (hotOpened.length) {
+    html += `<div class="duel-sep" style="opacity:.55">💨 ΑΝΟΙΞΑΝ ΠΡΟΣΦΑΤΑ</div>`;
+    html += hotOpened.map(b => `
+      <div class="duel done" style="opacity:.55">
+        <div class="who"><div class="n">${esc(b.leader)}</div><div class="s">ξέφυγε</div></div>
+        <div class="mid">
+          <div class="score"><b>+${b.gap != null ? Number(b.gap).toFixed(3) + "s" : "—"}</b></div>
+          <div class="duel-track">${b.was_gap != null ? "ήταν +" + Number(b.was_gap).toFixed(3) + "s" : "άνοιξε"}</div>
+        </div>
+        <div class="who"><div class="n">${esc(b.chaser)}</div><div class="s">έμεινε πίσω</div></div>
+      </div>`).join("");
+  }
 
+  const actShow = duelsExpanded ? active : active.slice(0, 3);
   if (active.length) {
     html += `<div class="duel-sep">⚡ ΕΝΕΡΓΑ</div>`;
-    html += active.map(p => {
+    html += actShow.map(p => {
       const ta = p.best_time_a, tb = p.best_time_b;
       const lead = duelWinner(p);
       let dl = "";
@@ -931,9 +933,10 @@ function buildDuels(raw, d) {
     }).join("");
   }
 
+  const resShow = duelsExpanded ? resolved : resolved.slice(0, 2);
   if (resolved.length) {
     html += `<div class="duel-sep">🏁 ΟΛΟΚΛΗΡΩΜΕΝΑ</div>`;
-    html += resolved.map(p => {
+    html += resShow.map(p => {
       const w = duelWinner(p);
       const walkover = w && (p.best_time_a == null || p.best_time_b == null);
       return `
@@ -963,7 +966,13 @@ function buildDuels(raw, d) {
       </div>`;
   }
 
+  const hiddenCount = (active.length - actShow.length) + (resolved.length - resShow.length);
+  if (hiddenCount > 0) html += `<button class="show-more" id="duels-more" style="display:block">ΔΕΣ ΟΛΑ ΤΑ DUELS (+${hiddenCount}) ▾</button>`;
+  else if (duelsExpanded && (active.length > 3 || resolved.length > 2)) html += `<button class="show-more" id="duels-more" style="display:block">SHOW LESS ▴</button>`;
+
   box.innerHTML = html;
+  const dm = $("#duels-more");
+  if (dm) dm.addEventListener("click", () => { duelsExpanded = !duelsExpanded; buildDuels(raw, d); });
 }
 
 // ------------------------------------------------------------------ archive
@@ -1380,6 +1389,14 @@ function toast(msg, ic = "✓") {
   toastTimer = setTimeout(() => $("#toast").classList.remove("on"), 4000);
 }
 
+// ------------------------------------------------------------------ live tabs (leaderboard / feed / duels)
+function liveTabsInit() {
+  $$(".lt-tab").forEach(b => b.addEventListener("click", () => {
+    $$(".lt-tab").forEach(x => x.classList.toggle("on", x === b));
+    $$(".lt-panel").forEach(p => { p.hidden = p.id !== "ltp-" + b.dataset.tab; });
+  }));
+}
+
 // ------------------------------------------------------------------ reveal on scroll
 function revealInit() {
   const io = new IntersectionObserver(es => es.forEach(e => {
@@ -1425,6 +1442,7 @@ function cardGlow() {
   heroCanvas();
   heroTitle();
   revealInit();
+  liveTabsInit();
   floatInit();
   cardGlow();
 
@@ -1444,7 +1462,6 @@ function cardGlow() {
     buildFeed(d, state.data);
     chart.update(d);
     buildDuels(state.data, d);
-    buildPotw(d);
     buildSpotlight(d, state.data);
     buildReveal(state.data, d);
     buildArchive(d);
