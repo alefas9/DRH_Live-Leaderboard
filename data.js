@@ -109,7 +109,10 @@ const FALLBACK = {
 };
 
 const DATA_URL = "https://raw.githubusercontent.com/alefas9/velocidrone-bot-data/main/site_data.json";
-const REFRESH_MS = 5 * 60 * 1000;
+// Το GitHub API σερβίρει το ίδιο αρχείο με cache μόνο 60" (το raw.githubusercontent
+// έχει CDN cache 5' και ΑΓΝΟΕΙ τα query params — ο cache-buster εκεί δεν δουλεύει).
+const API_URL = "https://api.github.com/repos/alefas9/velocidrone-bot-data/contents/site_data.json";
+const REFRESH_MS = 2 * 60 * 1000;
 const DEFAULT_CLASS = "5inch";
 
 // ---- class helpers -----------------------------------------------------------
@@ -280,9 +283,12 @@ function buildState(json, error) {
 
 async function fetchNow() {
   try {
-    // cache-buster: το raw.githubusercontent έχει CDN cache ~5' που το cache:"no-store"
-    // δεν παρακάμπτει — με ?t= παίρνουμε πάντα φρέσκο JSON μετά το push του bot
-    const res = await fetch(DATA_URL + "?t=" + Date.now(), { cache: "no-store" });
+    // Πρώτα το API (φρέσκο έως 60")· σε rate limit (403/429, όριο 60/h ανά IP)
+    // fallback στο raw URL (CDN cache έως 5').
+    let res = await fetch(API_URL, { headers: { Accept: "application/vnd.github.raw" }, cache: "no-store" });
+    if (res.status === 403 || res.status === 429) {
+      res = await fetch(DATA_URL + "?t=" + Date.now(), { cache: "no-store" });
+    }
     if (!res.ok) throw new Error("bad status " + res.status);
     const json = await res.json();
     // minimal shape validation — a malformed payload must not kill the UI

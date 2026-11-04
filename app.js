@@ -168,7 +168,7 @@ function startCountdown(raw) {
   $("#cd-track").textContent = countdown.trackName + " → NEXT";
   if (countdown.started) return;
   countdown.started = true;
-  const refreshRing = 5 * 60;
+  const refreshRing = 2 * 60;
   let refreshT = refreshRing;
   function tick() {
     let ms = countdown.target - Date.now();
