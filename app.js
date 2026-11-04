@@ -765,8 +765,8 @@ function openDrawer(pilotName, d, raw) {
     { v: p.points, k: "Points" }, { v: p.wins, k: "Wins" }, { v: p.podiums, k: "Podiums" },
     { v: p.best != null ? Number(p.best).toFixed(3) : "—", k: "Best (s)" },
     { v: p.appearances, k: "Weeks" }, { v: p.avgRank, k: "Avg Rank" },
-    { v: p.pbs || 0, k: "PBs (βελτιώσεις)" },
-    { v: p.bestImprovementPct ? "−" + Number(p.bestImprovementPct).toFixed(1) + "%" : "—", k: "Καλύτερη βελτίωση" }
+    { v: p.pbs || 0, k: "PBs" },
+    { v: p.bestImprovementPct ? "−" + Number(p.bestImprovementPct).toFixed(1) + "%" : "—", k: "Best PB %" }
   ];
   $("#dr-stats").innerHTML = stats.map(s => `<div class="dr-stat"><div class="v">${s.v}</div><div class="k">${s.k}</div></div>`).join("");
   // form chips
