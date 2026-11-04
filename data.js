@@ -252,6 +252,7 @@ function computeDerived(d, cls) {
     weeks, progression, profiles, quadCount, totalRecords, totalPoints, seasonBest,
     standings, currentLb,
     nextTrackAt: next.toISOString(),
+    currentTrack: d.current_track || null,
     titleFight: { a: s1, b: s2, gap: s1 && s2 ? s1.points - s2.points : null },
     feed,
     potw: d.pilot_of_the_week || null,

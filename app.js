@@ -253,11 +253,23 @@ function buildLeaderboard(d, raw, isErr) {
     rows = sea.map((r, i) => ({ ...r, rank: i + 1, sub: `${r.wins}W ${r.podiums}P · best ${fmtTime(r.best)}`, val: r.points + " pts", mode: "season" }));
   }
 
-  // movement arrows (current mode, vs previous snapshot in-session)
+  // movement arrows (current mode): πραγματικές 24h αλλαγές θέσης από insights,
+  // fallback στις in-session αλλαγές μεταξύ refreshes
+  const ins24 = {};
+  if (lbMode === "current" && raw && raw.insights && Array.isArray(raw.insights.pilots)) {
+    raw.insights.pilots.forEach(x => { if (x.class === d.cls && x.pos_change_24h != null) ins24[x.pilot] = x.pos_change_24h; });
+  }
+  const use24 = Object.keys(ins24).length > 0;
   const key = d.cls + ":" + lbMode;
   const prevRanks = prevRanksByKey[key] || null;
   const moves = rows.map(r => {
-    if (lbMode !== "current" || !prevRanks) return "eq";
+    if (lbMode !== "current") return "eq";
+    if (use24) {
+      const c = ins24[r.pilot];
+      if (c == null || c === 0) return "eq";
+      return c > 0 ? "up" : "dn";
+    }
+    if (!prevRanks) return "eq";
     const was = prevRanks.indexOf(r.pilot);
     if (was === -1) return "new";
     if (was > r.rank - 1) return "up";
@@ -450,13 +462,16 @@ let feedExpanded = false;
 function buildFeed(d) {
   const box = $("#feed-list");
   if (!box) return;
-  const feed = (d.feed || [])
+  // μόνο βελτιώσεις της ΤΡΕΧΟΥΣΑΣ εβδομάδας (τρέχον track)
+  const all = d.feed || [];
+  const wk = d.currentTrack ? all.filter(r => r.track === d.currentTrack) : all;
+  const feed = wk
     .filter(r => r.delta != null && r.delta > 0)
     .sort((a, b) => b.delta - a.delta)   // τις μεγαλύτερες βελτιώσεις πρώτες
     .slice(0, 6);
   $("#feed-count").textContent = "TOP " + feed.length;
   if (!feed.length) {
-    box.innerHTML = `<div class="dr-empty" style="padding:20px 6px">Καμία βελτίωση καταγεγραμμένη ακόμα — η πρώτη θα εμφανιστεί εδώ αυτόματα.</div>`;
+    box.innerHTML = `<div class="dr-empty" style="padding:20px 6px">Καμία βελτίωση ακόμα αυτή την εβδομάδα — το track είναι ανοιχτό.</div>`;
     $("#feed-more").style.display = "none";
     return;
   }
@@ -541,6 +556,13 @@ function buildDuels(raw, d) {
     html += active.map(p => {
       const ta = p.best_time_a, tb = p.best_time_b;
       const lead = duelWinner(p);
+      let dl = "";
+      if (p.deadline) {
+        const hrs = (new Date(p.deadline) - Date.now()) / 36e5;
+        dl = hrs >= 0 && hrs < 24
+          ? ` · <span style="color:var(--red);font-weight:700">⏱ λήγει σε ${Math.max(1, Math.ceil(hrs))}h</span>`
+          : " · λήγει " + new Date(p.deadline).toLocaleDateString("el-GR", { day: "numeric", month: "short" });
+      }
       return `
       <div class="duel">
         <div class="who">
@@ -548,7 +570,7 @@ function buildDuels(raw, d) {
           <div class="s">${ta != null ? Number(ta).toFixed(3) + "s" : "— ακόμα χρόνο"}</div>
         </div>
         <div class="mid"><div class="score"><b>${ta != null ? Number(ta).toFixed(3) : "—"}</b><span class="d">vs</span><b>${tb != null ? Number(tb).toFixed(3) : "—"}</b></div>
-          <div class="duel-track">${esc(p.track || "")}${p.deadline ? " · λήγει " + new Date(p.deadline).toLocaleDateString("el-GR", { day: "numeric", month: "short" }) : ""}</div>
+          <div class="duel-track">${esc(p.track || "")}${dl}</div>
         </div>
         <div class="who">
           <div class="n${lead === p.pilot_b ? " w" : ""}">${esc(p.pilot_b)}</div>
@@ -562,6 +584,7 @@ function buildDuels(raw, d) {
     html += `<div class="duel-sep">🏁 ΟΛΟΚΛΗΡΩΜΕΝΑ</div>`;
     html += resolved.map(p => {
       const w = duelWinner(p);
+      const walkover = w && (p.best_time_a == null || p.best_time_b == null);
       return `
       <div class="duel done">
         <div class="who">
@@ -570,7 +593,7 @@ function buildDuels(raw, d) {
         </div>
         <div class="mid">
           <div class="score"><b>${p.best_time_a != null ? Number(p.best_time_a).toFixed(3) : "—"}</b><span class="d">—</span><b>${p.best_time_b != null ? Number(p.best_time_b).toFixed(3) : "—"}</b></div>
-          <div class="duel-track">${w ? "🏆 " + esc(w) : "άκυρο"}</div>
+          <div class="duel-track">${w ? "🏆 " + esc(w) + (walkover ? " · walkover" : "") : "άκυρο"}</div>
         </div>
         <div class="who">
           <div class="n${w === p.pilot_b ? " w" : ""}">${esc(p.pilot_b)}</div>
@@ -689,8 +712,14 @@ function openDrawer(pilotName, d, raw) {
   if (cur) chips.push(`<span class="dr-chip" style="background:rgba(34,211,238,.12);color:var(--cyan)">● on track τώρα</span>`);
   $("#dr-chips").innerHTML = chips.join("");
 
+  // insights row του πιλότου για την τρέχουσα εβδομάδα (χρήση σε badge + καμπύλη)
+  const ins = raw && raw.insights && Array.isArray(raw.insights.pilots)
+    ? raw.insights.pilots.find(x => x.pilot === pilotName && x.class === d.cls) || null
+    : null;
+
   // --- badges: μόνο όσα έχουν κερδηθεί πραγματικά ---
   const badges = [];
+  if (ins && ins.improvements >= 2) badges.push(["🔁", `${ins.improvements} PBs αυτή την εβδομάδα`, "rgba(34,211,238,.1)", "var(--cyan)"]);
   if (p.wins > 0) badges.push(["🏆", `${p.wins} ${p.wins === 1 ? "νίκη" : "νίκες"}`, "rgba(250,204,21,.12)", "var(--yellow)"]);
   if (p.podiums > p.wins) badges.push(["🥉", `${p.podiums} podiums`, "rgba(251,146,60,.1)", "var(--amber)"]);
   if ((p.pbs || 0) > 0) badges.push(["📈", `${p.pbs} PBs στη σεζόν`, "rgba(52,211,153,.1)", "var(--emerald)"]);
@@ -742,10 +771,28 @@ function openDrawer(pilotName, d, raw) {
   // --- sparkline χρόνων ανά εβδομάδα (η βελτίωση πάει προς τα πάνω) ---
   drawSpark(p);
 
-  // --- μάχη με την κορυφή ---
+  // --- καμπύλη εκμάθησης στο τρέχον track (από insights) ---
+  const learnBox = $("#dr-learn");
+  if (ins && ins.first_time != null && ins.time != null && ins.first_time > ins.time) {
+    const lpct = (ins.first_time - ins.time) / ins.first_time * 100;
+    learnBox.innerHTML = `
+      <div class="dr-learn">
+        <div class="dl-head">📉 Καμπύλη εκμάθησης${d.currentTrack ? " · " + esc(d.currentTrack) : ""}</div>
+        <div class="dl-row">
+          <span class="dl-from">${Number(ins.first_time).toFixed(3)}s</span>
+          <span style="color:rgba(255,255,255,.4)">→</span>
+          <span class="dl-to">${Number(ins.time).toFixed(3)}s</span>
+          <span class="dl-pct">−${lpct.toFixed(1)}%</span>
+        </div>
+        <div class="dl-sub">${ins.improvements > 0 ? `${ins.improvements} ${ins.improvements === 1 ? "βελτίωση" : "βελτιώσεις"} αυτή την εβδομάδα` : "πρώτος χρόνος της εβδομάδας"}${ins.pos ? ` · P${ins.pos} στο track` : ""}</div>
+      </div>`;
+  } else learnBox.innerHTML = "";
+
+  // --- μάχη με την κορυφή (μόνο όταν είναι κοντά — έως 30 pts) ---
   const race = $("#dr-race");
   const leader = d.standings[0];
-  if (leader && leader.points > 0 && leader.pilot !== pilotName) {
+  const raceGap = leader ? leader.points - (p.points || 0) : null;
+  if (leader && leader.points > 0 && leader.pilot !== pilotName && raceGap <= 30) {
     const gap = leader.points - (p.points || 0);
     const pct = Math.max(0, Math.min(100, (p.points || 0) / leader.points * 100));
     race.style.display = "";
