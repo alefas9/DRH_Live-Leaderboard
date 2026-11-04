@@ -450,27 +450,26 @@ let feedExpanded = false;
 function buildFeed(d) {
   const box = $("#feed-list");
   if (!box) return;
-  const feed = d.feed || [];
-  $("#feed-count").textContent = feed.length + " PBs";
+  const feed = (d.feed || [])
+    .filter(r => r.delta != null && r.delta > 0)
+    .sort((a, b) => b.delta - a.delta)   // τις μεγαλύτερες βελτιώσεις πρώτες
+    .slice(0, 6);
+  $("#feed-count").textContent = "TOP " + feed.length;
   if (!feed.length) {
     box.innerHTML = `<div class="dr-empty" style="padding:20px 6px">Καμία βελτίωση καταγεγραμμένη ακόμα — η πρώτη θα εμφανιστεί εδώ αυτόματα.</div>`;
     $("#feed-more").style.display = "none";
     return;
   }
-  const showN = feedExpanded ? 60 : 8;
-  box.innerHTML = feed.slice(0, showN).map(r => `
+  box.innerHTML = feed.map((r, i) => `
     <div class="feed-row">
+      <span class="fr-rank">${["🥇","🥈","🥉"][i] || (i + 1) + "."}</span>
       <span class="nm" data-pilot="${esc(r.pilot)}">${esc(r.pilot)}</span>
       <span class="fr-track">${esc(r.track || "")}</span>
-      ${r.delta != null ? `<span class="fr-delta">−${Number(r.delta).toFixed(3)}s</span>` : `<span class="fr-first">ΠΡΩΤΗ ΚΑΤΑΓΡΑΦΗ</span>`}
+      <span class="fr-delta">−${Number(r.delta).toFixed(3)}s</span>
       <span class="t mono">${fmtTime(r.time)}</span>
       <span class="fr-date">${r.date ? new Date(r.date).toLocaleDateString("el-GR", { day: "numeric", month: "short" }) : ""}</span>
     </div>`).join("");
-  const more = $("#feed-more");
-  if (feed.length > 8) {
-    more.style.display = "block";
-    more.textContent = feedExpanded ? "SHOW LESS ▴" : `VIEW ALL (${feed.length - 8} MORE) ▾`;
-  } else more.style.display = "none";
+  $("#feed-more").style.display = "none";
 }
 
 // ------------------------------------------------------------------ pilot of the week
@@ -698,15 +697,47 @@ function openDrawer(pilotName, d, raw) {
   if (p.bestImprovementPct) badges.push(["💥", `−${Number(p.bestImprovementPct).toFixed(1)}% σε μία βελτίωση`, "rgba(52,211,153,.07)", "var(--emerald)"]);
   const hb = (d.hotBattles || []).find(b => b.leader === pilotName || b.chaser === pilotName);
   if (hb) badges.push(["🔥", hb.leader === pilotName ? `κρατάει από ${esc(hb.chaser)}` : `κυνηγάει ${esc(hb.leader)}`, "rgba(239,68,68,.1)", "var(--red)"]);
-  if (raw) {
-    const du = raw.duels;
-    const activeD = Array.isArray(du) ? du : ((du && du.active) || []);
-    const myDuel = activeD.find(x => !x.resolved && (x.pilot_a === pilotName || x.pilot_b === pilotName));
-    if (myDuel) badges.push(["⚔️", `μονομαχία vs ${esc(myDuel.pilot_a === pilotName ? myDuel.pilot_b : myDuel.pilot_a)}`, "rgba(251,146,60,.12)", "var(--orange)"]);
-  }
   $("#dr-badges").innerHTML = badges.length
     ? badges.map(b => `<span class="dr-badge" style="background:${b[2]};color:${b[3]}">${b[0]} ${b[1]}</span>`).join("")
     : `<div class="dr-empty">Κανένα badge ακόμα — το πρώτο PB ή podium σε περιμένει.</div>`;
+
+  // --- ενεργή μονομαχία του πιλότου (αν υπάρχει) ---
+  const duelBox = $("#dr-duel");
+  let myDuel = null;
+  if (raw) {
+    const du = raw.duels;
+    const activeD = Array.isArray(du) ? du : ((du && du.active) || []);
+    myDuel = activeD.find(x => !x.resolved && (x.pilot_a === pilotName || x.pilot_b === pilotName)) || null;
+  }
+  if (myDuel) {
+    const opp = myDuel.pilot_a === pilotName ? myDuel.pilot_b : myDuel.pilot_a;
+    const myT = myDuel.pilot_a === pilotName ? myDuel.best_time_a : myDuel.best_time_b;
+    const opT = myDuel.pilot_a === pilotName ? myDuel.best_time_b : myDuel.best_time_a;
+    const lead = duelWinner(myDuel);
+    const gap = (myT != null && opT != null) ? Math.abs(myT - opT) : null;
+    const status = lead == null ? "Κανείς δεν έχει χρόνο ακόμα — όλα ανοιχτά."
+      : lead === pilotName ? `<b style="color:var(--emerald)">Προηγείσαι</b> κατά <b class="mono">${gap.toFixed(3)}s</b> — κράτα το!`
+      : `Υστερείς κατά <b class="mono" style="color:var(--orange)">${gap.toFixed(3)}s</b> — ώρα για flying laps.`;
+    duelBox.innerHTML = `
+      <div class="dr-duel">
+        <div class="dd-head">⚔️ Μονομαχία σε εξέλιξη</div>
+        <div class="dd-pilots">
+          <div class="dd-p">
+            <div class="dd-n${lead === pilotName ? " lead" : ""}">${esc(pilotName)}</div>
+            <div class="dd-t">${myT != null ? Number(myT).toFixed(3) + "s" : "— ακόμα χρόνο"}</div>
+          </div>
+          <div class="dd-mid">
+            ${gap != null ? `<div class="dd-gap">${gap.toFixed(3)}s</div>` : ""}
+            <div class="dd-vs">VS</div>
+          </div>
+          <div class="dd-p">
+            <div class="dd-n${lead === opp ? " lead" : ""}">${esc(opp)}</div>
+            <div class="dd-t">${opT != null ? Number(opT).toFixed(3) + "s" : "— ακόμα χρόνο"}</div>
+          </div>
+        </div>
+        <div class="dd-status">${status}${myDuel.track ? ` · ${esc(myDuel.track)}` : ""}${myDuel.deadline ? ` · λήγει ${new Date(myDuel.deadline).toLocaleDateString("el-GR", { day: "numeric", month: "short" })}` : ""}</div>
+      </div>`;
+  } else duelBox.innerHTML = "";
 
   // --- sparkline χρόνων ανά εβδομάδα (η βελτίωση πάει προς τα πάνω) ---
   drawSpark(p);

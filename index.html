@@ -376,6 +376,21 @@ footer{border-top:1px solid var(--line);padding:40px 24px 48px;background:linear
 .feed-row .fr-first{font-family:var(--font-mono);font-size:9px;letter-spacing:.12em;color:var(--cyan);background:rgba(34,211,238,.08);padding:4px 8px;border-radius:8px;white-space:nowrap}
 .feed-row .t{color:var(--cyan);font-size:13px}
 .feed-row .fr-date{font-family:var(--font-mono);font-size:11px;color:rgba(255,255,255,.35);width:52px;text-align:right;flex-shrink:0}
+.feed-row .fr-rank{width:22px;text-align:center;font-family:var(--font-mono);font-size:12px;color:rgba(255,255,255,.45);flex-shrink:0}
+
+/* ---------- DRAWER DUEL ---------- */
+.dr-duel{margin-bottom:20px;background:linear-gradient(135deg,rgba(251,146,60,.1),rgba(239,68,68,.06));border:1px solid rgba(251,146,60,.3);border-radius:14px;padding:14px 16px}
+.dd-head{font-size:10px;letter-spacing:.2em;font-weight:700;color:var(--orange);margin-bottom:10px;text-transform:uppercase}
+.dd-pilots{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.dd-p{min-width:0;flex:1}
+.dd-p:last-child{text-align:right}
+.dd-n{font-weight:800;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dd-n.lead{color:var(--yellow)}
+.dd-t{font-family:var(--font-mono);font-size:12px;color:rgba(255,255,255,.5);margin-top:2px}
+.dd-mid{text-align:center;flex-shrink:0}
+.dd-gap{font-family:var(--font-mono);font-weight:700;font-size:14px;color:var(--orange)}
+.dd-vs{font-size:10px;color:rgba(255,255,255,.35);letter-spacing:.2em}
+.dd-status{margin-top:10px;font-size:12px;color:rgba(255,255,255,.55)}
 
 /* ---------- CLASS SWITCHER ---------- */
 .class-bar{position:relative;z-index:6;max-width:1700px;margin:14px auto 0;width:100%;padding:0 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
@@ -515,9 +530,9 @@ footer{border-top:1px solid var(--line);padding:40px 24px 48px;background:linear
     <div class="card" style="margin-top:24px">
       <div class="card-head">
         <h3>IMPROVEMENT <i style="color:var(--emerald)">FEED</i></h3>
-        <span class="tag" id="feed-count" style="background:rgba(52,211,153,.12);color:var(--emerald)">0 PBs</span>
+        <span class="tag" id="feed-count" style="background:rgba(52,211,153,.12);color:var(--emerald)">TOP 6</span>
       </div>
-      <p style="color:rgba(255,255,255,.45);font-size:13px;margin:-8px 0 14px">Κάθε νέο προσωπικό ρεκόρ, όπως καταγράφεται — η βελτίωση μετράει παντού, όχι μόνο στο podium.</p>
+      <p style="color:rgba(255,255,255,.45);font-size:13px;margin:-8px 0 14px">Οι 6 μεγαλύτερες βελτιώσεις χρόνου της σεζόν — η πρόοδος μετράει παντού, όχι μόνο στο podium.</p>
       <div id="feed-list"></div>
       <button class="show-more" id="feed-more" style="display:none"></button>
     </div>
@@ -620,6 +635,7 @@ footer{border-top:1px solid var(--line);padding:40px 24px 48px;background:linear
     </div>
   </div>
   <div class="dr-badges" id="dr-badges"></div>
+  <div id="dr-duel"></div>
   <div class="dr-h" style="margin-top:2px">ΠΟΡΕΙΑ ΧΡΟΝΩΝ</div>
   <div class="dr-spark"><canvas id="dr-spark"></canvas><div class="dr-spark-meta" id="dr-spark-meta"></div></div>
   <div class="dr-race" id="dr-race" style="display:none"></div>
