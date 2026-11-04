@@ -244,7 +244,8 @@ function buildLeaderboard(d, raw, isErr) {
       const intv = ahead && ahead.time != null && r.time != null ? r.time - ahead.time : null;
       const tot = i > 0 && leader.time != null && r.time != null ? r.time - leader.time : null;
       return { ...r, rank: i + 1,
-        sub: i === 0 ? "leader" : (intv != null ? "+" + intv.toFixed(3) + "s πίσω" + (tot != null && tot !== intv ? ` · +${tot.toFixed(3)}s από κορυφή` : "") : "—"),
+        sub: i === 0 ? "leader" : (intv != null ? "+" + intv.toFixed(3) + "s πίσω" : "—"),
+        subTop: i > 0 && tot != null && tot !== intv ? `+${tot.toFixed(3)}s από κορυφή` : "",
         tight: intv != null && intv <= 2,
         val: fmtTime(r.time), mode: "current" };
     });
@@ -307,7 +308,7 @@ function buildLeaderboard(d, raw, isErr) {
         <span class="nm" data-pilot="${esc(r.pilot)}">${esc(r.pilot)}</span>
       </div>
       <span class="qd">${esc(r.quad || "—")}</span>
-      <span class="val">${r.val}<span class="sub"${r.tight ? ' style="color:var(--orange);font-weight:700"' : ""}>${r.sub}</span></span>
+      <span class="val">${r.val}<span class="sub"${r.tight ? ' style="color:var(--orange);font-weight:700"' : ""}>${r.sub}${r.subTop ? `<span class="sub-top"> · ${r.subTop}</span>` : ""}</span></span>
     </div>`;
   }).join("");
 
