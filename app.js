@@ -165,7 +165,7 @@ const countdown = { target: 0, started: false, trackName: "" };
 function startCountdown(raw) {
   countdown.target = new Date(raw.__derived0.nextTrackAt).getTime();
   countdown.trackName = (raw.current_track || "").toUpperCase();
-  $("#cd-track").textContent = countdown.trackName + " → NEXT";
+  $("#cd-track").textContent = countdown.trackName;
   if (countdown.started) return;
   countdown.started = true;
   const refreshRing = 2 * 60;
@@ -174,9 +174,7 @@ function startCountdown(raw) {
     let ms = countdown.target - Date.now();
     if (ms < 0) ms = 0;
     const dd = Math.floor(ms / 864e5), hh = Math.floor(ms % 864e5 / 36e5), mm = Math.floor(ms % 36e5 / 6e4), ss = Math.floor(ms % 6e4 / 1e3);
-    const units = [[dd, "ημέρες"], [hh, "ώρες"], [mm, "λεπτά"], [ss, "δευτ."]];
-    $("#cd-digits").innerHTML = units.map((u, i) =>
-      `<div class="cd-unit"><div class="cd-num">${String(u[0]).padStart(2, "0")}</div><div class="cd-cap">${u[1]}</div></div>${i < 3 ? '<div class="cd-sep">:</div>' : ""}`).join("");
+    $("#cd-digits").textContent = `${String(dd).padStart(2, "0")}η ${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}:${String(ss).padStart(2, "0")}`;
     refreshT--;
     if (refreshT <= 0) refreshT = refreshRing;
     const off = 31.4 * (1 - refreshT / refreshRing);
@@ -721,6 +719,7 @@ let feedExpanded = false;
 let feedFilter = "ALL";
 const FEED_FILTERS = [
   { id: "ALL", label: "Όλα", color: "#ffffff" },
+  { id: "NOTE", label: "📣 RD Notes", color: "var(--violet)" },
   { id: "PB", label: "📈 PBs", color: "var(--emerald)" },
   { id: "DUEL", label: "🥊 Duels", color: "var(--orange)" }
 ];
@@ -759,6 +758,20 @@ function buildFeed(d, raw) {
 
   // Race Director notes (από το Discord log του bot) — το νεότερο καρφιτσώνεται πάνω
   const rdMsgs = raw && Array.isArray(raw.race_director_messages) ? raw.race_director_messages : [];
+
+  // pinned RD note: πάντα ορατό κάτω από τα tabs του live
+  const rdSlot = $("#rd-note-slot");
+  if (rdSlot) {
+    const latest = rdMsgs.slice().sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")))[0];
+    rdSlot.innerHTML = latest ? `
+      <div class="rdn">
+        <div class="rdn-body">
+          <div class="rdn-txt">${esc(latest.text || "")}</div>
+          <div class="rdn-date">${latest.date ? new Date(latest.date).toLocaleDateString("el-GR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : ""}</div>
+        </div>
+        <span class="rdn-tag">Race Director</span>
+      </div>` : "";
+  }
   rdMsgs.forEach(m => events.push({ type: "NOTE", icon: "📣", color: "var(--violet)", pilot: null,
     text: m.text || "", meta: m.tag || "race director", date: m.date || generated }));
   if (!rdMsgs.length) events.push({ type: "NOTE", icon: "📣", color: "var(--violet)", pilot: null, ph: true,
