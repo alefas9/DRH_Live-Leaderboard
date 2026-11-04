@@ -262,6 +262,7 @@ main{position:relative;max-width:1700px;margin:0 auto;padding:0 24px 80px}
 .duel .score .d{color:rgba(255,255,255,.3);margin:0 8px}
 .duel-track{font-size:10px;color:rgba(255,255,255,.4);letter-spacing:.04em;text-transform:uppercase;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .duel-sep{font-family:var(--font-mono);font-size:10px;letter-spacing:.25em;color:rgba(255,255,255,.35);margin:16px 0 10px;display:flex;align-items:center;gap:10px}
+.duel-sub{font-size:11.5px;color:rgba(255,255,255,.42);margin:-4px 0 12px;line-height:1.45;font-style:italic}
 .duel-sep::after{content:"";flex:1;height:1px;background:rgba(255,255,255,.08)}
 .duel-sep:first-child{margin-top:0}
 
@@ -579,6 +580,15 @@ footer{border-top:1px solid var(--line);padding:40px 24px 48px;background:linear
           <div class="chart-wrap"><canvas id="progress-chart"></canvas></div>
           <div class="chart-legend" id="chart-legend"></div>
         </div>
+
+        <div class="titlefight compact">
+          <div class="tf-head">
+            <span class="chip l">● Title Fight</span>
+            <span class="chip r" id="tf-weeks">SEASON 2026</span>
+          </div>
+          <div class="tf-grid" id="tf-grid"></div>
+          <div class="tf-bar"><div class="pa" id="tf-pa"></div><div class="pb" id="tf-pb"></div></div>
+        </div>
       </div>
 
       <div style="display:flex;flex-direction:column;gap:24px">
@@ -588,15 +598,6 @@ footer{border-top:1px solid var(--line);padding:40px 24px 48px;background:linear
             <span class="tag" id="duels-count" style="background:rgba(251,146,60,.12);color:var(--orange)">0 LIVE</span>
           </div>
           <div id="duels"></div>
-        </div>
-
-        <div class="titlefight compact">
-          <div class="tf-head">
-            <span class="chip l">● Title Fight</span>
-            <span class="chip r" id="tf-weeks">SEASON 2026</span>
-          </div>
-          <div class="tf-grid" id="tf-grid"></div>
-          <div class="tf-bar"><div class="pa" id="tf-pa"></div><div class="pb" id="tf-pb"></div></div>
         </div>
       </div>
     </div>
