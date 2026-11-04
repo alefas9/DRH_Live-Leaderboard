@@ -280,7 +280,9 @@ function buildState(json, error) {
 
 async function fetchNow() {
   try {
-    const res = await fetch(DATA_URL, { cache: "no-store" });
+    // cache-buster: το raw.githubusercontent έχει CDN cache ~5' που το cache:"no-store"
+    // δεν παρακάμπτει — με ?t= παίρνουμε πάντα φρέσκο JSON μετά το push του bot
+    const res = await fetch(DATA_URL + "?t=" + Date.now(), { cache: "no-store" });
     if (!res.ok) throw new Error("bad status " + res.status);
     const json = await res.json();
     // minimal shape validation — a malformed payload must not kill the UI

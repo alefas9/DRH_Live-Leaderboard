@@ -539,7 +539,8 @@ function buildDuels(raw, d) {
 
   // hot battles: κλειστές μάχες στην τρέχουσα πίστα (πριν γίνουν duels)
   if (battles.length) {
-    html += `<div class="duel-sep">🔥 ΚΑΥΤΑ ΝΤΕΡΜΠΙ</div>`;
+    html += `<div class="duel-sep">🔥 ΚΑΥΤΑ ΝΤΕΡΜΠΙ</div>
+      <div class="duel-sub">🎲 Ποιους θα ρίξει ο race director στην Arena — αυτά τα ζευγάρια είναι ένα challenge μακριά.</div>`;
     html += battles.map(b => `
       <div class="duel">
         <div class="who"><div class="n">${esc(b.leader)}</div><div class="s">κρατάει</div></div>
@@ -955,14 +956,15 @@ function cardGlow() {
 
   renderAll();
 
-  // re-render when fresh data arrives
+  // re-render when fresh data arrives (κάθε 2' — με cache-buster στο fetch παίρνουμε
+  // το νέο JSON σχεδόν αμέσως μετά το push του bot)
   setInterval(async () => {
     state = await initData();
     const changed = state.data.generated_at !== lastGenerated;
     lastGenerated = state.data.generated_at;
     renderAll();
     if (changed && !state.error) toast("Live data ανανεώθηκε", "⟳");
-  }, 5 * 60 * 1000 + 2000);
+  }, 2 * 60 * 1000);
 
   // class switcher (delegated — pills are re-rendered)
   $("#class-pills").addEventListener("click", e => {
