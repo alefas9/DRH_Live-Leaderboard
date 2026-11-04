@@ -312,12 +312,14 @@ function buildLeaderboard(d, raw, isErr) {
     const mvIc = mv === "up" ? "▲" : mv === "dn" ? "▼" : mv === "new" ? "✦" : "·";
     const mvCl = mv === "up" ? "up" : mv === "dn" ? "dn" : mv === "new" ? "up flash-new" : "eq";
     const chipBg = "rgba(255,255,255,.06);color:rgba(255,255,255,.55)";
+    const title = pilotTitle(r.pilot, d, raw);
     return `<div class="lb-row r${ri + 1} ${mv === "new" ? "flash-new" : ""}">
       <span class="move ${mvCl}">${mvIc}</span>
       <span class="rk">${r.rank}</span>
       <div class="pl">
         <span class="pilot-chip" style="background:${chipBg.split(";")[0]};${chipBg.split(";")[1]}">${esc(initials(r.pilot))}</span>
         <span class="nm" data-pilot="${esc(r.pilot)}">${esc(r.pilot)}</span>
+        ${title ? `<span class="pilot-title" style="color:${title.color}">${esc(title.label)}</span>` : ""}
       </div>
       <span class="qd">${esc(r.quad || "—")}</span>
       <span class="val">${r.val}<span class="sub"${r.tight ? ' style="color:var(--orange);font-weight:700"' : ""}>${r.sub}${r.subTop ? `<span class="sub-top"> · ${r.subTop}</span>` : ""}</span></span>
@@ -457,60 +459,408 @@ const chart = {
   }
 };
 
+// ------------------------------------------------------------------ race director intelligence
+function dayKey(v) {
+  const dt = new Date(v);
+  return isNaN(dt) ? null : dt.getFullYear() + "-" + String(dt.getMonth() + 1).padStart(2, "0") + "-" + String(dt.getDate()).padStart(2, "0");
+}
+
+function pilotStreak(pilot, d) {
+  const days = [...new Set((d.feed || [])
+    .filter(r => r.pilot === pilot && r.date)
+    .map(r => dayKey(r.date))
+    .filter(Boolean))].sort();
+  if (!days.length) return 0;
+  let streak = 1;
+  for (let i = days.length - 1; i > 0; i--) {
+    const cur = new Date(days[i] + "T00:00:00");
+    const prev = new Date(days[i - 1] + "T00:00:00");
+    if ((cur - prev) / 864e5 === 1) streak++;
+    else break;
+  }
+  return streak;
+}
+
+function pilotInsight(pilot, d, raw) {
+  const rows = raw && raw.insights && Array.isArray(raw.insights.pilots) ? raw.insights.pilots : [];
+  return rows.find(x => x.pilot === pilot && (!x.class || x.class === d.cls)) || null;
+}
+
+const TITLE_ORDER = ["Season Leader", "PB Machine", "Rising Star", "Streak Hunter", "Gatekeeper", "Close Hunter", "Consistent Threat"];
+
+function pilotTitleCandidates(pilot, d, raw) {
+  const p = d.profiles[pilot] || {};
+  const ins = pilotInsight(pilot, d, raw);
+  const streak = pilotStreak(pilot, d);
+  const seasonRank = d.standings.findIndex(x => x.pilot === pilot) + 1;
+  const hb = (d.hotBattles || []).find(b => b.leader === pilot || b.chaser === pilot);
+  const c = [];
+  if (seasonRank === 1) c.push({ label: "Season Leader", color: "var(--yellow)", score: 1000 });
+  if ((ins && ins.improvements >= 5) || (p.pbs || 0) >= 8)
+    c.push({ label: "PB Machine", color: "var(--emerald)", score: (p.pbs || 0) + (ins ? (ins.improvements || 0) : 0) });
+  if ((p.bestImprovementPct || 0) >= 15)
+    c.push({ label: "Rising Star", color: "var(--cyan)", score: p.bestImprovementPct });
+  if (streak >= 3) c.push({ label: "Streak Hunter", color: "var(--orange)", score: streak * 10 });
+  if (hb && hb.leader === pilot) c.push({ label: "Gatekeeper", color: "var(--red)", score: 100 - Number(hb.gap || 0) });
+  if (hb && hb.chaser === pilot) c.push({ label: "Close Hunter", color: "var(--fuchsia)", score: 100 - Number(hb.gap || 0) });
+  if ((p.appearances || 0) >= 3 && Number(p.avgRank) <= 3)
+    c.push({ label: "Consistent Threat", color: "var(--violet)", score: (10 - Number(p.avgRank)) * (p.appearances || 1) });
+  return c;
+}
+
+// κάθε τίτλος ανήκει σε ΕΝΑΝ πιλότο — τον πιο δυνατό υποψήφιο
+function titleMapFor(d, raw) {
+  if (!d || !d.profiles) return new Map();
+  if (d._titleMap) return d._titleMap;
+  const pool = [];
+  Object.keys(d.profiles).forEach(name => {
+    pilotTitleCandidates(name, d, raw).forEach(t =>
+      pool.push({ name, label: t.label, color: t.color, score: t.score }));
+  });
+  pool.sort((a, b) => TITLE_ORDER.indexOf(a.label) - TITLE_ORDER.indexOf(b.label) || b.score - a.score);
+  const usedLabels = new Set(), usedPilots = new Set(), map = new Map();
+  for (const e of pool) {
+    if (usedLabels.has(e.label) || usedPilots.has(e.name)) continue;
+    usedLabels.add(e.label); usedPilots.add(e.name);
+    map.set(e.name, { label: e.label, color: e.color });
+  }
+  d._titleMap = map;
+  return map;
+}
+
+function pilotTitle(pilot, d, raw) {
+  return titleMapFor(d, raw).get(pilot) || null;
+}
+
+function rivalInfo(pilot, d) {
+  const rows = d.currentLb || [];
+  const idx = rows.findIndex(r => r.pilot === pilot);
+  if (idx < 0) {
+    const sIdx = d.standings.findIndex(r => r.pilot === pilot);
+    if (sIdx < 0) return null;
+    return { mode: "season", seasonRank: sIdx + 1, seasonAhead: d.standings[sIdx - 1] || null, seasonBehind: d.standings[sIdx + 1] || null };
+  }
+  const cur = rows[idx];
+  const ahead = rows[idx - 1] || null;
+  const behind = rows[idx + 1] || null;
+  return {
+    mode: "track", rank: idx + 1, cur,
+    ahead, behind,
+    gapAhead: ahead && cur.time != null && ahead.time != null ? cur.time - ahead.time : null,
+    gapBehind: behind && behind.time != null && cur.time != null ? behind.time - cur.time : null
+  };
+}
+
+function pilotQuests(pilot, d, raw) {
+  const ins = pilotInsight(pilot, d, raw);
+  const quests = [];
+  const weeklyPbs = ins ? (ins.improvements || 0) : 0;
+  if (!ins || !ins.time) {
+    quests.push({ label: "Καταγραφή πρώτου χρόνου στο τρέχον track", done: 0, target: 1, note: "ο αγώνας ξεκινά από τον πρώτο γύρο" });
+  } else {
+    quests.push({ label: "3 βελτιώσεις αυτή την εβδομάδα", done: Math.min(3, weeklyPbs), target: 3, note: `${weeklyPbs}/3 ολοκληρώθηκαν` });
+    if (ins.first_time != null && ins.first_time > 0) {
+      const targetDrop = ins.first_time * 0.02;
+      const dropped = Math.max(0, ins.first_time - ins.time);
+      quests.push({ label: "Μείωση χρόνου κατά 2%", done: Math.min(targetDrop, dropped), target: targetDrop, note: dropped >= targetDrop ? "ολοκληρώθηκε" : `λείπουν ${(targetDrop - dropped).toFixed(3)}s` });
+    }
+  }
+  const sIdx = d.standings.findIndex(x => x.pilot === pilot);
+  if (sIdx > 0) {
+    const ahead = d.standings[sIdx - 1];
+    const gap = Math.max(0, (ahead.points || 0) - (d.standings[sIdx].points || 0)) + 1;
+    quests.push({ label: `Προσπέρασε τον ${ahead.pilot} στη σεζόν`, done: 0, target: 1, note: `${gap} pts διαφορά` });
+  } else if (sIdx === 0 && d.standings[1]) {
+    quests.push({ label: "Κράτησε την κορυφή της σεζόν", done: 0, target: 1, note: `${d.standings[0].points - d.standings[1].points} pts μαξιλάρι` });
+  }
+  return quests.slice(0, 3);
+}
+
+function weeklyDigest(pilot, d, raw) {
+  const p = d.profiles[pilot] || {};
+  const ins = pilotInsight(pilot, d, raw);
+  const title = pilotTitle(pilot, d, raw);
+  const streak = pilotStreak(pilot, d);
+  const parts = [];
+  if (ins && ins.first_time != null && ins.time != null && ins.first_time > ins.time) {
+    parts.push(`Ξεκίνησε στα ${Number(ins.first_time).toFixed(3)}s και βρίσκεται στα ${Number(ins.time).toFixed(3)}s`);
+  } else if (ins && ins.time != null) {
+    parts.push(`Έχει καταγράψει ${Number(ins.time).toFixed(3)}s στο τρέχον track`);
+  }
+  if (ins && ins.pos_change_24h > 0) parts.push(`κέρδισε ${ins.pos_change_24h} ${ins.pos_change_24h === 1 ? "θέση" : "θέσεις"} στο 24ωρο`);
+  if (ins && ins.improvements > 0) parts.push(`μετράει ${ins.improvements} ${ins.improvements === 1 ? "βελτίωση" : "βελτιώσεις"} αυτή την εβδομάδα`);
+  if (streak >= 2) parts.push(`κρατάει streak ${streak} ημερών`);
+  if (!parts.length && p.appearances) parts.push(`έχει ${p.appearances} εμφανίσεις και ${p.podiums || 0} podium finishes στη σεζόν`);
+  if (!parts.length) return null;
+  return { text: parts.join(" · ") + ".", title };
+}
+
+function renderDirectorBlock(pilot, d, raw) {
+  const info = rivalInfo(pilot, d);
+  const title = pilotTitle(pilot, d, raw);
+  if (!info && !title) return "";
+  let rows = "";
+  if (info && info.mode === "track") {
+    if (info.ahead) rows += `<div class="rd-line"><span>Επόμενος στόχος</span><b>${esc(info.ahead.pilot)}</b><span class="mono">−${info.gapAhead.toFixed(3)}s</span></div>`;
+    else rows += `<div class="rd-line"><span>Κατάσταση</span><b>Leader στο track</b><span class="mono">P1</span></div>`;
+    if (info.behind) rows += `<div class="rd-line"><span>Σε κυνηγάει</span><b>${esc(info.behind.pilot)}</b><span class="mono">+${info.gapBehind.toFixed(3)}s</span></div>`;
+    if (info.rank > 3) rows += `<div class="rd-line"><span>Επόμενο milestone</span><b>Top ${info.rank <= 5 ? 3 : info.rank <= 10 ? 5 : 10}</b><span class="mono">P${info.rank}</span></div>`;
+  } else if (info && info.mode === "season") {
+    if (info.seasonAhead) rows += `<div class="rd-line"><span>Επόμενος στόχος</span><b>${esc(info.seasonAhead.pilot)}</b><span class="mono">+${Math.max(0, info.seasonAhead.points - (d.profiles[pilot].points || 0)) + 1} pts</span></div>`;
+    rows += `<div class="rd-line"><span>Κατάσταση</span><b>Ακόμα χωρίς χρόνο αυτή την εβδομάδα</b><span class="mono">—</span></div>`;
+  }
+  return `<div class="rd-block">
+    <div class="rd-head"><span>RACE DIRECTOR · NEXT TARGET</span>${title ? `<span style="color:${title.color}">${esc(title.label)}</span>` : ""}</div>
+    ${rows}
+    <div class="rd-note">Η επόμενη μάχη δεν είναι η κορυφή — είναι ο πιλότος ακριβώς μπροστά σου.</div>
+  </div>`;
+}
+
+function renderQuestsBlock(pilot, d, raw) {
+  const quests = pilotQuests(pilot, d, raw);
+  if (!quests.length) return "";
+  return `<div class="rd-block">
+    <div class="rd-head"><span>RACE DIRECTOR · QUESTS</span><span>${quests.filter(q => q.done >= q.target).length}/${quests.length}</span></div>
+    ${quests.map(q => {
+      const pct = q.target > 0 ? Math.min(100, q.done / q.target * 100) : 0;
+      const done = q.done >= q.target;
+      return `<div class="quest${done ? " done" : ""}">
+        <div class="quest-top"><b>${esc(q.label)}</b><span class="mono">${esc(q.note)}</span></div>
+        <div class="quest-bar"><div class="quest-fill" style="width:${pct}%"></div></div>
+      </div>`;
+    }).join("")}
+  </div>`;
+}
+
+function renderDigestBlock(pilot, d, raw) {
+  const digest = weeklyDigest(pilot, d, raw);
+  if (!digest) return "";
+  return `<div class="rd-block">
+    <div class="rd-head"><span>RACE DIRECTOR · WEEKLY DIGEST</span>${digest.title ? `<span style="color:${digest.title.color}">${esc(digest.title.label)}</span>` : ""}</div>
+    <div class="rd-note">${esc(digest.text)}</div>
+  </div>`;
+}
+
+function raceAwards(d) {
+  const profiles = Object.values(d.profiles || {});
+  const awards = [];
+  if (d.potw) awards.push({ icon: "📈", label: "Pilot of the Week", pilot: d.potw.pilot, value: "−" + Number(d.potw.improvement_pct).toFixed(1) + "%" });
+  const byBestImp = profiles.filter(p => p.bestImprovementPct > 0).sort((a, b) => b.bestImprovementPct - a.bestImprovementPct)[0];
+  if (byBestImp) awards.push({ icon: "💥", label: "Most Improved", pilot: byBestImp.pilot, value: "−" + Number(byBestImp.bestImprovementPct).toFixed(1) + "%" });
+  const byPbs = profiles.filter(p => (p.pbs || 0) > 0).sort((a, b) => (b.pbs || 0) - (a.pbs || 0))[0];
+  if (byPbs) awards.push({ icon: "🔁", label: "PB Machine", pilot: byPbs.pilot, value: byPbs.pbs + " PBs" });
+  const comebacks = profiles.map(p => {
+    const weeks = (p.weeks || []).filter(Boolean);
+    if (weeks.length < 2) return null;
+    const prev = weeks[weeks.length - 2], last = weeks[weeks.length - 1];
+    return { pilot: p.pilot, gain: prev.rank - last.rank };
+  }).filter(x => x && x.gain > 0).sort((a, b) => b.gain - a.gain)[0];
+  if (comebacks) awards.push({ icon: "↗", label: "Best Comeback", pilot: comebacks.pilot, value: "+" + comebacks.gain + " θέσεις" });
+  const battle = (d.hotBattles || [])[0];
+  if (battle) awards.push({ icon: "⚔️", label: "Closest Battle", pilot: battle.leader + " vs " + battle.chaser, value: "+" + Number(battle.gap).toFixed(3) + "s", pair: true });
+  return awards.slice(0, 5);
+}
+
+function buildSpotlight(d, raw) {
+  const box = $("#spotlight-list");
+  if (!box) return;
+  const items = [];
+  const weekFeed = (d.feed || []).filter(r => !d.currentTrack || r.track === d.currentTrack);
+  const biggest = weekFeed.filter(r => r.delta != null && r.delta > 0).sort((a, b) => b.delta - a.delta)[0];
+  const newest = weekFeed.filter(r => r.delta == null).sort((a, b) => String(b.date).localeCompare(String(a.date)))[0];
+  const battle = (d.hotBattles || [])[0];
+  if (d.potw) items.push({ k: "PILOT OF THE WEEK", v: d.potw.pilot, s: `Βελτίωση ${Number(d.potw.improvement_pct).toFixed(1)}% στο ${d.potw.track}. Ο Race Director σημειώνει την ταχύτερη καμπύλη μάθησης της εβδομάδας.` });
+  if (battle) items.push({ k: "HOT BATTLE", v: battle.leader + " vs " + battle.chaser, s: `Διαφορά μόλις ${Number(battle.gap).toFixed(3)}s. Το επόμενο lap μπορεί να αλλάξει την ιστορία.` });
+  if (biggest) items.push({ k: "BIGGEST JUMP", v: biggest.pilot, s: `Έκοψε ${Number(biggest.delta).toFixed(3)}s και έκανε το μεγαλύτερο βήμα της εβδομάδας.` });
+  if (newest && items.length < 3) items.push({ k: "NEW ENTRY", v: newest.pilot, s: `Πρώτη καταγραφή στο ${newest.track}. Καλωσήρθες στο grid.` });
+  const titlePilot = Object.keys(d.profiles || {}).map(name => ({ name, title: pilotTitle(name, d, raw) })).find(x => x.title);
+  if (titlePilot && items.length < 3) items.push({ k: "TITLE WATCH", v: titlePilot.title.label, s: `${titlePilot.name} κερδίζει τον χαρακτηρισμό του Race Director αυτή την εβδομάδα.` });
+  box.innerHTML = items.length ? items.slice(0, 3).map(x => `
+    <div class="spot-item">
+      <div class="spot-k">${esc(x.k)}</div>
+      ${(d.profiles || {})[x.v] ? `<div class="spot-v nm" data-pilot="${esc(x.v)}">${esc(x.v)}</div>` : `<div class="spot-v">${esc(x.v)}</div>`}
+      <div class="spot-s">${esc(x.s)}</div>
+    </div>`).join("")
+    : `<div class="dr-empty" style="padding:20px 6px">Η εβδομάδα μόλις ξεκίνησε — το πρώτο spotlight θα εμφανιστεί αυτόματα.</div>`;
+}
+
+function buildHallOfFame(d) {
+  const box = $("#hall-fame");
+  if (!box) return;
+  const wins = [...(d.standings || [])].sort((a, b) => (b.wins || 0) - (a.wins || 0))[0];
+  const mostRecordsWeek = [...(d.weeks || [])].sort((a, b) => (b.records || 0) - (a.records || 0))[0];
+  const mostAppearances = Object.values(d.profiles || {}).sort((a, b) => (b.appearances || 0) - (a.appearances || 0))[0];
+  const bestImp = Object.values(d.profiles || {}).filter(p => p.bestImprovementPct > 0).sort((a, b) => b.bestImprovementPct - a.bestImprovementPct)[0];
+  const rows = [
+    wins ? ["👑", "Περισσότερες νίκες", wins.pilot, `${wins.wins} wins`] : null,
+    d.seasonBest != null && isFinite(d.seasonBest) ? ["⚡", "Season best", "", fmtTime(d.seasonBest)] : null,
+    mostRecordsWeek ? ["📈", "Περισσότερα records σε track", mostRecordsWeek.track, `${mostRecordsWeek.records} records`] : null,
+    mostAppearances ? ["🗓", "Περισσότερες εμφανίσεις", mostAppearances.pilot, `${mostAppearances.appearances} weeks`] : null,
+    bestImp ? ["💥", "Μεγαλύτερη βελτίωση", bestImp.pilot, `−${Number(bestImp.bestImprovementPct).toFixed(1)}%`] : null
+  ].filter(Boolean);
+  box.innerHTML = rows.length ? rows.map(r => `
+    <div class="hof-row"><span>${r[0]} ${esc(r[1])}</span><b>${esc(r[2])}</b><span class="mono">${esc(r[3])}</span></div>`).join("")
+    : `<div class="dr-empty">Το Hall of Fame θα γεμίσει μετά τις πρώτες ολοκληρωμένες εβδομάδες.</div>`;
+}
+
 // ------------------------------------------------------------------ improvement feed
 let feedExpanded = false;
-function buildFeed(d) {
+let feedFilter = "ALL";
+const FEED_FILTERS = [
+  { id: "ALL", label: "Όλα", color: "#ffffff" },
+  { id: "NOTE", label: "📣 Notes", color: "var(--violet)" },
+  { id: "PB", label: "📈 PBs", color: "var(--emerald)" },
+  { id: "NEW", label: "🆕 Νέοι", color: "var(--cyan)" },
+  { id: "BATTLE", label: "⚔️ Battles", color: "var(--red)" },
+  { id: "DUEL", label: "🥊 Duels", color: "var(--orange)" },
+  { id: "AWARD", label: "🏅 Awards", color: "var(--yellow)" },
+  { id: "STREAK", label: "🔥 Streaks", color: "var(--orange)" }
+];
+function buildFeed(d, raw) {
   const box = $("#feed-list");
   if (!box) return;
-  // μόνο βελτιώσεις της ΤΡΕΧΟΥΣΑΣ εβδομάδας (τρέχον track)
-  const all = d.feed || [];
-  const wk = d.currentTrack ? all.filter(r => r.track === d.currentTrack) : all;
-  const feed = wk
-    .filter(r => r.delta != null && r.delta > 0)
-    .sort((a, b) => b.delta - a.delta)   // τις μεγαλύτερες βελτιώσεις πρώτες
-    .slice(0, 6);
-  $("#feed-count").textContent = "TOP " + feed.length;
-  if (!feed.length) {
-    box.innerHTML = `<div class="dr-empty" style="padding:20px 6px">Καμία βελτίωση ακόμα αυτή την εβδομάδα — το track είναι ανοιχτό.</div>`;
+  const generated = raw && raw.generated_at ? raw.generated_at : null;
+  const events = [];
+  const currentTrack = d.currentTrack;
+
+  (d.feed || []).filter(r => !currentTrack || r.track === currentTrack).forEach(r => {
+    if (r.delta != null && r.delta > 0) {
+      events.push({ type: "PB", icon: "📈", color: "var(--emerald)", pilot: r.pilot,
+        text: `έκοψε ${Number(r.delta).toFixed(3)}s στο ${r.track || "track"}`,
+        meta: fmtTime(r.time), date: r.date || generated });
+    } else {
+      events.push({ type: "NEW", icon: "🆕", color: "var(--cyan)", pilot: r.pilot,
+        text: `πρώτη καταγραφή στο ${r.track || "track"}`,
+        meta: fmtTime(r.time), date: r.date || generated });
+    }
+  });
+
+  (d.hotBattles || []).forEach(b => events.push({ type: "BATTLE", icon: "⚔️", color: "var(--red)", pilot: null,
+    text: `${b.leader} κρατάει από ${b.chaser} — διαφορά ${Number(b.gap).toFixed(3)}s`,
+    meta: "hot battle", date: generated }));
+
+  const du = raw && raw.duels;
+  const activeDuels = Array.isArray(du) ? du.filter(x => !x.resolved) : (((du && du.active) || []).filter(x => !x.resolved));
+  activeDuels.forEach(x => events.push({ type: "DUEL", icon: "🥊", color: "var(--orange)", pilot: null,
+    text: `${x.pilot_a} vs ${x.pilot_b}${x.track ? " στο " + x.track : ""}`,
+    meta: "duel live", date: x.started_at || generated }));
+
+  if (d.potw) events.push({ type: "AWARD", icon: "🏅", color: "var(--yellow)", pilot: d.potw.pilot,
+    text: `Pilot of the Week με βελτίωση ${Number(d.potw.improvement_pct).toFixed(1)}%`,
+    meta: d.potw.track || "", date: generated });
+
+  // Race Director notes (από το Discord log του bot) — το νεότερο καρφιτσώνεται πάνω
+  const rdMsgs = raw && Array.isArray(raw.race_director_messages) ? raw.race_director_messages : [];
+  rdMsgs.forEach(m => events.push({ type: "NOTE", icon: "📣", color: "var(--violet)", pilot: null,
+    text: m.text || "", meta: m.tag || "race director", date: m.date || generated }));
+  if (!rdMsgs.length) events.push({ type: "NOTE", icon: "📣", color: "var(--violet)", pilot: null, ph: true,
+    text: "Καμία ανακοίνωση ακόμα — οι σημειώσεις που στέλνει ο Race Director στο Discord θα καρφιτσώνονται εδώ αυτόματα.",
+    meta: "σύντομα", date: generated });
+
+  Object.keys(d.profiles || {}).forEach(name => {
+    const streak = pilotStreak(name, d);
+    if (streak >= 3) events.push({ type: "STREAK", icon: "🔥", color: "var(--orange)", pilot: name,
+      text: `κρατάει streak ${streak} ημερών πτήσης`,
+      meta: "streak", date: generated });
+  });
+
+  events.sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")));
+
+  // φίλτρα: δείχνουμε μόνο τους τύπους που υπάρχουν στο feed
+  const presentTypes = new Set(events.map(e => e.type));
+  const filtersBox = $("#feed-filters");
+  if (filtersBox) {
+    if (feedFilter !== "ALL" && !presentTypes.has(feedFilter)) feedFilter = "ALL";
+    const avail = FEED_FILTERS.filter(f => f.id === "ALL" || presentTypes.has(f.id));
+    filtersBox.innerHTML = avail.map(f => {
+      const n = f.id === "ALL" ? events.length : events.filter(e => e.type === f.id).length;
+      return `<button class="ff ${feedFilter === f.id ? "on" : ""}" data-ff="${f.id}" style="--ff-c:${f.color}">${f.label} · ${n}</button>`;
+    }).join("");
+  }
+  const filtered = feedFilter === "ALL" ? events : events.filter(e => e.type === feedFilter);
+
+  // expanded view: cap και προτεραιότητα στα σπάνια events, όχι χαμός από PBs
+  const FEED_CAP = 16;
+  const RARE = { NOTE: -1, AWARD: 0, DUEL: 1, BATTLE: 2, STREAK: 3 };
+  const expandedList = filtered.slice().sort((a, b) => (RARE[a.type] ?? 4) - (RARE[b.type] ?? 4)).slice(0, FEED_CAP);
+  let visible = feedExpanded ? expandedList : filtered.slice(0, 8);
+  // pin: το νεότερο RD note πάντα πρώτο (αν υπάρχει στο τρέχον φίλτρο)
+  const pinnedNote = filtered.find(e => e.type === "NOTE");
+  if (pinnedNote && !visible.includes(pinnedNote)) visible = [pinnedNote, ...visible.slice(0, -1)];
+  else if (pinnedNote) visible = [pinnedNote, ...visible.filter(e => e !== pinnedNote)];
+  $("#feed-count").textContent = filtered.length + " EVENTS";
+  if (!visible.length) {
+    box.innerHTML = `<div class="dr-empty" style="padding:20px 6px">Η εβδομάδα μόλις ξεκίνησε — το πρώτο event θα εμφανιστεί εδώ αυτόματα.</div>`;
     $("#feed-more").style.display = "none";
     return;
   }
-  box.innerHTML = feed.map((r, i) => `
-    <div class="feed-row">
-      <span class="fr-rank">${["🥇","🥈","🥉"][i] || (i + 1) + "."}</span>
-      <span class="nm" data-pilot="${esc(r.pilot)}">${esc(r.pilot)}</span>
-      <span class="fr-track">${esc(r.track || "")}</span>
-      <span class="fr-delta">−${Number(r.delta).toFixed(3)}s</span>
-      <span class="t mono">${fmtTime(r.time)}</span>
-      <span class="fr-date">${r.date ? new Date(r.date).toLocaleDateString("el-GR", { day: "numeric", month: "short" }) : ""}</span>
+  box.innerHTML = visible.map(ev => `
+    <div class="feed-row"${ev === pinnedNote ? ' style="background:rgba(167,139,250,.05);border-radius:10px"' : ""}${ev.ph ? ' style="opacity:.55"' : ""}>
+      <span class="feed-icon" style="color:${ev.color}">${ev.icon}</span>
+      <div class="feed-main">
+        ${ev.type === "NOTE" ? `<b style="color:var(--violet);letter-spacing:.06em;font-size:11px;text-transform:uppercase">Race Director${ev === pinnedNote ? " · 📌" : ""}</b>` : ev.pilot ? `<span class="nm" data-pilot="${esc(ev.pilot)}">${esc(ev.pilot)}</span>` : `<b>${esc(ev.type)}</b>`}
+        <div class="feed-copy">${esc(ev.text)}</div>
+      </div>
+      <span class="feed-type" style="color:${ev.color};background:rgba(255,255,255,.05)">${esc(ev.type)}</span>
+      <span class="t mono">${esc(ev.meta || "")}</span>
+      <span class="fr-date">${ev.date ? new Date(ev.date).toLocaleDateString("el-GR", { day: "numeric", month: "short" }) : ""}</span>
     </div>`).join("");
-  $("#feed-more").style.display = "none";
+  const more = $("#feed-more");
+  if (filtered.length > 8) {
+    more.style.display = "block";
+    more.textContent = feedExpanded ? `SHOW LESS ▴ · top ${visible.length} από ${filtered.length}` : `VIEW ALL EVENTS (${filtered.length - 8} MORE) ▾`;
+  } else more.style.display = "none";
 }
+
+// ------------------------------------------------------------------ track reveal
+function ytId(v) {
+  if (!v) return null;
+  const m = String(v).match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([\w-]{6,})/);
+  if (m) return m[1];
+  return /^[\w-]{6,15}$/.test(String(v).trim()) ? String(v).trim() : null;
+}
+function buildReveal(raw, d) {
+  const box = $("#reveal-body");
+  if (!box) return;
+  const rv = raw && raw.track_reveal;
+  const id = rv && ytId(rv.youtube || rv.url || rv.id);
+  const track = (rv && rv.track) || "";
+  if (id) {
+    box.innerHTML = `
+      ${track ? `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+        <span style="font-weight:800;letter-spacing:.04em">${esc(rv.title || ("TRACK REVEAL · " + track))}</span>
+        <span class="tag" style="background:rgba(239,68,68,.12);color:var(--red)">${esc(track)}</span>
+      </div>` : ""}
+      <div class="reveal-vid"><iframe src="https://www.youtube-nocookie.com/embed/${esc(id)}" title="Track reveal" loading="lazy" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>`;
+  } else {
+    box.innerHTML = `
+      <div class="reveal-soon">
+        <div class="ic">🎬</div>
+        <div>
+          <div class="t1">Το reveal του επόμενου track έρχεται σύντομα</div>
+          <div class="t2">Μόλις ανέβει το βίντεο${track ? ` για το <b style="color:#fff">${esc(track)}</b>` : ""}, θα εμφανιστεί εδώ αυτόματα. Μέχρι τότε — μείνε συντονισμένος στο Discord.</div>
+        </div>
+      </div>`;
+  }
+}
+
 
 // ------------------------------------------------------------------ pilot of the week
 function buildPotw(d) {
   const card = $("#potw-card");
   if (!card) return;
-  const p = d.potw;
-  if (!p) { card.style.display = "none"; return; }
+  const awards = raceAwards(d);
+  if (!awards.length) { card.style.display = "none"; return; }
   card.style.display = "";
-  $("#potw-body").innerHTML = `
-    <div style="display:flex;align-items:center;gap:16px">
-      <div class="tf-avatar" style="width:56px;height:56px;border-radius:16px;font-size:22px;
-        background:linear-gradient(135deg,rgba(52,211,153,.25),rgba(52,211,153,.05));
-        border:1.5px solid rgba(52,211,153,.5);color:var(--emerald);box-shadow:0 0 34px rgba(52,211,153,.18)">${esc(initials(p.pilot))}</div>
-      <div style="flex:1;min-width:0">
-        <div class="tf-name nm" data-pilot="${esc(p.pilot)}" style="font-size:1.25rem;cursor:pointer">${esc(p.pilot)}</div>
-        <div style="color:rgba(255,255,255,.5);font-size:12px;margin-top:3px">
-          <span class="mono" style="color:rgba(255,255,255,.4)">${fmtTime(p.first_time)}</span>
-          → <b class="mono" style="color:var(--emerald)">${fmtTime(p.best_time)}</b> στο ${esc(p.track)}
-        </div>
+  $("#potw-body").innerHTML = awards.map(a => `
+    <div class="award-row">
+      <div class="award-ic">${a.icon}</div>
+      <div class="award-main">
+        <div class="award-name">${esc(a.label)}</div>
+        <div class="award-pilot ${a.pair ? "" : "nm"}" ${a.pair ? "" : `data-pilot="${esc(a.pilot)}"`}>${esc(a.pilot)}</div>
       </div>
-      <div style="text-align:center;flex-shrink:0">
-        <div class="display" style="font-weight:900;font-size:1.9rem;color:var(--emerald)">−${Number(p.improvement_pct).toFixed(1)}%</div>
-        <div style="font-size:9px;letter-spacing:.18em;color:rgba(255,255,255,.4);text-transform:uppercase">βελτίωση</div>
-      </div>
-    </div>`;
+      <div class="award-val">${esc(a.value)}</div>
+    </div>`).join("");
 }
 
 // ------------------------------------------------------------------ duels
@@ -678,10 +1028,116 @@ function buildSeasonStats(d, st) {
      </div>`;
 }
 
+// ------------------------------------------------------------------ shareable pilot card
+function rr(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+async function shareCurrentPilot() {
+  if (!activeDrawer) return;
+  const { pilot, d, raw } = activeDrawer;
+  const p = d.profiles[pilot] || {};
+  const title = pilotTitle(pilot, d, raw);
+  const ins = pilotInsight(pilot, d, raw);
+  const info = rivalInfo(pilot, d);
+  const seasonRank = d.standings.findIndex(x => x.pilot === pilot) + 1;
+  const trackRank = info && info.mode === "track" ? info.rank : null;
+
+  await document.fonts.ready;
+  const cv = document.createElement("canvas");
+  cv.width = 1080; cv.height = 1080;
+  const ctx = cv.getContext("2d");
+
+  const bg = ctx.createLinearGradient(0, 0, 1080, 1080);
+  bg.addColorStop(0, "#08080d"); bg.addColorStop(.55, "#111119"); bg.addColorStop(1, "#0b1b22");
+  ctx.fillStyle = bg; ctx.fillRect(0, 0, 1080, 1080);
+  ctx.strokeStyle = "rgba(34,211,238,.18)"; ctx.lineWidth = 2;
+  for (let i = -8; i < 16; i++) {
+    ctx.beginPath(); ctx.moveTo(i * 110, 1080); ctx.lineTo(i * 110 + 520, 0); ctx.stroke();
+  }
+  ctx.strokeStyle = "rgba(232,121,249,.28)"; ctx.lineWidth = 4;
+  rr(ctx, 34, 34, 1012, 1012, 44); ctx.stroke();
+
+  ctx.textAlign = "center";
+  ctx.fillStyle = "rgba(34,211,238,.9)";
+  ctx.font = "700 24px 'JetBrains Mono'";
+  ctx.fillText("DRH · RACE DIRECTOR CARD", 540, 96);
+
+  ctx.fillStyle = "rgba(34,211,238,.12)";
+  rr(ctx, 390, 140, 300, 300, 72); ctx.fill();
+  ctx.strokeStyle = "rgba(34,211,238,.6)"; ctx.lineWidth = 5; rr(ctx, 390, 140, 300, 300, 72); ctx.stroke();
+  ctx.fillStyle = "#22d3ee";
+  ctx.font = "900 132px Archivo";
+  ctx.fillText(initials(pilot), 540, 338);
+
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "900 66px Archivo";
+  ctx.fillText(pilot, 540, 535);
+  if (title) {
+    ctx.fillStyle = title.color.startsWith("var(--") ? "#a78bfa" : title.color;
+    ctx.font = "700 28px 'JetBrains Mono'";
+    ctx.fillText(title.label.toUpperCase(), 540, 584);
+  }
+
+  const stats = [
+    ["TRACK", trackRank ? "#" + trackRank : "—"],
+    ["SEASON", seasonRank ? "#" + seasonRank : "—"],
+    ["POINTS", String(p.points || 0)],
+    ["PBS", String(p.pbs || 0)]
+  ];
+  stats.forEach((s, i) => {
+    const x = 100 + i * 225;
+    ctx.fillStyle = "rgba(255,255,255,.055)";
+    rr(ctx, x, 650, 185, 132, 24); ctx.fill();
+    ctx.fillStyle = "rgba(255,255,255,.42)";
+    ctx.font = "700 18px 'JetBrains Mono'";
+    ctx.fillText(s[0], x + 92, 694);
+    ctx.fillStyle = i === 0 ? "#22d3ee" : i === 1 ? "#e879f9" : i === 2 ? "#facc15" : "#34d399";
+    ctx.font = "900 42px Archivo";
+    ctx.fillText(s[1], x + 92, 748);
+  });
+
+  ctx.textAlign = "left";
+  ctx.fillStyle = "rgba(255,255,255,.42)";
+  ctx.font = "700 20px 'JetBrains Mono'";
+  ctx.fillText("WEEKLY VERDICT", 100, 850);
+  ctx.fillStyle = "rgba(255,255,255,.86)";
+  ctx.font = "600 28px Inter";
+  let verdict = "Το grid σε περιμένει για τον επόμενο γύρο.";
+  if (ins && ins.first_time != null && ins.time != null && ins.first_time > ins.time) {
+    verdict = `Από ${Number(ins.first_time).toFixed(3)}s στα ${Number(ins.time).toFixed(3)}s αυτή την εβδομάδα.`;
+  } else if (info && info.mode === "track" && info.ahead) {
+    verdict = `${info.gapAhead.toFixed(3)}s μακριά από τον ${info.ahead.pilot}.`;
+  }
+  ctx.fillText(verdict, 100, 898, 880);
+  ctx.fillStyle = "rgba(255,255,255,.38)";
+  ctx.font = "700 18px 'JetBrains Mono'";
+  ctx.fillText("DRONE RACING HELLAS · SIMRUSH SERIES", 100, 984);
+
+  cv.toBlob(blob => {
+    if (!blob) { toast("Δεν δημιουργήθηκε η κάρτα", "⚠"); return; }
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `drh-${pilot.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-card.png`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    toast("Η pilot card κατέβηκε", "✓");
+  }, "image/png");
+}
+
 // ------------------------------------------------------------------ drawer
+let activeDrawer = null;
 function openDrawer(pilotName, d, raw) {
   const p = d.profiles[pilotName];
   if (!p) return; // pilot unknown in this class — don't open an empty drawer
+  activeDrawer = { pilot: pilotName, d, raw };
+  const title = pilotTitle(pilotName, d, raw);
   const cur = d.currentLb.find(r => r.pilot === pilotName);
   const rankIdx = d.standings.findIndex(s => s.pilot === pilotName);
   const rank = rankIdx >= 0 ? rankIdx + 1 : null;
@@ -697,6 +1153,7 @@ function openDrawer(pilotName, d, raw) {
   av.style.color = rankCol;
   av.style.boxShadow = `0 0 36px ${rankGlow}`;
   $("#dr-nm").textContent = pilotName;
+  $("#dr-title").innerHTML = title ? `<span style="color:${title.color}">RACE DIRECTOR · ${esc(title.label)}</span>` : "";
   $("#dr-qd").textContent = (p.quads && p.quads.length ? p.quads.join(" · ") : "—");
 
   // chips: θέση σεζόν + τάση φόρμας + on-track-τώρα
@@ -730,6 +1187,10 @@ function openDrawer(pilotName, d, raw) {
   $("#dr-badges").innerHTML = badges.length
     ? badges.map(b => `<span class="dr-badge" style="background:${b[2]};color:${b[3]}">${b[0]} ${b[1]}</span>`).join("")
     : `<div class="dr-empty">Κανένα badge ακόμα — το πρώτο PB ή podium σε περιμένει.</div>`;
+
+  // --- Race Director: προσωπικός επόμενος στόχος + auto-quests ---
+  $("#dr-director").innerHTML = renderDirectorBlock(pilotName, d, raw);
+  $("#dr-quests").innerHTML = renderQuestsBlock(pilotName, d, raw);
 
   // --- ενεργή μονομαχία του πιλότου (αν υπάρχει) ---
   const duelBox = $("#dr-duel");
@@ -810,18 +1271,22 @@ function openDrawer(pilotName, d, raw) {
   } else race.style.display = "none";
 
   const stats = [
-    { v: p.points, k: "Points" }, { v: p.wins, k: "Wins" }, { v: p.podiums, k: "Podiums" },
-    { v: p.best != null ? Number(p.best).toFixed(3) : "—", k: "Best (s)" },
-    { v: p.appearances, k: "Weeks" }, { v: p.avgRank, k: "Avg Rank" },
-    { v: p.pbs || 0, k: "PBs" },
-    { v: p.bestImprovementPct ? "−" + Number(p.bestImprovementPct).toFixed(1) + "%" : "—", k: "Best PB %" }
+    { v: p.points, k: "Points", tip: "Βαθμοί στη βαθμολογία της σεζόν — μαζεύονται από κάθε εβδομαδιαίο track" },
+    { v: p.wins, k: "Wins", tip: "Εβδομαδιαίες νίκες — 1η θέση σε track" },
+    { v: p.podiums, k: "Podiums", tip: "Τερματισμοί σε top-3 θέση σε εβδομαδιαίο track" },
+    { v: p.best != null ? Number(p.best).toFixed(3) : "—", k: "Best (s)", tip: "Ο γρηγορότερος χρόνος που έχει καταγράψει ποτέ στη σεζόν" },
+    { v: p.appearances, k: "Weeks", tip: "Σε πόσα εβδομαδιαία tracks έχει συμμετάσχει" },
+    { v: p.avgRank, k: "Avg Rank", tip: "Μέση θέση τερματισμού στα tracks που έτρεξε — όσο μικρότερη, τόσο καλύτερη" },
+    { v: p.pbs || 0, k: "PBs", tip: "Προσωπικά ρεκόρ — πόσες φορές βελτίωσε τον δικό του χρόνο" },
+    { v: p.bestImprovementPct ? "−" + Number(p.bestImprovementPct).toFixed(1) + "%" : "—", k: "Best PB %", tip: "Η μεγαλύτερη ποσοστιαία βελτίωση από τον πρώτο στον τελευταίο χρόνο σε ένα track" }
   ];
-  $("#dr-stats").innerHTML = stats.map(s => `<div class="dr-stat"><div class="v">${s.v}</div><div class="k">${s.k}</div></div>`).join("");
+  $("#dr-stats").innerHTML = stats.map(s => `<div class="dr-stat" data-tip="${esc(s.tip)}"><div class="v">${s.v}</div><div class="k">${s.k}</div></div>`).join("");
   // form chips
   const form = p.form || [];
   $("#dr-form").innerHTML = form.length ? form.map(r =>
     `<div class="form-chip ${r === 1 ? "y" : r <= 3 ? "g" : "o"}">${r === 1 ? "🏆" : "#" + r}<span class="w">${r === 1 ? "WIN" : "RANK"}</span></div>`).join("")
     : `<div class="dr-empty">Καμία συμμετοχή ακόμα.</div>`;
+  $("#dr-digest").innerHTML = renderDigestBlock(pilotName, d, raw);
   // weeks list — με % πίσω από τον νικητή της εβδομάδας (συγκρίνιμο μεταξύ tracks)
   $("#dr-weeks").innerHTML = p.weeks && p.weeks.some(Boolean) ? p.weeks.map((w, i) => {
     if (!w) return "";
@@ -896,6 +1361,15 @@ function closeDrawer() {
   document.body.style.overflow = "";
 }
 
+function openOnboarding() {
+  $("#onboard-modal").classList.add("on");
+  document.body.style.overflow = "hidden";
+}
+function closeOnboarding() {
+  $("#onboard-modal").classList.remove("on");
+  if (!$("#drawer").classList.contains("on")) document.body.style.overflow = "";
+}
+
 // ------------------------------------------------------------------ toast
 let toastTimer;
 function toast(msg, ic = "✓") {
@@ -914,6 +1388,27 @@ function revealInit() {
   $$(".reveal").forEach(el => io.observe(el));
 }
 
+// ------------------------------------------------------------------ float drift (drh-website parallax)
+function floatInit() {
+  const els = $$("[data-float]");
+  if (!els.length) return;
+  let raf = 0;
+  const update = () => {
+    raf = 0;
+    const vh = innerHeight;
+    els.forEach(el => {
+      const speed = parseFloat(el.dataset.float || "0.05");
+      const r = el.getBoundingClientRect();
+      const offset = r.top + r.height / 2 - vh / 2;
+      el.style.transform = `translate3d(0,${(-offset * speed).toFixed(1)}px,0)`;
+    });
+  };
+  const onScroll = () => { if (!raf) raf = requestAnimationFrame(update); };
+  addEventListener("scroll", onScroll, { passive: true });
+  addEventListener("resize", onScroll);
+  update();
+}
+
 // ------------------------------------------------------------------ card glow (bound once)
 function cardGlow() {
   $$(".card").forEach(c => {
@@ -930,6 +1425,7 @@ function cardGlow() {
   heroCanvas();
   heroTitle();
   revealInit();
+  floatInit();
   cardGlow();
 
   let state = await initData();
@@ -945,11 +1441,14 @@ function cardGlow() {
     startCountdown(state.data);
     buildTitleFight(d);
     buildLeaderboard(d, state.data, state.error);
-    buildFeed(d);
+    buildFeed(d, state.data);
     chart.update(d);
     buildDuels(state.data, d);
     buildPotw(d);
+    buildSpotlight(d, state.data);
+    buildReveal(state.data, d);
     buildArchive(d);
+    buildHallOfFame(d);
     buildSeasonStats(d, state);
     $("#err-banner").classList.toggle("on", state.error);
   }
@@ -987,7 +1486,14 @@ function cardGlow() {
   // show more
   $("#lb-more").addEventListener("click", () => { lbExpanded = !lbExpanded; buildLeaderboard(state.derivedByClass[activeClass], state.data, state.error); });
   const feedMore = $("#feed-more");
-  if (feedMore) feedMore.addEventListener("click", () => { feedExpanded = !feedExpanded; buildFeed(state.derivedByClass[activeClass]); });
+  if (feedMore) feedMore.addEventListener("click", () => { feedExpanded = !feedExpanded; buildFeed(state.derivedByClass[activeClass], state.data); });
+  const feedFilters = $("#feed-filters");
+  if (feedFilters) feedFilters.addEventListener("click", e => {
+    const b = e.target.closest(".ff"); if (!b) return;
+    if (b.dataset.ff === feedFilter) return;
+    feedFilter = b.dataset.ff; feedExpanded = false;
+    buildFeed(state.derivedByClass[activeClass], state.data);
+  });
 
   // pilot drawer (delegate)
   document.addEventListener("click", e => {
@@ -1000,7 +1506,17 @@ function cardGlow() {
   });
   $("#dr-close").addEventListener("click", closeDrawer);
   $("#overlay").addEventListener("click", closeDrawer);
-  addEventListener("keydown", e => { if (e.key === "Escape") closeDrawer(); });
+  const drShare = $("#dr-share");
+  if (drShare) drShare.addEventListener("click", shareCurrentPilot);
+
+  // onboarding modal
+  const obOpen = $("#onboard-open"), obClose = $("#onboard-close"), obModal = $("#onboard-modal"), obLive = $("#onboard-live");
+  if (obOpen) obOpen.addEventListener("click", openOnboarding);
+  if (obClose) obClose.addEventListener("click", closeOnboarding);
+  if (obModal) obModal.addEventListener("click", e => { if (e.target === obModal) closeOnboarding(); });
+  if (obLive) obLive.addEventListener("click", closeOnboarding);
+
+  addEventListener("keydown", e => { if (e.key === "Escape") { closeDrawer(); closeOnboarding(); } });
 
   // retry
   $("#retry-btn").addEventListener("click", async () => {
