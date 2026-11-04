@@ -15,6 +15,109 @@ const initials = (name) => String(name || "").replace(/[^A-Za-z0-9]/g, "").slice
 const fmtTime = (t) => (t == null ? "—" : Number(t).toFixed(3) + "s");
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
+// ---------------------------------------------------------------- pilot identity («Είμαι εγώ»)
+// Η ταυτότητα ζει ΜΟΝΟ στο localStorage του browser — κανένας λογαριασμός.
+const ME_KEY = "drh.me";
+function getMe() { try { return localStorage.getItem(ME_KEY) || null; } catch { return null; } }
+function setMe(name) { try { name ? localStorage.setItem(ME_KEY, name) : localStorage.removeItem(ME_KEY); } catch {} }
+
+function pickerPilots(d) {
+  const names = new Set();
+  (d.standings || []).forEach(s => names.add(s.pilot));
+  (d.currentLb || []).forEach(r => names.add(r.pilot));
+  Object.keys(d.profiles || {}).forEach(n => names.add(n));
+  return [...names].sort((a, b) => a.localeCompare(b));
+}
+
+function openPicker(d, raw) {
+  const modal = $("#pick-modal");
+  if (!modal || !d) return;
+  const list = pickerPilots(d);
+  const grid = $("#pick-grid");
+  const search = $("#pick-search");
+  const paint = (q) => {
+    const needle = (q || "").trim().toLowerCase();
+    const shown = needle ? list.filter(n => n.toLowerCase().includes(needle)) : list;
+    grid.innerHTML = shown.length
+      ? shown.map(n => `<button class="pick-item" type="button" data-pick="${esc(n)}">
+          <span class="av">${esc(initials(n))}</span>
+          <span class="nm2">${esc(n)}</span>
+        </button>`).join("")
+      : `<div class="dr-empty" style="grid-column:1/-1;padding:24px 6px;text-align:center">Κανένας πιλότος με «${esc(q)}».<br><span style="font-size:12px">Πέτα πρώτος και θα εμφανιστείς εδώ.</span></div>`;
+  };
+  paint("");
+  if (search) search.value = "";
+  modal.classList.add("on");
+  setTimeout(() => search && search.focus(), 120);
+  if (search) search.oninput = () => paint(search.value);
+  grid.onclick = (e) => {
+    const btn = e.target.closest("[data-pick]");
+    if (btn) choosePilot(btn.dataset.pick, d, raw);
+  };
+}
+
+function closePicker() {
+  const m = $("#pick-modal");
+  if (m) m.classList.remove("on");
+}
+
+function choosePilot(name, d, raw) {
+  setMe(name);
+  closePicker();
+  syncMeButton();
+  renderMeCard(d, raw);
+  toast(`Γεια σου, ${name}! Το site είναι πλέον δικό σου.`, "👋");
+  setTimeout(() => openDrawer(name, d, raw), 420);
+}
+
+function syncMeButton() {
+  const btn = $("#me-btn");
+  if (!btn) return;
+  const me = getMe();
+  if (me) {
+    btn.textContent = me;
+    btn.classList.add("set");
+    btn.title = "Αλλαγή πιλότου";
+  } else {
+    btn.textContent = "Είμαι εγώ";
+    btn.classList.remove("set");
+    btn.title = "Διάλεξε το callsign σου";
+  }
+}
+
+// Quest card πάνω από τα tabs του live — εμφανίζεται ΜΟΝΟ αν έχεις διαλέξει callsign
+function renderMeCard(d, raw) {
+  const slot = $("#me-slot");
+  if (!slot) return;
+  const me = getMe();
+  const p = me && d && d.profiles ? d.profiles[me] : null;
+  if (!me || !p) { slot.innerHTML = ""; return; }
+  const rankIdx = (d.standings || []).findIndex(s => s.pilot === me);
+  const rank = rankIdx >= 0 ? rankIdx + 1 : null;
+  const trackIdx = (d.currentLb || []).findIndex(r => r.pilot === me);
+  const cur = (d.currentLb || []).find(r => r.pilot === me);
+  const quests = (typeof pilotQuests === "function") ? pilotQuests(me, d, raw) : [];
+  const q = quests.find(x => (x.done || 0) < (x.target || 1)) || quests[0] || null;
+  const pct = q && q.target ? Math.max(0, Math.min(100, (q.done / q.target) * 100)) : 0;
+  const sub = [
+    rank ? `#${rank} σεζόν` : null,
+    trackIdx >= 0 ? `#${trackIdx + 1} track` : null,
+    cur && cur.time != null ? fmtTime(cur.time) : null
+  ].filter(Boolean).join(" · ") || "χωρίς χρόνο ακόμα";
+  slot.innerHTML = `
+    <div class="mec" role="button" tabindex="0" title="Άνοιξε το προφίλ σου">
+      <div class="mec-id">
+        <span class="mec-av">${esc(initials(me))}</span>
+        <div class="mec-idc"><b>${esc(me)}</b><span>${esc(sub)}</span></div>
+      </div>
+      <div class="mec-q">
+        <div class="mec-q-top"><span>🎯 ${esc(q ? q.label : "Κατέγραψε τον πρώτο σου χρόνο")}</span><span class="mono">${esc(q && q.note || "")}</span></div>
+        <div class="mec-bar"><div class="mec-fill" style="width:${pct}%"></div></div>
+      </div>
+      <span class="mec-go">Προφίλ →</span>
+    </div>`;
+}
+
 // ---------------------------------------------------------------- hero canvas
 function heroCanvas() {
   const cv = $("#bg-canvas"), ctx = cv.getContext("2d");
@@ -1171,6 +1274,17 @@ function openDrawer(pilotName, d, raw) {
   hero.style.setProperty("--dr-glow", rankGlow);
   const av = $("#dr-av");
   av.textContent = initials(pilotName);
+  av.classList.remove("has-img");
+  // manual εικόνα πιλότου: avatars/<callsign>.png — αλλιώς μένουν τα initials
+  const avImg = new Image();
+  avImg.alt = pilotName;
+  avImg.onload = () => {
+    if (!activeDrawer || activeDrawer.pilot !== pilotName) return;
+    av.textContent = "";
+    av.appendChild(avImg);
+    av.classList.add("has-img");
+  };
+  avImg.src = "avatars/" + encodeURIComponent(pilotName) + ".png";
   av.style.borderColor = rankCol;
   av.style.color = rankCol;
   av.style.boxShadow = `0 0 36px ${rankGlow}`;
@@ -1178,7 +1292,7 @@ function openDrawer(pilotName, d, raw) {
   $("#dr-title").innerHTML = title ? `<span style="color:${title.color}">RACE DIRECTOR · ${esc(title.label)}</span>` : "";
   $("#dr-qd").textContent = (p.quads && p.quads.length ? p.quads.join(" · ") : "—");
 
-  // chips: θέση σεζόν + τάση φόρμας + on-track-τώρα
+  // chips: θέση σεζόν + τάση φόρμας
   const chips = [];
   if (rank) chips.push(`<span class="dr-chip" style="background:rgba(255,255,255,.07);color:${rankCol}">#${rank} στη σεζόν</span>`);
   const ranksDone = (p.weeks || []).filter(Boolean).map(w => w.rank);
@@ -1189,8 +1303,11 @@ function openDrawer(pilotName, d, raw) {
     else if (diff <= -0.5) chips.push(`<span class="dr-chip" style="background:rgba(239,68,68,.12);color:var(--red)">↘ σε πτώση</span>`);
     else chips.push(`<span class="dr-chip" style="background:rgba(255,255,255,.06);color:rgba(255,255,255,.55)">→ σταθερός</span>`);
   }
-  if (cur) chips.push(`<span class="dr-chip" style="background:rgba(34,211,238,.12);color:var(--cyan)">● on track τώρα</span>`);
   $("#dr-chips").innerHTML = chips.join("");
+
+  // το share της εβδομάδας μόνο στο ΔΙΚΟ σου drawer
+  const shareRow = $(".dr-actions");
+  if (shareRow) shareRow.style.display = (getMe() === pilotName) ? "" : "none";
 
   // insights row του πιλότου για την τρέχουσα εβδομάδα (χρήση σε badge + καμπύλη)
   const ins = raw && raw.insights && Array.isArray(raw.insights.pilots)
@@ -1480,6 +1597,8 @@ function cardGlow() {
     buildArchive(d);
     buildHallOfFame(d);
     buildSeasonStats(d, state);
+    syncMeButton();
+    renderMeCard(d, state.data);
     $("#err-banner").classList.toggle("on", state.error);
   }
 
@@ -1546,7 +1665,22 @@ function cardGlow() {
   if (obModal) obModal.addEventListener("click", e => { if (e.target === obModal) closeOnboarding(); });
   if (obLive) obLive.addEventListener("click", closeOnboarding);
 
-  addEventListener("keydown", e => { if (e.key === "Escape") { closeDrawer(); closeOnboarding(); } });
+  // pilot picker («Είμαι εγώ»)
+  const pickModal = $("#pick-modal"), pickSkip = $("#pick-skip"), meBtn = $("#me-btn"), meSlot = $("#me-slot");
+  if (pickModal) pickModal.addEventListener("click", e => { if (e.target === pickModal) closePicker(); });
+  if (pickSkip) pickSkip.addEventListener("click", () => { closePicker(); toast("Πάτα «Είμαι εγώ» όποτε θέλεις για να το ενεργοποιήσεις.", "👀"); });
+  if (meBtn) meBtn.addEventListener("click", () => openPicker(state.derivedByClass[activeClass], state.data));
+  if (meSlot) {
+    const openMe = () => {
+      const me = getMe();
+      const d = state.derivedByClass[activeClass];
+      if (me && d && d.profiles[me]) openDrawer(me, d, state.data);
+    };
+    meSlot.addEventListener("click", openMe);
+    meSlot.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openMe(); } });
+  }
+
+  addEventListener("keydown", e => { if (e.key === "Escape") { closeDrawer(); closeOnboarding(); closePicker(); } });
 
   // retry
   $("#retry-btn").addEventListener("click", async () => {
