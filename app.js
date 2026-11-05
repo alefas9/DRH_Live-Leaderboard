@@ -16,6 +16,24 @@ const cssVar = (name, fallback) =>
   getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
 
 const initials = (name) => String(name || "").replace(/[^A-Za-z0-9]/g, "").slice(0, 2).toUpperCase() || "?";
+// Bot timestamps είναι naive ISO ΧΩΡΙΣ timezone — τα ερμηνεύουμε ως UTC (το bot τρέχει σε UTC)
+// και ο browser τα δείχνει σε τοπική ώρα. Date-only strings περνούν ως έχουν.
+const parseTs = (s) => { s = String(s || ""); return new Date((/[zZ]|[+-]\d{2}:?\d{2}$/.test(s) || !s.includes("T")) ? s : s + "Z"); };
+// Avatar chip στους πίνακες: avatars/<callsign>.png αν υπάρχει, αλλιώς initials
+const AV_CACHE = {};
+const avHtml = (pilot) => `<span class="pav" data-av="${esc(pilot)}">${esc(initials(pilot))}</span>`;
+function hydrateAvatars(root) {
+  (root || document).querySelectorAll(".pav[data-av]").forEach(el => {
+    const p = el.dataset.av;
+    if (!p || AV_CACHE[p] === "none") return;
+    if (AV_CACHE[p]) { el.textContent = ""; const im = new Image(); im.alt = p; im.src = AV_CACHE[p]; el.appendChild(im); el.classList.add("has-img"); return; }
+    const im = new Image();
+    im.alt = p;
+    im.onload = () => { AV_CACHE[p] = im.src; el.textContent = ""; el.appendChild(im); el.classList.add("has-img"); };
+    im.onerror = () => { AV_CACHE[p] = "none"; };
+    im.src = "avatars/" + encodeURIComponent(p) + ".png";
+  });
+}
 const fmtTime = (t) => (t == null ? "—" : Number(t).toFixed(3) + "s");
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
@@ -103,22 +121,23 @@ function heroCanvas() {
 function heroTitle() {
   const el = $("#hero-title");
   const text = el.dataset.text;
-  const lastWordStart = text.lastIndexOf(" ") + 1; // gradient on the final word ("HELLAS")
+  const words = text.split(" ");
   let i = 0;
-  for (const word of text.split(" ")) {
+  words.forEach((word, wi) => {
+    const isLast = wi === words.length - 1; // gradient/outline στην τελευταία λέξη ("HELLAS")
     const w = document.createElement("span");
     w.style.display = "inline-block";
     w.style.whiteSpace = "nowrap";
     for (const ch of word) {
       const s = document.createElement("span");
-      s.className = "l" + (i >= lastWordStart ? " grad" : "");
+      s.className = "l" + (isLast ? " grad" : "");
       s.textContent = ch;
       s.style.animationDelay = (0.35 + i * 0.045) + "s";
       w.appendChild(s); i++;
     }
     el.appendChild(w);
     el.appendChild(document.createTextNode(" "));
-  }
+  });
 }
 
 // ------------------------------------------------------------- class switcher
@@ -136,6 +155,7 @@ function buildClassBar(st) {
 
 // ------------------------------------------------------------------- ticker
 function buildTicker(d, raw) {
+  if (!$("#ticker")) return; // marquee αφαιρέθηκε — κρατάμε τη συνάρτηση ως no-op
   const items = [];
   d.weeks.forEach(w => {
     items.push(`<span class="tick-item"><span class="sep">▸</span> <b>${esc(String(w.track).toUpperCase())}</b> — 🏆 <b class="win">${esc(w.winner)}</b> · best ${fmtTime(w.best)} · ${w.pilots} pilots · ${w.records} records</span>`);
@@ -150,8 +170,8 @@ function buildTicker(d, raw) {
   $("#ticker").innerHTML = items.join("") + items.join("");
 }
 
-// ----------------------------------------------------------------- hero stats
-function buildHeroStats(d) {
+// ----------------------------------------------------------------- hero stats + HUD
+function buildHeroStats(d, raw) {
   const totalPilots = new Set(d.weeks.flatMap(w => w.results.map(r => r.pilot))).size;
   const stats = [
     { v: d.totalRecords, k: "Records Broken", c: "e" },
@@ -161,6 +181,22 @@ function buildHeroStats(d) {
   ];
   $("#hero-stats").innerHTML = stats.map(x =>
     `<div class="hstat"><div class="v ${x.c}">${x.v}</div><div class="k">${x.k}</div></div>`).join("");
+
+  // HUD strip + widgets (FPV HUD v1)
+  if (raw) {
+    const season = $("#hud-season"); if (season) season.textContent = raw.season || "—";
+    const track = String(raw.current_track || "").toUpperCase();
+    const hudTrack = $("#hud-track"); if (hudTrack) hudTrack.textContent = track || "—";
+    const hudRound = $("#hud-round");
+    if (hudRound) { const m = track.match(/(\d+)/); hudRound.textContent = m ? "W" + m[1].padStart(2, "0") : "—"; }
+    const fast = $("#hud-fastest");
+    if (fast) {
+      const rows = (raw.current_leaderboard || {})[activeClass] || [];
+      fast.innerHTML = rows.length
+        ? `${fmtTime(rows[0].time)}<small>${esc(rows[0].pilot)}${rows[0].quad ? " · " + esc(rows[0].quad).toUpperCase() : ""}</small>`
+        : "—";
+    }
+  }
 }
 
 // ---------------------------------------------------------------- countdown
@@ -181,7 +217,14 @@ function startCountdown(raw) {
     let ms = countdown.target - Date.now();
     if (ms < 0) ms = 0;
     const dd = Math.floor(ms / 864e5), hh = Math.floor(ms % 864e5 / 36e5), mm = Math.floor(ms % 36e5 / 6e4), ss = Math.floor(ms % 6e4 / 1e3);
-    $("#cd-digits").textContent = `${String(dd).padStart(2, "0")}η ${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}:${String(ss).padStart(2, "0")}`;
+    $("#cd-digits").textContent = `${String(dd).padStart(2, "0")}D ${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}:${String(ss).padStart(2, "0")}`;
+    // FPV HUD v1: hero countdown cells
+    const cd2d = $("#cd2-d");
+    if (cd2d) {
+      cd2d.textContent = String(dd).padStart(2, "0");
+      $("#cd2-h").textContent = String(hh).padStart(2, "0");
+      $("#cd2-m").textContent = String(mm).padStart(2, "0");
+    }
   }
   tick(); setInterval(tick, 1000);
 }
@@ -228,7 +271,7 @@ function buildLeaderboard(d, raw, isErr) {
   $("#live-track-name").textContent = ((raw.current_track || "") + " · " + classLabel(d.cls)).toUpperCase();
   const subTrack = $("#live-sub-track");
   if (subTrack) subTrack.textContent = (raw.current_track || "").toUpperCase();
-  $("#live-updated").textContent = new Date(raw.generated_at).toLocaleString("el-GR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) + (isErr ? " · SNAPSHOT" : "");
+  $("#live-updated").textContent = parseTs(raw.generated_at).toLocaleString("el-GR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) + (isErr ? " · SNAPSHOT" : "");
 
   // week progress (N από M πιλότους + PBs σήμερα)
   const flown = new Set(cur.map(r => r.pilot)).size, total = sea.length || Math.max(flown, 1);
@@ -326,27 +369,28 @@ function buildLeaderboard(d, raw, isErr) {
   const list = hidden.slice(0, showN).map((r, i) => {
     const ri = i + 3;
     const mv = moves[ri], mag = mvMag[ri] || 0;
-    const mvHtml = mv === "up" ? `<span class="move up">▲${mag || ""}</span>` : mv === "dn" ? `<span class="move dn">▼${mag || ""}</span>` : mv === "new" ? `<span class="move up">✦</span>` : "";
+    const mvHtml = mv === "up" ? `<span class="move up">▲${Math.abs(mag) || ""}</span>` : mv === "dn" ? `<span class="move dn">▼${Math.abs(mag) || ""}</span>` : mv === "new" ? `<span class="move up">✦</span>` : "";
     const title = pilotTitle(r.pilot, d, raw);
     const badge = title ? `<span class="pilot-title" style="color:${title.color}">${esc(title.label)}</span>` : "";
     if (lbMode === "season") {
       return `<div class="lb-row r${ri + 1}${mv === "new" ? " flash-new" : ""}">
-        <span class="rk"><b>${r.rank}</b></span>
-        <span class="pl"><span class="nm" data-pilot="${esc(r.pilot)}">${esc(r.pilot)}</span>${badge}</span>
+        <span class="rk"><b>${r.rank}</b></span><span class="mv"></span>
+        <span class="pl">${avHtml(r.pilot)}<span class="nm" data-pilot="${esc(r.pilot)}">${esc(r.pilot)}</span>${badge}</span>
         <span class="season-sub">${esc(r.sub)}</span>
         <span class="val">${r.val}</span>
       </div>`;
     }
     return `<div class="lb-row r${ri + 1}${r.tight ? " tight" : ""}${mv === "new" ? " flash-new" : ""}">
-      <span class="rk"><b>${r.rank}</b>${mvHtml}</span>
-      <span class="pl"><span class="nm" data-pilot="${esc(r.pilot)}">${esc(r.pilot)}</span>${badge}</span>
-      <span class="intv">${r.sub}</span>
+      <span class="rk"><b>${r.rank}</b></span><span class="mv">${mvHtml}</span>
+      <span class="pl">${avHtml(r.pilot)}<span class="nm" data-pilot="${esc(r.pilot)}">${esc(r.pilot)}</span>${badge}</span>
+      <span class="intv">${r.sub}${r.tight ? ' <span class="bt">⚡ BATTLE</span>' : ""}</span>
       <span class="fromlead">${r.subPct}</span>
       <span class="val">${r.val}</span>
     </div>`;
   }).join("");
 
   $("#lb-body").innerHTML = list;
+  hydrateAvatars($("#lb-body"));
   const more = $("#lb-more");
   if (hidden.length > 5) {
     more.style.display = "block";
@@ -841,7 +885,7 @@ function buildFeed(d, raw) {
       </div>
       <span class="feed-type" style="color:${ev.color};background:rgba(255,255,255,.05)">${esc(ev.type)}</span>
       <span class="t mono">${esc(ev.meta || "")}</span>
-      <span class="fr-date">${ev.date ? new Date(ev.date).toLocaleDateString("el-GR", { day: "numeric", month: "short" }) : ""}</span>
+      <span class="fr-date">${ev.date ? parseTs(ev.date).toLocaleDateString("el-GR", { day: "numeric", month: "short" }) : ""}</span>
     </div>`).join("");
   const more = $("#feed-more");
   if (filtered.length > 8) {
@@ -874,7 +918,7 @@ function buildReveal(raw, d) {
 // ------------------------------------------------------------------ live sidebar
 // Race Director (τελευταίο μήνυμα) + Κοντινές μάχες (hot battles της ενεργής κλάσης)
 function fmtRdDate(iso) {
-  const dt = new Date(iso);
+  const dt = parseTs(iso);
   if (isNaN(dt)) return String(iso || "");
   const d2 = dt.toLocaleDateString("el-GR", { day: "numeric", month: "short" });
   const hm = dt.toLocaleTimeString("el-GR", { hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
@@ -980,7 +1024,7 @@ function buildDuels(raw, d) {
         const hrs = (new Date(p.deadline) - Date.now()) / 36e5;
         dl = hrs >= 0 && hrs < 24
           ? ` · <span style="color:var(--red);font-weight:700">⏱ λήγει σε ${Math.max(1, Math.ceil(hrs))}h</span>`
-          : " · λήγει " + new Date(p.deadline).toLocaleDateString("el-GR", { day: "numeric", month: "short" });
+          : " · λήγει " + parseTs(p.deadline).toLocaleDateString("el-GR", { day: "numeric", month: "short" });
       }
       return `
       <div class="duel">
@@ -1084,16 +1128,18 @@ function renderArchiveWeek(d) {
   rowsBox.innerHTML = list.length ? list.map(r => `
     <div class="arc-row${r.rank <= 3 ? " m" + r.rank : ""}">
       <span class="r">${r.rank}</span>
-      <span class="nm" data-pilot="${esc(r.pilot)}">${esc(r.pilot)}</span>
+      <span class="nmpl">${avHtml(r.pilot)}<span class="nm" data-pilot="${esc(r.pilot)}">${esc(r.pilot)}</span></span>
       <span class="q">${esc(w.quads[r.pilot] || "—")}</span>
       <span class="t">${fmtTime(r.time)}</span>
       <span class="pt">${r.points}p</span>
     </div>`).join("")
     : `<div class="dr-empty" style="padding:18px 6px">Κανένας πιλότος δεν ταιριάζει στο φίλτρο.</div>`;
+  hydrateAvatars(rowsBox);
 }
 
 // ------------------------------------------------------------------ season stats
 function buildSeasonStats(d, st) {
+  if (!$("#season-stats")) return; // το panel αφαιρέθηκε — τα νούμερα είναι στο hero
   const totalPilots = new Set(d.weeks.flatMap(w => w.results.map(r => r.pilot))).size;
   const stats = [
     { v: d.totalPoints, k: "Points", c: "c" },
@@ -1326,7 +1372,7 @@ function openDrawer(pilotName, d, raw) {
             <div class="dd-t">${opT != null ? Number(opT).toFixed(3) + "s" : "— ακόμα χρόνο"}</div>
           </div>
         </div>
-        <div class="dd-status">${status}${myDuel.track ? ` · ${esc(myDuel.track)}` : ""}${myDuel.deadline ? ` · λήγει ${new Date(myDuel.deadline).toLocaleDateString("el-GR", { day: "numeric", month: "short" })}` : ""}</div>
+        <div class="dd-status">${status}${myDuel.track ? ` · ${esc(myDuel.track)}` : ""}${myDuel.deadline ? ` · λήγει ${parseTs(myDuel.deadline).toLocaleDateString("el-GR", { day: "numeric", month: "short" })}` : ""}</div>
       </div>`;
   } else duelBox.innerHTML = "";
 
@@ -1527,6 +1573,12 @@ function floatInit() {
 }
 
 // ------------------------------------------------------------------ card glow (bound once)
+// global cursor glow — ακολουθεί τον κέρσορα σε όλο το backdrop της σελίδας
+addEventListener("mousemove", e => {
+  const de = document.documentElement.style;
+  de.setProperty("--mx", e.clientX + "px");
+  de.setProperty("--my", e.clientY + "px");
+}, { passive: true });
 function cardGlow() {
   $$(".card").forEach(c => {
     c.addEventListener("mousemove", e => {
@@ -1555,7 +1607,7 @@ function cardGlow() {
     state.data.__derived0 = state.derivedByClass[state.classes[0]];
     buildClassBar(state);
     buildTicker(d, state.data);
-    buildHeroStats(d);
+    buildHeroStats(d, state.data);
     startCountdown(state.data);
     buildTitleFight(d);
     buildLeaderboard(d, state.data, state.error);

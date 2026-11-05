@@ -60,12 +60,13 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
 
 /* ---------- HERO ---------- */
 #hero{position:relative;min-height:100svh;display:flex;flex-direction:column;overflow:hidden}
-.hero-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.85;animation:bgDrift 26s ease-in-out infinite alternate;transform-origin:center}
-@keyframes bgDrift{0%{transform:scale(1.02) translate(0,0)}50%{transform:scale(1.07) translate(-1.2%,.8%)}100%{transform:scale(1.04) translate(1%, -.6%)}}
+.hero-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:1;animation:bgDrift 26s ease-in-out infinite alternate;transform-origin:center;
+  -webkit-mask-image:linear-gradient(to bottom,#000 72%,transparent 100%);mask-image:linear-gradient(to bottom,#000 72%,transparent 100%)}
+@keyframes bgDrift{0%{transform:scale(1.02) scaleX(-1) translate(0,0)}50%{transform:scale(1.07) scaleX(-1) translate(-1.2%,.8%)}100%{transform:scale(1.04) scaleX(-1) translate(1%, -.6%)}}
 #bg-canvas{position:absolute;inset:0;width:100%;height:100%}
 .hero-vignette{position:absolute;inset:0;background:
-  radial-gradient(ellipse 80% 60% at 50% 40%,rgba(10,10,15,.25) 0%,rgba(10,10,15,.72) 78%),
-  linear-gradient(to bottom,rgba(10,10,15,.55),rgba(10,10,15,.25) 30%,rgba(10,10,15,.35) 60%,var(--bg) 100%);pointer-events:none}
+  linear-gradient(90deg,rgba(10,10,15,.62) 0%,rgba(10,10,15,.14) 45%,rgba(10,10,15,0) 68%),
+  linear-gradient(to bottom,rgba(10,10,15,.5),rgba(10,10,15,.05) 26%,rgba(10,10,15,.18) 58%,rgba(10,10,15,.72) 84%,rgba(10,10,15,.32) 100%);pointer-events:none}
 .top-nav{position:relative;z-index:10;display:flex;align-items:center;justify-content:center;padding:20px 24px;max-width:1700px;margin:0 auto;width:100%}
 .nav-links{display:flex;gap:34px;align-items:center}
 .nav-links a{color:var(--text-3);text-decoration:none;font-weight:600;font-size:var(--fs-body-lg);transition:color .2s}
@@ -81,7 +82,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
 .hero-kicker{font-family:var(--font-mono);font-size:var(--fs-body);letter-spacing:.35em;color:var(--cyan);text-transform:uppercase;margin-bottom:18px;opacity:0;animation:rise .8s .2s forwards}
 h1.hero-title{font-family:var(--font-display);font-weight:900;font-size:clamp(3rem,9vw,7.5rem);line-height:.92;letter-spacing:-.03em;text-transform:uppercase}
 h1.hero-title .l{display:inline-block;opacity:0;transform:translateY(40px) rotate(4deg);animation:letter .5s cubic-bezier(.2,.8,.2,1) forwards}
-h1.hero-title .grad{background:linear-gradient(100deg,var(--cyan) 10%,var(--fuchsia) 90%);-webkit-background-clip:text;background-clip:text;color:transparent}
+h1.hero-title .grad{background:none;-webkit-text-stroke:2.5px rgba(255,255,255,.75);color:transparent;text-shadow:none}
 @keyframes letter{to{opacity:1;transform:none}}
 @keyframes rise{to{opacity:1}}
 .hero-sub{max-width:640px;margin-top:22px;color:rgba(255,255,255,.6);font-size:clamp(1rem,2vw,1.35rem);opacity:0;animation:rise .8s 1s forwards}
@@ -503,7 +504,7 @@ footer{border-top:1px solid var(--line);padding:40px 24px 48px;background:linear
 .hb-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.05)}
 .hb-row:last-child{border-bottom:none;padding-bottom:0}
 .hb-row:first-child{padding-top:0}
-.hb-names{font-weight:700;font-size:14.5px;min-width:0}
+.hb-names{font-weight:700;font-size:15px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .hb-names .nm{cursor:pointer;transition:color .2s}
 .hb-names .nm:hover{color:var(--cyan)}
 .hb-names .vs{color:var(--text-dim);font-weight:400;margin:0 5px}
@@ -651,7 +652,7 @@ footer{border-top:1px solid var(--line);padding:40px 24px 48px;background:linear
   .ob-card{padding:22px 18px;border-radius:20px}
   .ob-t{font-size:var(--fs-stat)}
   .lt-tabs{display:grid;width:100%;box-sizing:border-box;grid-template-columns:1fr 1fr;gap:5px}
-  .lt-tab{justify-content:center;padding:9px 8px;font-size:var(--fs-label)}
+  .lt-tab{justify-content:center;padding:9px 8px;font-size:var(--fs-label);white-space:normal;text-align:center;line-height:1.25}
 }
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
@@ -668,6 +669,174 @@ footer{border-top:1px solid var(--line);padding:40px 24px 48px;background:linear
 #season-stats{gap:clamp(20px,3vw,44px)}
 #season-stats .hstat .v{font-size:clamp(2rem,3.4vw,3rem)}
 #season-stats .hstat .k{font-family:var(--font-mono);font-size:var(--fs-label);letter-spacing:.22em}
+/* ===== FPV HUD v1 — media-first redesign (φάση 1) ===== */
+/* HUD top bar */
+.top-nav{justify-content:space-between;gap:24px}
+.hud-brand{font-family:var(--font-mono);font-weight:700;font-size:var(--fs-body-lg);letter-spacing:.12em;color:#fff;display:flex;align-items:center;gap:10px}
+.hud-brand i{width:9px;height:9px;background:var(--cyan);display:inline-block;box-shadow:0 0 12px var(--cyan)}
+.hud-tele{display:flex;gap:22px;font-family:var(--font-mono);font-size:var(--fs-micro);letter-spacing:.18em;color:var(--text-3)}
+.hud-tele b{color:var(--cyan);font-weight:700}
+/* Hero: bottom-aligned 2-col, left-aligned text */
+.hero-center{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,.65fr);gap:40px;align-items:end;text-align:left;padding:40px 32px 64px;max-width:1360px;margin:0 auto;width:100%}
+.hero-main{min-width:0}
+.hero-badge-wrap{margin-bottom:20px}
+.hero-badge-wrap img{height:110px}
+.hero-sub{margin-left:0;max-width:520px;text-shadow:0 2px 14px rgba(0,0,0,.85)}
+.hero-kicker{text-shadow:0 2px 14px rgba(0,0,0,.9)}
+h1.hero-title{text-shadow:0 4px 34px rgba(0,0,0,.7)}
+.hero-stats{justify-content:flex-start;margin-top:34px}
+.hstat{text-align:left}
+.hero-cta{justify-content:flex-start}
+/* HUD widgets */
+.hero-hud{display:flex;flex-direction:column;gap:12px;min-width:0}
+.hudw{background:rgba(10,14,20,.5);border:1px solid rgba(255,255,255,.09);border-radius:var(--r-lg);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);padding:16px 20px;
+  box-shadow:0 20px 50px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.07)}
+.hudw .wl{font-family:var(--font-mono);font-size:var(--fs-micro);letter-spacing:.24em;color:var(--text-3);margin-bottom:8px}
+.hudw .wv{font-family:var(--font-mono);font-weight:700;font-size:var(--fs-h2);color:var(--yellow)}
+.hudw .wv small{font-size:var(--fs-small);color:var(--text-3);font-weight:400;margin-left:8px;letter-spacing:.08em}
+.cd-cells{display:flex;gap:8px}
+.cd-cells>div{flex:1;text-align:center;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:9px 4px}
+.cd-cells b{display:block;font-family:var(--font-mono);font-size:19px;font-weight:700}
+.cd-cells span{font-family:var(--font-mono);font-size:8px;letter-spacing:.14em;color:var(--text-3)}
+/* Leaderboard glass panel */
+#live-card{background:rgba(14,17,24,.55);border:1px solid rgba(255,255,255,.09);border-radius:20px;
+  backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  box-shadow:0 24px 60px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.06)}
+/* Position pills στον πίνακα */
+.lb-head{grid-template-columns:48px minmax(0,1fr) 132px 84px 92px}
+.lb-row{grid-template-columns:48px minmax(0,1fr) 132px 84px 92px}
+.lb-row .rk{width:36px;height:36px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);font-size:var(--fs-body-lg)}
+.lb-row .rk b{line-height:1}
+.lb-row .rk .move{font-size:8px;line-height:1.2}
+.lb-row.r1 .rk{background:var(--yellow);border-color:var(--yellow);color:#221a00;box-shadow:0 0 22px rgba(250,204,21,.35)}
+.lb-row.r2 .rk{border-color:rgba(203,213,225,.4)}
+.lb-row.r3 .rk{border-color:rgba(245,158,11,.45)}
+.lb-table.season .lb-row{grid-template-columns:48px minmax(0,1fr) minmax(0,1fr) 92px}
+/* inline battle tag */
+.bt{display:inline-block;margin-left:6px;padding:2px 7px;border-radius:var(--r-pill);
+  background:rgba(251,146,60,.14);color:var(--orange);font-size:var(--fs-micro);font-weight:700;letter-spacing:.06em;white-space:nowrap}
+/* Glass side-cards */
+.side-card{background:rgba(18,21,29,.5);border:1px solid rgba(255,255,255,.09);border-radius:var(--r-lg);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  box-shadow:0 16px 44px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.05)}
+/* Mobile */
+@media (max-width:960px){
+  .hud-tele{display:none}
+  .hero-center{grid-template-columns:1fr;gap:26px;padding:32px 20px 48px}
+  .hero-hud{flex-direction:row;flex-wrap:wrap}
+  .hero-hud .hudw{flex:1 1 200px}
+  .lb-head,.lb-row{grid-template-columns:40px minmax(0,1fr) 110px 92px}
+  .lb-row .fromlead,.lb-head span:nth-child(5){display:none}
+  .lb-table.season .lb-row{grid-template-columns:40px minmax(0,1fr) minmax(0,1fr) 92px}
+}
+/* ===== FPV HUD v2 — πιστά στο εγκεκριμένο mock ===== */
+.hud-logo{height:34px;width:auto;filter:drop-shadow(0 0 10px rgba(34,211,238,.35))}
+.top-nav{max-width:none;background:linear-gradient(180deg,rgba(10,10,15,.8),rgba(10,10,15,0));padding:16px 30px 26px}
+.nav-links{gap:26px}
+.nav-links a{font-family:var(--font-mono);font-size:var(--fs-small);letter-spacing:.14em;text-transform:uppercase}
+.hero-kicker{display:flex;align-items:center;gap:16px}
+.hero-kicker::after{content:"";width:72px;height:1px;background:linear-gradient(90deg,var(--cyan),transparent)}
+.hero-center{padding:40px 32px 84px}
+/* hero stats ως HUD strip */
+.hero-stats{gap:0;margin-top:36px;width:fit-content;background:rgba(8,12,16,.45);border:1px solid rgba(255,255,255,.09);border-radius:14px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);padding:14px 8px;box-shadow:0 16px 40px rgba(0,0,0,.35)}
+.hstat{padding:2px 22px;border-left:1px solid rgba(255,255,255,.08)}
+.hstat:first-child{border-left:none}
+.hstat .v{font-family:var(--font-mono);font-weight:700;font-size:clamp(1.3rem,2.6vw,1.8rem)}
+.hstat .k{font-family:var(--font-mono);font-size:var(--fs-micro)}
+.hero-cta{margin-top:30px}
+/* ===== FPV HUD v3 — global backdrop + cursor glow + HUD αναλογίες ===== */
+/* η εικόνα θολωμένη σε ΟΛΗ τη σελίδα */
+body::before{content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;transform:scaleX(-1);
+  background:linear-gradient(rgba(10,10,15,.55),rgba(10,10,15,.38)),url("bg-traces.webp") center/cover no-repeat;
+  filter:blur(22px) brightness(.5) saturate(1.15)}
+/* glow που ακολουθεί τον κέρσορα σε όλο το background */
+body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:radial-gradient(560px circle at var(--mx,70vw) var(--my,30vh),rgba(34,211,238,.09),transparent 46%)}
+/* HUD top bar — αναλογίες mock */
+.top-nav{padding:20px 34px 30px}
+.hud-brand{font-size:15px}
+.hud-logo{height:40px}
+.hud-tele{gap:28px;font-size:18px;letter-spacing:.16em}
+.nav-links{gap:30px}
+.nav-links a{font-size:13px}
+.live-pill{padding:9px 18px;font-size:12px}
+@media (max-width:960px){
+  .hero-stats{display:grid;grid-template-columns:1fr 1fr;width:100%;gap:4px}
+  .hstat{border-left:none;padding:8px 12px}
+  .top-nav{padding:14px 18px 20px}
+}
+/* Pilot avatar chips στους πίνακες κατάταξης */
+.pav{width:26px;height:26px;border-radius:8px;flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;
+  font-family:var(--font-mono);font-size:var(--fs-micro);font-weight:700;color:var(--cyan);
+  background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.25);overflow:hidden}
+.pav.has-img{border-color:rgba(255,255,255,.18);background:none}
+.pav img{width:100%;height:100%;object-fit:cover;display:block}
+.arc-row .nmpl{display:flex;align-items:center;gap:8px;min-width:0}
+.arc-row .pav{width:24px;height:24px}
+/* ===== v4 — κεντραρισμένο hero (παλιά διάταξη) με HUD elements ===== */
+.hero-center{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:48px 24px 150px;max-width:none}
+.hero-badge-wrap{margin-bottom:26px}
+.hero-badge-wrap img{height:220px;width:auto;animation:breathe 3.2s ease-in-out infinite;filter:drop-shadow(0 0 40px rgba(34,211,238,.3))}
+.hero-kicker{justify-content:center}
+.hero-kicker::before{content:"";width:72px;height:1px;background:linear-gradient(-90deg,var(--cyan),transparent)}
+.hero-sub{margin-left:auto;margin-right:auto;max-width:640px}
+.hero-stats{margin-left:auto;margin-right:auto;justify-content:center}
+.hstat{text-align:center}
+.hero-cta{justify-content:center}
+/* HUD widgets στις κάτω γωνίες του hero */
+.hero-hud{position:absolute;left:34px;right:34px;bottom:26px;flex-direction:row;justify-content:space-between;align-items:flex-end;gap:12px;pointer-events:none}
+.hero-hud .hudw{pointer-events:auto;min-width:250px}
+.hero-hud .hudw:last-child{text-align:right}
+.hero-hud .hudw:last-child .cd-cells{justify-content:flex-end}
+/* v4 — βελάκια σε δική τους στήλη δεξιά του rank */
+.lb-head{grid-template-columns:48px 26px minmax(0,1fr) 132px 84px 92px}
+.lb-row{grid-template-columns:48px 26px minmax(0,1fr) 132px 84px 92px}
+.lb-row .mv{display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);min-width:0}
+.lb-row .mv .move{font-size:var(--fs-micro)}
+.lb-table.season .lb-row{grid-template-columns:48px 26px minmax(0,1fr) minmax(0,1fr) 92px}
+/* v4 — μεγαλύτερα avatars στο live leaderboard */
+.lb-row .pav{width:36px;height:36px;border-radius:10px;font-size:12px}
+/* v4 — archive & hall of fame δίπλα-δίπλα (archive 2/3) */
+.arc-hof-grid{display:grid;grid-template-columns:2fr 1fr;gap:24px;align-items:start}
+.arc-hof-grid .hof-grid{grid-template-columns:1fr;gap:0}
+.arc-hof-grid .hof-grid .hof-row{border-top:1px solid rgba(255,255,255,.05);padding-top:10px}
+.arc-hof-grid .hof-grid .hof-row:first-child{border-top:none;padding-top:0}
+@media (max-width:960px){
+  .hero-center{padding:32px 20px 48px}
+  .hero-badge-wrap img{height:140px}
+  .hero-hud{position:static;flex-direction:row;flex-wrap:wrap;justify-content:center;margin-top:34px;width:100%;pointer-events:auto}
+  .hero-hud .hudw{flex:1 1 200px;min-width:0;text-align:left!important}
+  .hero-hud .hudw .cd-cells{justify-content:stretch!important}
+  .lb-head,.lb-row{grid-template-columns:40px 20px minmax(0,1fr) 110px 92px}
+  .lb-head span:nth-child(5){display:none}
+  .lb-table.season .lb-row{grid-template-columns:40px 20px minmax(0,1fr) minmax(0,1fr) 92px}
+  .arc-hof-grid{grid-template-columns:1fr}
+}
+/* ===== v5 — export εργαλείου + νέες αλλαγές (2026-11-05) ===== */
+/* (2) ομοιόμορφο μέγεθος σε όλα τα κείμενα του nav */
+.hud-tele{font-size:13px;letter-spacing:.14em}
+/* (3) η δεξιά στήλη δεν κολλάει/σκρολάρει πλέον — ακολουθεί τη σελίδα */
+.live-side{position:static}
+/* (4) simrush logo χρωματιστό */
+#archive .section-head img{filter:drop-shadow(0 0 18px rgba(255,255,255,.18));opacity:1}
+/* (8) φίλτρο archive στην ίδια σειρά με το dropdown εβδομάδας */
+.arc-controls{flex-wrap:wrap;margin-bottom:12px}
+.arc-controls .arc-filter{width:auto;flex:1;min-width:130px;margin-bottom:0}
+/* (1) hero moves από το export — όλα χαμηλότερα με περισσότερο αέρα (κλιμακωμένα ώστε να χωρούν στην οθόνη) */
+@media (min-width:961px){
+  .hero-center{padding:32px 24px 88px}
+  .hero-badge-wrap{translate:5px 50px;margin-bottom:40px}
+  .hero-badge-wrap img{height:180px}
+  .hero-kicker{translate:5px 78px}
+  h1.hero-title{translate:5px 78px;font-size:clamp(3rem,7.6vw,6.6rem)}
+  .hero-sub{translate:0 74px;margin-top:16px}
+  .hero-stats{translate:0 92px;margin-top:20px}
+  /* side cards: NEXT TRACK +57, HOT RIVALS +102 */
+  .live-side .side-card:nth-child(2){translate:0 57px}
+  .live-side .side-card:nth-child(3){translate:0 102px}
+}
 </style>
 </head>
 <body>
@@ -679,6 +848,12 @@ footer{border-top:1px solid var(--line);padding:40px 24px 48px;background:linear
   <div class="hero-vignette"></div>
 
   <nav class="top-nav">
+    <span class="hud-brand"><img class="hud-logo" src="drh-badge.webp" alt="">DRH</span>
+    <div class="hud-tele">
+      <span>SEASON <b id="hud-season">2026</b></span>
+      <span>ROUND <b id="hud-round">—</b></span>
+      <span>TRACK <b id="hud-track">—</b></span>
+    </div>
     <div class="nav-links">
       <a href="#live">Live</a>
       <a href="#season">Season</a>
@@ -689,16 +864,25 @@ footer{border-top:1px solid var(--line);padding:40px 24px 48px;background:linear
   </nav>
 
   <div class="hero-center">
-    <div class="hero-badge-wrap"><img src="drh-badge.webp" alt="DRH"></div>
-    <div class="hero-kicker">FPV SIM RACING · SEASON 2026</div>
+    <div class="hero-badge-wrap"><img src="drh-badge.webp" alt="DRH badge"></div>
+    <div class="hero-kicker">FPV RACING · SEASON 2026</div>
     <h1 class="hero-title" id="hero-title"
         data-text="DRONE RACING HELLAS"></h1>
     <p class="hero-sub">Ζωντανές κατατάξεις, βαθμολογία σεζόν και <b>head-to-head μονομαχίες</b> — με νέα πίστα κάθε εβδομάδα.</p>
     <div class="hero-stats" id="hero-stats"></div>
-    <div class="hero-cta">
-      <a href="#live" style="text-decoration:none"><button class="btn btn-primary">▸ Live Leaderboard</button></a>
-      <a href="#season" style="text-decoration:none"><button class="btn btn-ghost">Μαχη της Σεζον 2026</button></a>
-      <button class="btn btn-ghost" id="onboard-open" type="button">Πώς συμμετέχω;</button>
+    <div class="hero-hud">
+      <div class="hudw">
+        <div class="wl">FASTEST LAP — THIS WEEK</div>
+        <div class="wv" id="hud-fastest">—</div>
+      </div>
+      <div class="hudw">
+        <div class="wl">SESSION CLOSES IN</div>
+        <div class="cd-cells">
+          <div><b id="cd2-d">—</b><span>DAYS</span></div>
+          <div><b id="cd2-h">—</b><span>HRS</span></div>
+          <div><b id="cd2-m">—</b><span>MIN</span></div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -727,26 +911,25 @@ footer{border-top:1px solid var(--line);padding:40px 24px 48px;background:linear
     <div class="live-grid">
       <div class="card" id="live-card">
         <div class="lt-tabs" id="lt-tabs">
-          <button class="lt-tab on" data-tab="lb" data-mode="current">Αυτή η εβδομάδα</button>
-          <button class="lt-tab" data-tab="lb" data-mode="season">Σεζόν</button>
-          <button class="lt-tab" data-tab="feed">Feed <span class="tag" id="feed-count" style="background:rgba(52,211,153,.12);color:var(--emerald)">0</span></button>
-          <button class="lt-tab" data-tab="duels">Duels <span class="tag" id="duels-count" style="background:rgba(251,146,60,.12);color:var(--orange)">0 LIVE</span></button>
-        </div>
-
-        <div class="week-progress" id="week-progress">
-          <div class="wp-txt" id="wp-txt"></div>
-          <div class="wp-bar"><div class="wp-fill" id="wp-fill"></div></div>
-          <div class="wp-txt mono" id="wp-pct"></div>
+          <button class="lt-tab on" data-tab="lb" data-mode="current">THIS WEEK</button>
+          <button class="lt-tab" data-tab="lb" data-mode="season">SEASON STANDINGS</button>
+          <button class="lt-tab" data-tab="feed">FEED <span class="tag" id="feed-count" style="background:rgba(52,211,153,.12);color:var(--emerald)">0</span></button>
+          <button class="lt-tab" data-tab="duels">DUELS <span class="tag" id="duels-count" style="background:rgba(251,146,60,.12);color:var(--orange)">0 LIVE</span></button>
         </div>
 
         <div class="lt-panel" id="ltp-lb">
           <div id="podium-box"></div>
-          <div class="lb-head" id="lb-head"><span>Θέση</span><span>Πιλότος</span><span>Πίσω από μπροστά</span><span>% από leader</span><span>Χρόνος</span></div>
+          <div class="lb-head" id="lb-head"><span>POS</span><span></span><span>PILOT</span><span>FROM RIVAL</span><span>% TO LEADER</span><span>TIME</span></div>
           <div class="lb-table" id="lb-body"></div>
           <button class="show-more" id="lb-more" style="display:none">Δες και τους υπόλοιπους ▾</button>
         </div>
 
         <div class="lt-panel" id="ltp-feed" hidden>
+          <div class="week-progress" id="week-progress">
+            <div class="wp-txt" id="wp-txt"></div>
+            <div class="wp-bar"><div class="wp-fill" id="wp-fill"></div></div>
+            <div class="wp-txt mono" id="wp-pct"></div>
+          </div>
           <p style="color:var(--text-3);font-size:var(--fs-body);margin:0 0 14px">PBs, νέοι πιλότοι, σφιχτές μάχες και Race Director σημειώσεις — ό,τι κινείται αυτή την εβδομάδα.</p>
           <div class="feed-filters" id="feed-filters"></div>
           <div id="feed-list"></div>
@@ -764,32 +947,18 @@ footer{border-top:1px solid var(--line);padding:40px 24px 48px;background:linear
           <div class="side-body" id="rd-card-body"><div class="side-empty">—</div></div>
         </div>
         <div class="side-card">
-          <div class="side-label">Επόμενο track σε</div>
+          <div class="side-label">NEXT TRACK IN</div>
           <div class="side-cd mono" id="cd-digits">—</div>
           <div class="side-cd-date" id="cd-date">—</div>
           <div id="reveal-body"></div>
         </div>
         <div class="side-card">
-          <div class="side-label orange">Κοντινές μάχες</div>
+          <div class="side-label orange">HOT RIVALS</div>
           <div class="side-body" id="hb-body"><div class="side-empty">—</div></div>
         </div>
       </aside>
     </div>
-    <div class="hero-ticker" style="margin:22px 0 0"><div class="ticker-track" id="ticker"></div></div>
     <div class="err-banner" id="err-banner">⚠ Δεν φτάνει το live data — δείχνουμε το τελευταίο snapshot. <button id="retry-btn" style="color:var(--cyan);font-weight:700;text-decoration:underline">Δοκίμασε ξανά</button></div>
-  </section>
-
-  <!-- HALL OF FAME -->
-  <section id="hof" class="reveal">
-    <div class="section-head">
-      <div class="sh-left">
-        <div class="kick" style="color:var(--yellow)">SEASON 2026 · LEGENDS</div>
-        <h2>HALL OF <span style="color:var(--yellow)">FAME</span></h2>
-      </div>
-    </div>
-    <div class="card">
-      <div id="hall-fame" class="hof-grid"></div>
-    </div>
   </section>
 
   <!-- SEASON: chart + title fight -->
@@ -797,7 +966,7 @@ footer{border-top:1px solid var(--line);padding:40px 24px 48px;background:linear
     <div class="section-head">
       <div class="sh-left">
         <div class="kick" style="color:var(--fuchsia)">SEASON 2026</div>
-        <h2>ΜΕ ΜΙΑ <span style="color:var(--fuchsia)">ΜΑΤΙΑ</span></h2>
+        <h2>AT A <span style="color:var(--fuchsia)">GLANCE</span></h2>
         <p>Ό,τι έχει γίνει μέχρι τώρα — μια ματιά αρκεί.</p>
       </div>
     </div>
@@ -843,11 +1012,12 @@ footer{border-top:1px solid var(--line);padding:40px 24px 48px;background:linear
     <div class="section-head">
       <div class="sh-left">
         <div class="kick" style="color:var(--violet)">SEASON 2026 · STATS</div>
-        <h2>ΑΡΧΕΙΟ &amp; <span style="color:var(--violet)">ΣΤΑΤΙΣΤΙΚΑ</span></h2>
+        <h2>ARCHIVE &amp; <span style="color:var(--violet)">STATS</span></h2>
       </div>
+      <img src="simrush-logo.png" loading="lazy" alt="SimRush Series" style="height:64px;width:auto;opacity:.95;filter:drop-shadow(0 0 18px rgba(255,255,255,.18))">
     </div>
 
-    <div class="grid-2">
+    <div class="arc-hof-grid">
       <div class="card">
         <div class="card-head">
           <h3>ARCHIVE</h3>
@@ -856,20 +1026,20 @@ footer{border-top:1px solid var(--line);padding:40px 24px 48px;background:linear
         <div class="arc-controls">
           <span class="arc-lab">ΕΒΔΟΜΑΔΑ</span>
           <select id="arc-week" class="arc-week" aria-label="Επιλογή εβδομάδας"></select>
+          <input id="arc-filter" class="arc-filter" type="text" placeholder="Φίλτρο πιλότου…" autocomplete="off">
         </div>
-        <input id="arc-filter" class="arc-filter" type="text" placeholder="Φίλτρο πιλότου…" autocomplete="off">
         <div class="arc-meta" id="arc-meta"></div>
         <div class="arc-table">
           <div class="arc-head"><span>ΘΕΣΗ</span><span>ΠΙΛΟΤΟΣ</span><span>QUAD</span><span>ΧΡΟΝΟΣ</span><span>POINTS</span></div>
           <div id="arc-rows"></div>
         </div>
       </div>
-
-      <div style="display:flex;flex-direction:column;gap:24px">
-        <div class="card" style="flex:1;display:flex;flex-direction:column;justify-content:center">
-          <div class="card-head"><h3>SEASON <i style="color:var(--fuchsia)">STATS</i></h3><img src="simrush-logo.png" loading="lazy" alt="SimRush Series" style="height:84px;width:auto;opacity:.9;filter:grayscale(1) brightness(1.75) drop-shadow(0 0 18px var(--line-strong))"></div>
-          <div class="hero-stats" style="margin-top:6px;justify-content:flex-start" id="season-stats"></div>
+      <div class="card" id="hof">
+        <div class="card-head">
+          <h3>HALL OF <i style="color:var(--yellow)">FAME</i></h3>
+          <span class="tag" style="background:rgba(250,204,21,.12);color:var(--yellow)">LEGENDS</span>
         </div>
+        <div id="hall-fame" class="hof-grid"></div>
       </div>
     </div>
   </section>
