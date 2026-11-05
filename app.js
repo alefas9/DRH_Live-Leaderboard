@@ -164,8 +164,13 @@ function buildHeroStats(d) {
 const countdown = { target: 0, started: false };
 function startCountdown(raw) {
   countdown.target = new Date(raw.__derived0.nextTrackAt).getTime();
-  const nextName = $("#hof-next-name");
-  if (nextName) nextName.textContent = (raw.track_reveal && raw.track_reveal.track) ? String(raw.track_reveal.track).toUpperCase() : "—";
+  const cdDate = $("#cd-date");
+  if (cdDate && countdown.target) {
+    const dt = new Date(countdown.target);
+    const wd = dt.toLocaleDateString("el-GR", { weekday: "long" });
+    const hm = dt.toLocaleTimeString("el-GR", { hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
+    cdDate.textContent = wd.charAt(0).toUpperCase() + wd.slice(1) + " " + hm;
+  }
   if (countdown.started) return;
   countdown.started = true;
   function tick() {
@@ -221,11 +226,14 @@ function buildLeaderboard(d, raw, isErr) {
   if (subTrack) subTrack.textContent = (raw.current_track || "").toUpperCase();
   $("#live-updated").textContent = new Date(raw.generated_at).toLocaleString("el-GR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) + (isErr ? " · SNAPSHOT" : "");
 
-  // week progress
+  // week progress (N από M πιλότους + PBs σήμερα)
   const flown = new Set(cur.map(r => r.pilot)).size, total = sea.length || Math.max(flown, 1);
   const pct = Math.min(100, Math.round(flown / total * 100));
-  $("#wp-txt").innerHTML = `ΕΒΔΟΜΑΔΑ ΣΕ ΕΞΕΛΙΞΗ · <b>${flown}/${total}</b> πιλότοι έχουν πετάξει`;
-  $("#wp-pct").textContent = pct + "%";
+  $("#wp-txt").innerHTML = `<b>${flown}</b> από <b>${total}</b> πιλότους πέταξαν`;
+  const _now = new Date();
+  const _isoToday = `${_now.getFullYear()}-${String(_now.getMonth() + 1).padStart(2, "0")}-${String(_now.getDate()).padStart(2, "0")}`;
+  const pbsToday = (d.feed || []).filter(x => String(x.date || "").slice(0, 10) === _isoToday).length;
+  $("#wp-pct").textContent = `${pbsToday} PB${pbsToday === 1 ? "" : "s"} σήμερα`;
   requestAnimationFrame(() => $("#wp-fill").style.width = pct + "%");
 
   // rows
@@ -238,8 +246,9 @@ function buildLeaderboard(d, raw, isErr) {
       const intv = ahead && ahead.time != null && r.time != null ? r.time - ahead.time : null;
       const tot = i > 0 && leader.time != null && r.time != null ? r.time - leader.time : null;
       return { ...r, rank: i + 1,
-        sub: i === 0 ? "leader" : (intv != null ? "+" + intv.toFixed(3) + "s πίσω" : "—"),
-        subTop: i > 0 && tot != null && tot !== intv ? `+${tot.toFixed(3)}s από κορυφή` : "",
+        sub: i === 0 ? "Leader" : (intv != null ? "+" + intv.toFixed(3) + "s" : "—"),
+        subPct: i === 0 ? "—" : (tot != null ? "+" + (tot / leader.time * 100).toFixed(1) + "%" : "—"),
+        pacePct: (leader.time != null && r.time != null) ? Math.max(2, Math.min(100, leader.time / r.time * 100)) : 0,
         tight: intv != null && intv <= 2,
         val: fmtTime(r.time), mode: "current" };
     });
@@ -270,14 +279,25 @@ function buildLeaderboard(d, raw, isErr) {
     if (was < r.rank - 1) return "dn";
     return "eq";
   });
+  const mvMag = rows.map(r => {
+    if (lbMode !== "current") return 0;
+    if (use24) { const c = ins24[r.pilot]; return c || 0; }
+    if (!prevRanks) return 0;
+    const was = prevRanks.indexOf(r.pilot);
+    return was === -1 ? 0 : was - (r.rank - 1);
+  });
   if (lbMode === "current") prevRanksByKey[key] = rows.map(r => r.pilot);
 
   if (!rows.length) {
     $("#podium-box").innerHTML = "";
     $("#lb-body").innerHTML = `<div class="dr-empty" style="padding:28px 10px;text-align:center">Κανένας χρόνος ακόμα σε αυτή την κατηγορία — το track είναι ανοιχτό! 🏁</div>`;
     $("#lb-more").style.display = "none";
+    const lh0 = $("#lb-head"); if (lh0) lh0.style.display = "none";
     return;
   }
+  const lh = $("#lb-head");
+  if (lh) lh.style.display = lbMode === "current" ? "" : "none";
+  $("#lb-body").classList.toggle("season", lbMode === "season");
 
   // podium (top 3)
   const podiumData = rows.slice(0, 3);
@@ -301,21 +321,24 @@ function buildLeaderboard(d, raw, isErr) {
   const showN = lbExpanded ? 999 : 5;
   const list = hidden.slice(0, showN).map((r, i) => {
     const ri = i + 3;
-    const mv = moves[ri];
-    const mvIc = mv === "up" ? "▲" : mv === "dn" ? "▼" : mv === "new" ? "✦" : "·";
-    const mvCl = mv === "up" ? "up" : mv === "dn" ? "dn" : mv === "new" ? "up flash-new" : "eq";
-    const chipBg = "rgba(255,255,255,.06);color:rgba(255,255,255,.55)";
+    const mv = moves[ri], mag = mvMag[ri] || 0;
+    const mvHtml = mv === "up" ? `<span class="move up">▲${mag || ""}</span>` : mv === "dn" ? `<span class="move dn">▼${mag || ""}</span>` : mv === "new" ? `<span class="move up">✦</span>` : "";
     const title = pilotTitle(r.pilot, d, raw);
-    return `<div class="lb-row r${ri + 1} ${mv === "new" ? "flash-new" : ""}">
-      <span class="move ${mvCl}">${mvIc}</span>
-      <span class="rk">${r.rank}</span>
-      <div class="pl">
-        <span class="pilot-chip" style="background:${chipBg.split(";")[0]};${chipBg.split(";")[1]}">${esc(initials(r.pilot))}</span>
-        <span class="nm" data-pilot="${esc(r.pilot)}">${esc(r.pilot)}</span>
-        ${title ? `<span class="pilot-title" style="color:${title.color}">${esc(title.label)}</span>` : ""}
-      </div>
-      <span class="qd">${esc(r.quad || "—")}</span>
-      <span class="val">${r.val}<span class="sub"${r.tight ? ' style="color:var(--orange);font-weight:700"' : ""}>${r.sub}${r.subTop ? `<span class="sub-top"> · ${r.subTop}</span>` : ""}</span></span>
+    const badge = title ? `<span class="pilot-title" style="color:${title.color}">${esc(title.label)}</span>` : "";
+    if (lbMode === "season") {
+      return `<div class="lb-row r${ri + 1}${mv === "new" ? " flash-new" : ""}">
+        <span class="rk"><b>${r.rank}</b></span>
+        <span class="pl"><span class="nm" data-pilot="${esc(r.pilot)}">${esc(r.pilot)}</span>${badge}</span>
+        <span class="season-sub">${esc(r.sub)}</span>
+        <span class="val">${r.val}</span>
+      </div>`;
+    }
+    return `<div class="lb-row r${ri + 1}${r.tight ? " tight" : ""}${mv === "new" ? " flash-new" : ""}">
+      <span class="rk"><b>${r.rank}</b>${mvHtml}</span>
+      <span class="pl"><span class="nm" data-pilot="${esc(r.pilot)}">${esc(r.pilot)}</span>${badge}</span>
+      <span class="intv">${r.sub}</span>
+      <span class="fromlead">${r.subPct}</span>
+      <span class="val">${r.val}</span>
     </div>`;
   }).join("");
 
@@ -323,7 +346,7 @@ function buildLeaderboard(d, raw, isErr) {
   const more = $("#lb-more");
   if (hidden.length > 5) {
     more.style.display = "block";
-    more.textContent = lbExpanded ? "SHOW LESS ▴" : `VIEW FULL RANKINGS (${hidden.length - 5} MORE) ▾`;
+    more.textContent = lbExpanded ? "Λιγότεροι ▴" : `Δες και τους άλλους ${hidden.length - 5} πιλότους ▾`;
   } else more.style.display = "none";
 }
 
@@ -830,23 +853,59 @@ function ytId(v) {
   if (m) return m[1];
   return /^[\w-]{6,15}$/.test(String(v).trim()) ? String(v).trim() : null;
 }
+// Track reveal πλέον ζει στο sidebar (κάτω από το countdown) — πάντα ορατό,
+// με placeholder όσο το bot δεν έχει στείλει youtube id.
 function buildReveal(raw, d) {
   const box = $("#reveal-body");
   if (!box) return;
   const rv = raw && raw.track_reveal;
   const id = rv && ytId(rv.youtube || rv.url || rv.id);
-  const track = (rv && rv.track) || "";
-  const sec = box.closest("section");
-  // χωρίς βίντεο → όλο το section κρυφό (κανένα νεκρό placeholder)
-  if (!id) { if (sec) sec.style.display = "none"; return; }
-  if (sec) sec.style.display = "";
-  {
-    box.innerHTML = `
-      ${track ? `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
-        <span style="font-weight:800;letter-spacing:.04em">${esc(rv.title || ("TRACK REVEAL · " + track))}</span>
-        <span class="tag" style="background:rgba(239,68,68,.12);color:var(--red)">${esc(track)}</span>
-      </div>` : ""}
-      <div class="reveal-vid"><iframe src="https://www.youtube-nocookie.com/embed/${esc(id)}" title="Track reveal" loading="lazy" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>`;
+  if (id) {
+    box.innerHTML = `<div class="reveal-vid"><iframe src="https://www.youtube-nocookie.com/embed/${esc(id)}" title="Track reveal" loading="lazy" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>`;
+  } else {
+    box.innerHTML = `<div class="vid-placeholder"><span class="vp-play">▶</span><span>Βίντεο παρουσίασης του track</span></div>`;
+  }
+}
+
+// ------------------------------------------------------------------ live sidebar
+// Race Director (τελευταίο μήνυμα) + Κοντινές μάχες (hot battles της ενεργής κλάσης)
+function fmtRdDate(iso) {
+  const dt = new Date(iso);
+  if (isNaN(dt)) return String(iso || "");
+  const d2 = dt.toLocaleDateString("el-GR", { day: "numeric", month: "short" });
+  const hm = dt.toLocaleTimeString("el-GR", { hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
+  return `${d2}, ${hm}`;
+}
+
+function buildSidebar(raw, d) {
+  const rdEl = $("#rd-card-body");
+  if (rdEl) {
+    const msgs = (raw.race_director_messages || []).slice()
+      .sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")));
+    if (msgs.length) {
+      const m = msgs[0];
+      let txt = String(m.text || "").replace(/\*\*/g, "").trim();
+      if (txt.length > 300) txt = txt.slice(0, 300).replace(/\s+\S*$/, "") + "…";
+      rdEl.innerHTML = `<div class="rd-msg">${esc(txt).replace(/\n/g, "<br>")}</div><div class="rd-date">${esc(fmtRdDate(m.date))}</div>`;
+    } else {
+      rdEl.innerHTML = `<div class="side-empty">Κανένα μήνυμα ακόμα.</div>`;
+    }
+  }
+  const hbEl = $("#hb-body");
+  if (hbEl) {
+    let hb = Array.isArray(raw.hot_battles) ? raw.hot_battles : [];
+    const byCls = hb.filter(h => !h.class || h.class === d.cls);
+    if (byCls.length) hb = byCls;
+    hb = hb.slice(0, 3);
+    if (hb.length) {
+      hbEl.innerHTML = hb.map(h => `<div class="hb-row">
+        <span class="hb-names"><span class="nm" data-pilot="${esc(h.leader)}">${esc(h.leader)}</span><span class="vs">↔</span><span class="nm" data-pilot="${esc(h.chaser)}">${esc(h.chaser)}</span>
+        ${h.days ? `<span class="hb-sub">Μάχη ${h.days}ης ημέρας</span>` : ""}</span>
+        <span class="hb-gap">${typeof h.gap === "number" ? h.gap.toFixed(3) : esc(h.gap)}s</span>
+      </div>`).join("");
+    } else {
+      hbEl.innerHTML = `<div class="side-empty">Καμία ενεργή μάχη αυτή την εβδομάδα.</div>`;
+    }
   }
 }
 
@@ -978,46 +1037,55 @@ function buildDuels(raw, d) {
   if (dm) dm.addEventListener("click", () => { duelsExpanded = !duelsExpanded; buildDuels(raw, d); });
 }
 
-// ------------------------------------------------------------------ archive
+// ------------------------------------------------------------------ archive (week viewer, VRL-style)
+let arcWeekIdx = -1;  // index στο d.weeks (χρονολογικά) — default: τελευταία ολοκληρωμένη
+let arcQuery = "";
 function buildArchive(d) {
-  const weeks = [...d.weeks].reverse(); // newest first
+  const sel = $("#arc-week"), rowsBox = $("#arc-rows"), metaBox = $("#arc-meta");
+  if (!sel || !rowsBox) return;
+  const weeks = d.weeks || []; // χρονολογικά: W1 πρώτη
   $("#arc-count").textContent = weeks.length + " TRACKS";
-  $("#archive-list").innerHTML = weeks.length ? weeks.map((w, i) => `
-    <div class="acc-item" data-w="${i}">
-      <button class="acc-btn">
-        <span class="tn">${esc(String(w.track).toUpperCase())}</span>
-        <span class="meta">
-          <span>🏆 <b>${esc(w.winner)}</b></span>
-          <span class="mono">${new Date(w.date).toLocaleDateString("el-GR", { day: "numeric", month: "short" })}</span>
-          <span class="arrow">▼</span>
-        </span>
-      </button>
-      <div class="acc-body"><div class="acc-inner">
-        <div class="acc-win"><span class="crown">👑</span> Νικητής: <b>${esc(w.winner)}</b> · ${fmtTime(w.best)} · ${w.records} records · ${w.pilots} πιλότοι</div>
-        ${w.results.map((r, j) => `
-          <div class="mini-row">
-            <span class="r">${j + 1}</span>
-            <span class="n">${esc(r.pilot)}</span>
-            <span class="q">${esc(w.quads[r.pilot] || "—")}</span>
-            <span class="t">${fmtTime(r.time)}</span>
-            <span class="pt mono" style="color:rgba(255,255,255,.55);width:34px;text-align:right">${r.points}p</span>
-          </div>`).join("")}
-      </div></div>
-    </div>`).join("")
-    : `<div class="dr-empty" style="padding:24px 6px">Κανένα ολοκληρωμένο track ακόμα σε αυτή την κατηγορία.</div>`;
+  if (!weeks.length) {
+    sel.innerHTML = "";
+    if (metaBox) metaBox.innerHTML = "";
+    rowsBox.innerHTML = `<div class="dr-empty" style="padding:24px 6px">Κανένα ολοκληρωμένο track ακόμα σε αυτή την κατηγορία.</div>`;
+    return;
+  }
+  if (arcWeekIdx < 0 || arcWeekIdx >= weeks.length) arcWeekIdx = weeks.length - 1;
 
-  // accordion
-  $$(".acc-item").forEach(item => {
-    item.querySelector(".acc-btn").addEventListener("click", () => {
-      const open = item.classList.contains("open");
-      $$(".acc-item.open").forEach(o => { o.classList.remove("open"); o.querySelector(".acc-body").style.maxHeight = "0"; });
-      if (!open) {
-        item.classList.add("open");
-        const b = item.querySelector(".acc-body");
-        b.style.maxHeight = b.scrollHeight + "px";
-      }
-    });
-  });
+  // ξαναχτίσε τα options μόνο αν άλλαξε το σετ εβδομάδων
+  const key = weeks.map(w => w.label + "|" + w.track).join(";;");
+  if (sel._weeksKey !== key) {
+    sel._weeksKey = key;
+    sel.innerHTML = weeks.map((w, i) => `<option value="${i}">${w.label} · ${esc(w.track)}</option>`).join("");
+  }
+  sel.value = String(arcWeekIdx);
+  sel.onchange = () => { arcWeekIdx = +sel.value; renderArchiveWeek(d); };
+  const flt = $("#arc-filter");
+  if (flt) flt.oninput = () => { arcQuery = flt.value.trim().toLowerCase(); renderArchiveWeek(d); };
+  renderArchiveWeek(d);
+}
+function renderArchiveWeek(d) {
+  const w = (d.weeks || [])[arcWeekIdx];
+  const rowsBox = $("#arc-rows"), metaBox = $("#arc-meta");
+  if (!w || !rowsBox) return;
+  if (metaBox) metaBox.innerHTML = `
+    <span><span class="crown">👑</span> <b>${esc(w.winner)}</b></span>
+    <span class="mono">${fmtTime(w.best)}</span>
+    <span>${new Date(w.date).toLocaleDateString("el-GR", { day: "numeric", month: "short" })}</span>
+    <span>${w.pilots} πιλότοι</span>
+    <span>${w.records} records</span>`;
+  const q = arcQuery;
+  const list = (w.results || []).filter(r => !q || r.pilot.toLowerCase().includes(q));
+  rowsBox.innerHTML = list.length ? list.map(r => `
+    <div class="arc-row${r.rank <= 3 ? " m" + r.rank : ""}">
+      <span class="r">${r.rank}</span>
+      <span class="nm" data-pilot="${esc(r.pilot)}">${esc(r.pilot)}</span>
+      <span class="q">${esc(w.quads[r.pilot] || "—")}</span>
+      <span class="t">${fmtTime(r.time)}</span>
+      <span class="pt">${r.points}p</span>
+    </div>`).join("")
+    : `<div class="dr-empty" style="padding:18px 6px">Κανένας πιλότος δεν ταιριάζει στο φίλτρο.</div>`;
 }
 
 // ------------------------------------------------------------------ season stats
@@ -1174,14 +1242,20 @@ function openDrawer(pilotName, d, raw) {
   avImg.src = "avatars/" + encodeURIComponent(pilotName) + ".png";
   av.style.borderColor = rankCol;
   av.style.color = rankCol;
-  av.style.boxShadow = `0 0 36px ${rankGlow}`;
+  av.style.boxShadow = `0 0 46px ${rankGlow}`;
   $("#dr-nm").textContent = pilotName;
-  $("#dr-title").innerHTML = title ? `<span style="color:${title.color}">RACE DIRECTOR · ${esc(title.label)}</span>` : "";
-  $("#dr-qd").textContent = (p.quads && p.quads.length ? p.quads.join(" · ") : "—");
+  $("#dr-title").innerHTML = title
+    ? `<span style="color:${title.color};background:color-mix(in srgb, ${title.color} 10%, transparent);border-color:color-mix(in srgb, ${title.color} 30%, transparent)">${title.label === "Season Leader" ? "👑 " : ""}${esc(title.label).toUpperCase()}</span>`
+    : "";
+  const qdParts = [];
+  if (p.quads && p.quads.length) qdParts.push(p.quads.join(" · "));
+  if (rank) qdParts.push(`#${rank} σεζόν`);
+  const curIdx = d.currentLb.findIndex(r => r.pilot === pilotName);
+  if (curIdx >= 0) qdParts.push(`#${curIdx + 1} track`);
+  $("#dr-qd").textContent = qdParts.length ? qdParts.join(" · ") : "—";
 
-  // chips: θέση σεζόν + τάση φόρμας
+  // chips: τάση φόρμας (η θέση σεζόν/track είναι πια στη γραμμή dr-qd)
   const chips = [];
-  if (rank) chips.push(`<span class="dr-chip" style="background:rgba(255,255,255,.07);color:${rankCol}">#${rank} στη σεζόν</span>`);
   const ranksDone = (p.weeks || []).filter(Boolean).map(w => w.rank);
   if (ranksDone.length >= 3) {
     const avg = a => a.reduce((x, y) => x + y, 0) / a.length;
@@ -1291,18 +1365,20 @@ function openDrawer(pilotName, d, raw) {
       <div class="rr-bar"><div class="rr-fill" style="width:100%;background:linear-gradient(90deg,var(--yellow),var(--amber))"></div></div>
       <div class="rr-sub">Οδηγείς με διαφορά από <b style="color:#fff">${esc(d.standings[1].pilot)}</b> — κράτα το!</div>`;
   } else race.style.display = "none";
+  // section ΜΑΧΕΣ: αν δεν υπάρχει ούτε duel ούτε μάχη κορυφής, δείξε empty state
+  if (!myDuel && race.style.display === "none") duelBox.innerHTML = `<div class="dr-empty">Καμία ενεργή μάχη αυτή την εβδομάδα.</div>`;
 
+  // stats: 2×2 κάρτες (mock) — season best, καλύτερη εντός-track βελτίωση, points+θέση, εμφανίσεις+podiums
+  // (cross-track σύγκριση χρόνων W1→W4 είναι άσκοπη: κάθε εβδομάδα έχει διαφορετικό track)
+  const impV = p.bestImprovementPct ? "−" + Number(p.bestImprovementPct).toFixed(1) + "%" : "—";
+  const impS = p.bestImprovementPct ? "καλύτερο PB σε track" : "";
   const stats = [
-    { v: p.points, k: "Points", tip: "Βαθμοί στη βαθμολογία της σεζόν — μαζεύονται από κάθε εβδομαδιαίο track" },
-    { v: p.wins, k: "Wins", tip: "Εβδομαδιαίες νίκες — 1η θέση σε track" },
-    { v: p.podiums, k: "Podiums", tip: "Τερματισμοί σε top-3 θέση σε εβδομαδιαίο track" },
-    { v: p.best != null ? Number(p.best).toFixed(3) : "—", k: "Best (s)", tip: "Ο γρηγορότερος χρόνος που έχει καταγράψει ποτέ στη σεζόν" },
-    { v: p.appearances, k: "Weeks", tip: "Σε πόσα εβδομαδιαία tracks έχει συμμετάσχει" },
-    { v: p.avgRank, k: "Avg Rank", tip: "Μέση θέση τερματισμού στα tracks που έτρεξε — όσο μικρότερη, τόσο καλύτερη" },
-    { v: p.pbs || 0, k: "PBs", tip: "Προσωπικά ρεκόρ — πόσες φορές βελτίωσε τον δικό του χρόνο" },
-    { v: p.bestImprovementPct ? "−" + Number(p.bestImprovementPct).toFixed(1) + "%" : "—", k: "Best PB %", tip: "Η μεγαλύτερη ποσοστιαία βελτίωση από τον πρώτο στον τελευταίο χρόνο σε ένα track" }
+    { v: p.best != null ? Number(p.best).toFixed(3) + "s" : "—", k: "Season Best", c: "var(--cyan)", tip: "Ο γρηγορότερος χρόνος που έχει καταγράψει ποτέ στη σεζόν" },
+    { v: impV, k: "Βελτίωση", s: impS, c: p.bestImprovementPct ? "var(--emerald)" : null, tip: "Η μεγαλύτερη ποσοστιαία βελτίωση από τον πρώτο στον τελευταίο χρόνο μέσα σε ένα track" },
+    { v: p.points, k: "Points", s: rank ? `#${rank} στη σεζόν` : "", tip: "Βαθμοί στη βαθμολογία της σεζόν — μαζεύονται από κάθε εβδομαδιαίο track" },
+    { v: p.appearances, k: "Εμφανίσεις", s: p.podiums ? `${p.podiums} podium` : "", tip: "Σε πόσα εβδομαδιαία tracks έχει συμμετάσχει · podiums = top-3 τερματισμοί" }
   ];
-  $("#dr-stats").innerHTML = stats.map(s => `<div class="dr-stat" data-tip="${esc(s.tip)}"><div class="v">${s.v}</div><div class="k">${s.k}</div></div>`).join("");
+  $("#dr-stats").innerHTML = stats.map(s => `<div class="dr-stat" data-tip="${esc(s.tip)}"><div class="k">${s.k}</div><div class="v"${s.c ? ` style="color:${s.c}"` : ""}>${s.v}</div>${s.s ? `<div class="s">${esc(s.s)}</div>` : ""}</div>`).join("");
   // form chips
   const form = p.form || [];
   $("#dr-form").innerHTML = form.length ? form.map(r =>
@@ -1403,13 +1479,17 @@ function toast(msg, ic = "✓") {
 }
 
 // ------------------------------------------------------------------ live tabs (leaderboard / feed / duels)
+// Merged tabs: «Αυτή η εβδομάδα»/«Σεζόν» είναι το leaderboard (data-mode),
+// Feed/Duels αλλάζουν panel. Τα παλιά pills Current/Season καταργήθηκαν.
 function liveTabsInit() {
-  $$(".lt-tab").forEach(b => b.addEventListener("click", () => {
-    $$(".lt-tab").forEach(x => x.classList.toggle("on", x === b));
+  $$("#lt-tabs .lt-tab").forEach(b => b.addEventListener("click", () => {
+    $$("#lt-tabs .lt-tab").forEach(x => x.classList.toggle("on", x === b));
     $$(".lt-panel").forEach(p => { p.hidden = p.id !== "ltp-" + b.dataset.tab; });
-    // τα pills Current/Season αφορούν μόνο το leaderboard
-    const mp = $("#lb-mode-pills");
-    if (mp) mp.style.display = b.dataset.tab === "lb" ? "" : "none";
+    if (b.dataset.tab === "lb" && b.dataset.mode && b.dataset.mode !== lbMode) {
+      lbMode = b.dataset.mode;
+      lbExpanded = false;
+      buildLeaderboard(state.derivedByClass[activeClass], state.data, state.error);
+    }
   }));
 }
 
@@ -1480,6 +1560,7 @@ function cardGlow() {
     buildDuels(state.data, d);
     buildSpotlight(d, state.data);
     buildReveal(state.data, d);
+    buildSidebar(state.data, d);
     buildArchive(d);
     buildHallOfFame(d);
     buildSeasonStats(d, state);
@@ -1506,15 +1587,6 @@ function cardGlow() {
     lbExpanded = false;
     renderAll();
   });
-
-  // tabs (current / season)
-  $$(".pill[data-lb]").forEach(p => p.addEventListener("click", () => {
-    $$(".pill[data-lb]").forEach(x => { x.classList.remove("on"); x.classList.remove("f"); });
-    p.classList.add("on");
-    if (p.dataset.lb === "season") p.classList.add("f");
-    lbMode = p.dataset.lb; lbExpanded = false;
-    buildLeaderboard(state.derivedByClass[activeClass], state.data, state.error);
-  }));
 
   // show more
   $("#lb-more").addEventListener("click", () => { lbExpanded = !lbExpanded; buildLeaderboard(state.derivedByClass[activeClass], state.data, state.error); });
@@ -1578,7 +1650,8 @@ function cardGlow() {
     ".section-head .kick", ".section-head h2", ".section-head p",
     ".hero-kicker", ".hero-title", ".hero-sub", ".hero-stats", ".hero-cta", ".hero-badge-wrap",
     ".top-nav", ".hero-ticker", ".err-banner", ".class-bar",
-    ".card", ".titlefight", ".hof-row", ".card-head img", ".show-more", ".lt-tabs"
+    ".card", ".titlefight", ".hof-row", ".card-head img", ".show-more", ".lt-tabs",
+    ".side-card", ".week-progress", ".lb-head"
   ].join(",");
 
   function load(k, fb) { try { var v = JSON.parse(localStorage.getItem(k) || "null"); return v == null ? fb : v; } catch (e) { return fb; } }

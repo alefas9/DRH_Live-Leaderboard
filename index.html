@@ -216,22 +216,26 @@ main{position:relative;max-width:1700px;margin:0 auto;padding:0 24px 80px}
 
 /* ---------- LEADERBOARD TABLE ---------- */
 .lb-table{width:100%}
-.lb-row{display:grid;grid-template-columns:20px 34px minmax(0,1fr) 120px 92px;gap:12px;align-items:center;padding:13px 10px;border-bottom:1px solid rgba(255,255,255,.045);transition:background .2s;border-left:3px solid transparent;position:relative}
+.lb-head{display:grid;grid-template-columns:44px minmax(0,1fr) 96px 84px 92px;gap:12px;padding:12px 10px 10px;font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.5)}
+.lb-head span:last-child{text-align:right}
+.lb-row{display:grid;grid-template-columns:44px minmax(0,1fr) 96px 84px 92px;gap:12px;align-items:center;padding:13px 10px;border-bottom:1px solid rgba(255,255,255,.045);transition:background .2s;position:relative}
 .lb-row:last-child{border-bottom:none}
 .lb-row:hover{background:rgba(255,255,255,.04)}
-.lb-row.r1{border-left-color:var(--yellow)}
-.lb-row .rk{font-family:var(--font-display);font-weight:900;font-size:19px;width:34px;flex-shrink:0;text-align:center}
-.lb-row.r1 .rk{color:var(--yellow)} .lb-row.r2 .rk{color:#cbd5e1} .lb-row.r3 .rk{color:var(--amber)} .lb-row .rk{color:rgba(255,255,255,.5)}
-.lb-row .pl{flex:1;min-width:0;display:flex;align-items:center;gap:10px}
-.pilot-chip{min-width:30px;height:30px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex-shrink:0}
+.lb-row .rk{display:flex;align-items:baseline;gap:4px;font-family:var(--font-display);font-weight:900;font-size:18px;color:rgba(255,255,255,.5)}
+.lb-row.r1 .rk{color:var(--yellow)} .lb-row.r2 .rk{color:#cbd5e1} .lb-row.r3 .rk{color:var(--amber)}
+.lb-row .pl{min-width:0;display:flex;align-items:center;gap:8px}
 .lb-row .nm{font-weight:700;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;transition:color .2s}
 .lb-row .nm:hover{color:var(--cyan)}
-.lb-row .qd{font-size:12px;color:rgba(255,255,255,.55);width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0}
-.lb-row .val{font-family:var(--font-mono);font-weight:700;font-size:16px;text-align:right;min-width:86px;max-width:46%;flex-shrink:0;font-variant-numeric:tabular-nums}
-.lb-row .val .sub{display:block;font-size:11px;font-weight:400;color:rgba(255,255,255,.55);white-space:normal;line-height:1.35}
-.lb-row .gap{font-size:11px;color:rgba(255,255,255,.55);width:64px;text-align:right;flex-shrink:0}
-.lb-row.r1 .val{color:var(--cyan)}
-.lb-row .move{width:20px;flex-shrink:0;text-align:center;font-size:12px;font-weight:700}
+.lb-row .val{font-family:var(--font-mono);font-weight:700;font-size:16px;text-align:right;color:var(--cyan);font-variant-numeric:tabular-nums;white-space:nowrap}
+.lb-table.season .lb-row{grid-template-columns:44px minmax(0,1fr) minmax(0,1fr) 92px}
+.lb-table.season .lb-row .val{color:#fff}
+.lb-row .season-sub{font-size:12px;color:rgba(255,255,255,.55)}
+.lb-row .pace{position:relative;height:5px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden;min-width:40px}
+.lb-row .pace-fill{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#0e7490,var(--cyan))}
+.lb-row .intv{font-family:var(--font-mono);font-size:13px;color:rgba(255,255,255,.55);font-variant-numeric:tabular-nums;white-space:nowrap}
+.lb-row.tight .intv{color:var(--orange);font-weight:700}
+.lb-row .fromlead{font-family:var(--font-mono);font-size:13px;color:rgba(255,255,255,.55);font-variant-numeric:tabular-nums;white-space:nowrap}
+.lb-row .move{font-size:10px;font-weight:800;font-family:var(--font-mono)}
 .move.up{color:var(--emerald)} .move.dn{color:var(--red)} .move.eq{color:rgba(255,255,255,.55)}
 .flash-new{animation:flashNew 2.5s ease-out}
 @keyframes flashNew{0%{background:rgba(52,211,153,.25)}100%{background:transparent}}
@@ -296,6 +300,39 @@ main{position:relative;max-width:1700px;margin:0 auto;padding:0 24px 80px}
 .mini-row .q{color:rgba(255,255,255,.5);font-size:11px;width:110px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .mini-row .t{font-family:var(--font-mono);color:var(--cyan)}
 
+/* ---------- ARCHIVE WEEK VIEWER ---------- */
+.arc-controls{display:flex;align-items:center;gap:10px;margin:4px 0 10px}
+.arc-lab{font-size:10px;letter-spacing:.18em;font-weight:700;color:rgba(255,255,255,.4);white-space:nowrap}
+.arc-week{flex:1;min-width:0;appearance:none;-webkit-appearance:none;background:#15151f;border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:11px 40px 11px 14px;color:#fff;font-family:var(--font-display);font-weight:700;font-size:13px;letter-spacing:.03em;cursor:pointer;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%238b8b9e' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center}
+.arc-week:focus{outline:none;border-color:var(--cyan)}
+.arc-week option{background:#15151f;color:#fff}
+.arc-filter{width:100%;box-sizing:border-box;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:12px;padding:10px 14px;color:#fff;font-size:13px;margin-bottom:12px}
+.arc-filter::placeholder{color:rgba(255,255,255,.3)}
+.arc-filter:focus{outline:none;border-color:rgba(34,211,238,.5)}
+.arc-meta{display:flex;flex-wrap:wrap;align-items:center;gap:6px 16px;font-size:12px;color:rgba(255,255,255,.55);padding:10px 2px;border-top:1px solid rgba(255,255,255,.07);border-bottom:1px solid rgba(255,255,255,.07);margin-bottom:6px}
+.arc-meta b{color:#fff}
+.arc-meta .crown{color:var(--yellow)}
+.arc-meta .mono{color:var(--cyan)}
+.arc-table{max-height:480px;overflow-y:auto;padding-right:4px}
+.arc-head,.arc-row{display:grid;grid-template-columns:44px minmax(0,1fr) minmax(0,.85fr) 84px 56px;gap:10px;align-items:center}
+.arc-head{position:sticky;top:0;z-index:2;background:var(--bg);padding:8px 6px;font-size:10px;letter-spacing:.16em;font-weight:700;color:rgba(255,255,255,.38)}
+.arc-head span:nth-child(4),.arc-head span:nth-child(5){text-align:right}
+.arc-row{padding:9px 6px;border-radius:10px;font-size:13px}
+.arc-row:hover{background:rgba(255,255,255,.04)}
+.arc-row .r{font-family:var(--font-display);font-weight:900;font-size:15px;text-align:center;color:rgba(255,255,255,.5)}
+.arc-row.m1 .r{color:var(--yellow)} .arc-row.m2 .r{color:#cbd5e1} .arc-row.m3 .r{color:var(--amber)}
+.arc-row .nm{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;transition:color .2s}
+.arc-row .nm:hover{color:var(--cyan)}
+.arc-row .q{color:rgba(255,255,255,.45);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.arc-row .t{font-family:var(--font-mono);color:var(--cyan);text-align:right}
+.arc-row .pt{font-family:var(--font-mono);font-size:12px;color:rgba(255,255,255,.55);text-align:right}
+
+/* ---------- HALL OF FAME section ---------- */
+.hof-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 40px}
+.hof-grid .hof-row{border-top:1px solid rgba(255,255,255,.05);padding-top:10px}
+.hof-grid .hof-row:nth-child(-n+2){border-top:none;padding-top:0}
+
 /* ---------- PILOT DRAWER ---------- */
 #overlay{position:fixed;inset:0;background:rgba(5,5,9,.72);backdrop-filter:blur(6px);z-index:90;opacity:0;pointer-events:none;transition:opacity .3s}
 #overlay.on{opacity:1;pointer-events:auto}
@@ -311,7 +348,7 @@ main{position:relative;max-width:1700px;margin:0 auto;padding:0 24px 80px}
 .dr-hero .dr-close{position:absolute;top:16px;right:16px;z-index:2}
 .dr-chips{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap;justify-content:center}
 .dr-chip{font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.12em;padding:4px 10px;border-radius:999px;text-transform:uppercase}
-.dr-badges{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px}
+.dr-badges{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;justify-content:center}
 .dr-badge{display:inline-flex;align-items:center;gap:7px;padding:8px 12px;border-radius:12px;font-size:12px;font-weight:700}
 .dr-spark{background:rgba(255,255,255,.035);border-radius:16px;padding:12px 12px 8px}
 #dr-spark{width:100%;height:88px;display:block}
@@ -330,7 +367,7 @@ main{position:relative;max-width:1700px;margin:0 auto;padding:0 24px 80px}
 .dr-race .rr-sub{font-size:12px;color:rgba(255,255,255,.5);margin-top:9px}
 .dr-id{display:flex;align-items:center;gap:16px}
 .dr-idc{position:relative;z-index:1;text-align:center}
-.dr-avatar{width:112px;height:112px;border-radius:32px;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:900;font-size:44px;
+.dr-avatar{width:118px;height:118px;border-radius:32px;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:900;font-size:46px;
   margin:10px auto 16px;position:relative;z-index:1;overflow:hidden;
   background:linear-gradient(135deg,rgba(34,211,238,.22),rgba(232,121,249,.22));border:1.5px solid rgba(34,211,238,.4);color:var(--cyan)}
 .dr-avatar img{width:100%;height:100%;object-fit:cover;display:block}
@@ -339,10 +376,12 @@ main{position:relative;max-width:1700px;margin:0 auto;padding:0 24px 80px}
 .dr-quad{font-size:12px;color:rgba(255,255,255,.5);margin-top:3px}
 .dr-close{width:38px;height:38px;border-radius:12px;background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.6);font-size:19px;transition:all .2s}
 .dr-close:hover{background:rgba(255,255,255,.12);color:#fff}
-.dr-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:24px}
-.dr-stat{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:12px 8px;text-align:center;min-width:0}
-.dr-stat .v{font-family:var(--font-mono);font-weight:700;font-size:19px;overflow-wrap:anywhere}
-.dr-stat .k{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.55);margin-top:4px;line-height:1.35;overflow-wrap:anywhere}
+.dr-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:24px}
+.dr-stat{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:13px 14px;min-width:0}
+.dr-stat .v{font-family:var(--font-mono);font-weight:700;font-size:20px;overflow-wrap:anywhere}
+.dr-stat .k{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.55);margin-bottom:6px;line-height:1.35;overflow-wrap:anywhere}
+.dr-stat .s{font-size:11px;color:rgba(255,255,255,.45);margin-top:4px}
+.dr-sub{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.45);margin:18px 0 10px;font-weight:700}
 .dr-stat[data-tip]{position:relative;cursor:help}
 .dr-stat[data-tip]::after{content:attr(data-tip);position:absolute;left:50%;bottom:calc(100% + 8px);transform:translateX(-50%) translateY(4px);width:max-content;max-width:200px;background:#131420;border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:8px 11px;font-size:11px;line-height:1.45;color:rgba(255,255,255,.85);text-align:center;white-space:normal;opacity:0;pointer-events:none;transition:opacity .18s,transform .18s;z-index:60;box-shadow:0 8px 30px rgba(0,0,0,.55)}
 .dr-stat[data-tip]:hover::after,.dr-stat[data-tip]:focus::after{opacity:1;transform:translateX(-50%) translateY(0)}
@@ -356,7 +395,8 @@ main{position:relative;max-width:1700px;margin:0 auto;padding:0 24px 80px}
 .form-chip.g{background:rgba(52,211,153,.12);color:var(--emerald)}
 .form-chip.y{background:rgba(250,204,21,.12);color:var(--yellow)}
 .form-chip.o{background:rgba(255,255,255,.06);color:rgba(255,255,255,.5)}
-.dr-h{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:rgba(255,255,255,.55);margin:22px 0 12px;font-weight:700}
+.dr-h{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:rgba(255,255,255,.55);margin:22px -26px 12px;padding:9px 26px;font-weight:700;
+  position:sticky;top:0;z-index:5;background:#101018;border-bottom:1px solid rgba(255,255,255,.05)}
 .dr-week{display:flex;align-items:center;gap:12px;padding:9px 10px;border-radius:12px;background:rgba(255,255,255,.03);margin-bottom:8px;font-size:13px}
 .dr-week .w{font-family:var(--font-mono);color:rgba(255,255,255,.55);width:34px;flex-shrink:0}
 .dr-week .pos{font-family:var(--font-display);font-weight:900;width:26px;text-align:center;flex-shrink:0}
@@ -422,11 +462,41 @@ footer{border-top:1px solid var(--line);padding:40px 24px 48px;background:linear
 .cls-pill.on{border-color:transparent}
 
 /* ---------- COMMUNITY / RACE DIRECTOR ---------- */
-.lt-tabs{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:18px;padding-bottom:16px;border-bottom:1px solid rgba(255,255,255,.06)}
-.lt-tab{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:999px;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.55);background:rgba(255,255,255,.04);transition:all .18s;white-space:nowrap}
-.lt-tab:hover{color:#fff;background:rgba(255,255,255,.08)}
+.lt-tabs{display:inline-flex;gap:4px;align-items:center;flex-wrap:wrap;margin-bottom:16px;padding:5px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);max-width:100%}
+.lt-tab{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:10px;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.55);transition:all .18s;white-space:nowrap}
+.lt-tab:hover{color:#fff;background:rgba(255,255,255,.07)}
 .lt-tab.on{color:#0a0a0f;background:var(--cyan)}
 .lt-tab .tag{margin:0}
+
+/* ---------- LIVE GRID + SIDEBAR ---------- */
+.live-grid{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:24px;align-items:start}
+.live-side{display:flex;flex-direction:column;gap:20px;position:sticky;top:84px}
+.side-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:18px;padding:18px 18px 20px}
+.side-label{font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:12px}
+.side-label.violet{color:var(--violet)}
+.side-label.orange{color:var(--orange)}
+.side-cd{font-size:36px;font-weight:800;color:var(--cyan);letter-spacing:.02em;font-variant-numeric:tabular-nums;line-height:1.15}
+.side-cd-date{font-size:13px;color:rgba(255,255,255,.5);margin:4px 0 16px}
+.side-empty{color:rgba(255,255,255,.4);font-size:13px}
+.rd-msg{font-size:14.5px;line-height:1.55;color:rgba(255,255,255,.85);word-break:break-word}
+.rd-date{font-family:var(--font-mono);font-size:12px;color:rgba(255,255,255,.45);margin-top:10px}
+.vid-placeholder{position:relative;width:100%;aspect-ratio:16/9;border-radius:14px;border:1px dashed rgba(255,255,255,.16);background:rgba(255,255,255,.025);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:rgba(255,255,255,.5);font-size:12.5px;text-align:center;padding:12px;box-sizing:border-box}
+.vid-placeholder .vp-play{width:52px;height:52px;border-radius:50%;border:2px solid var(--cyan);color:var(--cyan);display:flex;align-items:center;justify-content:center;font-size:17px;padding-left:4px;box-sizing:border-box}
+.hb-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+.hb-row:last-child{border-bottom:none;padding-bottom:0}
+.hb-row:first-child{padding-top:0}
+.hb-names{font-weight:700;font-size:14.5px;min-width:0}
+.hb-names .nm{cursor:pointer;transition:color .2s}
+.hb-names .nm:hover{color:var(--cyan)}
+.hb-names .vs{color:rgba(255,255,255,.4);font-weight:400;margin:0 5px}
+.hb-sub{display:block;font-size:11px;color:rgba(255,255,255,.45);font-weight:400;margin-top:3px}
+.hb-gap{font-family:var(--font-mono);font-weight:700;color:var(--orange);font-size:15px;flex-shrink:0;font-variant-numeric:tabular-nums}
+@media(max-width:1020px){
+  .live-grid{grid-template-columns:minmax(0,1fr)}
+  .live-side{position:static;flex-direction:row;flex-wrap:wrap;min-width:0}
+  .side-card{flex:1 1 260px;min-width:0}
+  #live-card{min-width:0}
+}
 .lt-panel[hidden]{display:none}
 .spot-awards{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px;padding-top:18px;border-top:1px solid rgba(255,255,255,.05)}
 .spot-award{display:inline-flex;align-items:center;gap:9px;padding:9px 14px;border-radius:12px;background:rgba(255,255,255,.03);font-size:12px}
@@ -513,20 +583,22 @@ footer{border-top:1px solid var(--line);padding:40px 24px 48px;background:linear
   .hero-cta a{text-decoration:none}
   .tf-grid{grid-template-columns:1fr}
   .tf-vs{flex-direction:row;justify-content:center}
-  .lb-row{padding:12px 6px;gap:8px;grid-template-columns:16px 26px minmax(0,1fr) auto}
-  .lb-row .qd{display:none}
-  .lb-row .gap{display:none}
-  .lb-row .val{font-size:14px;max-width:52%}
-  .lb-row .val .sub{font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .lb-row .val .sub .sub-top{display:none}
-  .lb-row .rk{font-size:15px;width:26px}
+  .lb-row{padding:12px 6px;gap:8px;grid-template-columns:34px minmax(0,1fr) 76px 84px}
+  .lb-row .pace,.lb-row .fromlead{display:none}
+  .lb-head{display:none}
+  .lb-table.season .lb-row{grid-template-columns:34px minmax(0,1fr) 84px}
+  .lb-table.season .lb-row .season-sub{display:none}
+  .lb-row .pilot-title{display:none}
+  .lb-row .val{font-size:14px}
+  .lb-row .rk{font-size:15px}
   .pod .block{border-radius:10px 10px 0 0}
   .podium{gap:6px}
   .pod .name{font-size:.8rem}
   .dr-stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
   #drawer{padding:0 16px 32px}
   .dr-hero{margin:0 -16px 18px;padding:16px 16px 20px}
-  .dr-avatar{width:88px;height:88px;border-radius:24px;font-size:34px}
+  .dr-avatar{width:96px;height:96px;border-radius:26px;font-size:36px}
+  .dr-h{margin-left:-16px;margin-right:-16px;padding-left:16px;padding-right:16px}
   .dr-name{font-size:clamp(18px,6vw,24px);line-height:1.15}
   .dr-stat{padding:10px 6px}
   .dr-stat .k{font-size:11px;letter-spacing:.06em}
@@ -541,6 +613,12 @@ footer{border-top:1px solid var(--line);padding:40px 24px 48px;background:linear
   .feed-row{flex-wrap:wrap;gap:6px}
   .feed-row .fr-track{order:5;flex-basis:100%}
   .feed-row .nm{min-width:0;flex:1}
+  .arc-head,.arc-row{grid-template-columns:34px minmax(0,1fr) 76px 46px;gap:8px}
+  .arc-head span:nth-child(3),.arc-row .q{display:none}
+  .hof-grid{grid-template-columns:1fr}
+  .hof-grid .hof-row:nth-child(-n+2){border-top:1px solid rgba(255,255,255,.05);padding-top:10px}
+  .hof-grid .hof-row:first-child{border-top:none;padding-top:0}
+  .hof-row{grid-template-columns:minmax(0,1.25fr) auto minmax(0,.75fr);gap:10px;font-size:12px}
   .dr-week{flex-wrap:wrap;gap:6px;padding:9px 8px}
   .dr-week>span:nth-child(3){flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .dr-week .pt{display:none}
@@ -554,7 +632,8 @@ footer{border-top:1px solid var(--line);padding:40px 24px 48px;background:linear
   .dr-actions{margin-top:0}
   .ob-card{padding:22px 18px;border-radius:20px}
   .ob-t{font-size:24px}
-  .lt-tabs{flex-wrap:nowrap;overflow-x:auto;padding-bottom:12px}
+  .lt-tabs{display:grid;width:100%;box-sizing:border-box;grid-template-columns:1fr 1fr;gap:5px}
+  .lt-tab{justify-content:center;padding:9px 8px;font-size:11px}
 }
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
@@ -656,54 +735,71 @@ body.drh-editing, body.drh-editing *{user-select:none !important;-webkit-user-se
       </div>
     </div>
 
-    <div class="card" id="live-card">
-      <div class="lt-tabs">
-        <button class="lt-tab on" data-tab="lb">🏁 Leaderboard</button>
-        <button class="lt-tab" data-tab="feed">📡 Feed <span class="tag" id="feed-count" style="background:rgba(52,211,153,.12);color:var(--emerald)">0</span></button>
-        <button class="lt-tab" data-tab="duels">🥊 Duels <span class="tag" id="duels-count" style="background:rgba(251,146,60,.12);color:var(--orange)">0 LIVE</span></button>
-        <div class="pills" id="lb-mode-pills">
-          <button class="pill on" data-lb="current">Current Track</button>
-          <button class="pill" data-lb="season">Season Standings</button>
+    <div class="live-grid">
+      <div class="card" id="live-card">
+        <div class="lt-tabs" id="lt-tabs">
+          <button class="lt-tab on" data-tab="lb" data-mode="current">Αυτή η εβδομάδα</button>
+          <button class="lt-tab" data-tab="lb" data-mode="season">Σεζόν</button>
+          <button class="lt-tab" data-tab="feed">Feed <span class="tag" id="feed-count" style="background:rgba(52,211,153,.12);color:var(--emerald)">0</span></button>
+          <button class="lt-tab" data-tab="duels">Duels <span class="tag" id="duels-count" style="background:rgba(251,146,60,.12);color:var(--orange)">0 LIVE</span></button>
         </div>
-      </div>
 
-      <div class="lt-panel" id="ltp-lb">
-        <div id="podium-box"></div>
-        <div class="lb-table" id="lb-body"></div>
-        <button class="show-more" id="lb-more" style="display:none">VIEW FULL RANKINGS ▾</button>
-      </div>
-
-      <div class="lt-panel" id="ltp-feed" hidden>
         <div class="week-progress" id="week-progress">
           <div class="wp-txt" id="wp-txt"></div>
           <div class="wp-bar"><div class="wp-fill" id="wp-fill"></div></div>
           <div class="wp-txt mono" id="wp-pct"></div>
         </div>
-        <p style="color:rgba(255,255,255,.55);font-size:13px;margin:0 0 14px">PBs, νέοι πιλότοι, σφιχτές μάχες και Race Director σημειώσεις — ό,τι κινείται αυτή την εβδομάδα.</p>
-        <div class="feed-filters" id="feed-filters"></div>
-        <div id="feed-list"></div>
-        <button class="show-more" id="feed-more" style="display:none"></button>
+
+        <div class="lt-panel" id="ltp-lb">
+          <div id="podium-box"></div>
+          <div class="lb-head" id="lb-head"><span>Θέση</span><span>Πιλότος</span><span>Πίσω από μπροστά</span><span>% από leader</span><span>Χρόνος</span></div>
+          <div class="lb-table" id="lb-body"></div>
+          <button class="show-more" id="lb-more" style="display:none">Δες και τους υπόλοιπους ▾</button>
+        </div>
+
+        <div class="lt-panel" id="ltp-feed" hidden>
+          <p style="color:rgba(255,255,255,.55);font-size:13px;margin:0 0 14px">PBs, νέοι πιλότοι, σφιχτές μάχες και Race Director σημειώσεις — ό,τι κινείται αυτή την εβδομάδα.</p>
+          <div class="feed-filters" id="feed-filters"></div>
+          <div id="feed-list"></div>
+          <button class="show-more" id="feed-more" style="display:none"></button>
+        </div>
+
+        <div class="lt-panel" id="ltp-duels" hidden>
+          <div id="duels"></div>
+        </div>
       </div>
 
-      <div class="lt-panel" id="ltp-duels" hidden>
-        <div id="duels"></div>
-      </div>
+      <aside class="live-side">
+        <div class="side-card">
+          <div class="side-label violet">Race Director</div>
+          <div class="side-body" id="rd-card-body"><div class="side-empty">—</div></div>
+        </div>
+        <div class="side-card">
+          <div class="side-label">Επόμενο track σε</div>
+          <div class="side-cd mono" id="cd-digits">—</div>
+          <div class="side-cd-date" id="cd-date">—</div>
+          <div id="reveal-body"></div>
+        </div>
+        <div class="side-card">
+          <div class="side-label orange">Κοντινές μάχες</div>
+          <div class="side-body" id="hb-body"><div class="side-empty">—</div></div>
+        </div>
+      </aside>
     </div>
     <div class="hero-ticker" style="margin:22px 0 0"><div class="ticker-track" id="ticker"></div></div>
     <div class="err-banner" id="err-banner">⚠ Δεν φτάνει το live data — δείχνουμε το τελευταίο snapshot. <button id="retry-btn" style="color:var(--cyan);font-weight:700;text-decoration:underline">Δοκίμασε ξανά</button></div>
   </section>
 
-  <!-- TRACK REVEAL -->
-  <section id="reveal" class="reveal">
+  <!-- HALL OF FAME -->
+  <section id="hof" class="reveal">
     <div class="section-head">
       <div class="sh-left">
-        <div class="kick" style="color:var(--red)">ΕΠΟΜΕΝΟ TRACK</div>
-        <h2>TRACK <span style="color:var(--red)">REVEAL</span></h2>
-        <p>Το επίσημο βίντεο παρουσίασης του επόμενου track — δες τις στροφές πριν ανοίξει το grid.</p>
+        <div class="kick" style="color:var(--yellow)">SEASON 2026 · LEGENDS</div>
+        <h2>HALL OF <span style="color:var(--yellow)">FAME</span></h2>
       </div>
     </div>
     <div class="card">
-      <div id="reveal-body"></div>
+      <div id="hall-fame" class="hof-grid"></div>
     </div>
   </section>
 
@@ -768,23 +864,22 @@ body.drh-editing, body.drh-editing *{user-select:none !important;-webkit-user-se
           <h3>ARCHIVE</h3>
           <span class="tag" style="background:rgba(167,139,250,.12);color:var(--violet)" id="arc-count">0 TRACKS</span>
         </div>
-        <div id="archive-list" style="max-height:560px;overflow-y:auto;padding-right:6px"></div>
+        <div class="arc-controls">
+          <span class="arc-lab">ΕΒΔΟΜΑΔΑ</span>
+          <select id="arc-week" class="arc-week" aria-label="Επιλογή εβδομάδας"></select>
+        </div>
+        <input id="arc-filter" class="arc-filter" type="text" placeholder="Φίλτρο πιλότου…" autocomplete="off">
+        <div class="arc-meta" id="arc-meta"></div>
+        <div class="arc-table">
+          <div class="arc-head"><span>ΘΕΣΗ</span><span>ΠΙΛΟΤΟΣ</span><span>QUAD</span><span>ΧΡΟΝΟΣ</span><span>POINTS</span></div>
+          <div id="arc-rows"></div>
+        </div>
       </div>
 
       <div style="display:flex;flex-direction:column;gap:24px">
-        <div class="card">
+        <div class="card" style="flex:1;display:flex;flex-direction:column;justify-content:center">
           <div class="card-head"><h3>SEASON <i style="color:var(--fuchsia)">STATS</i></h3><img src="simrush-logo.png" loading="lazy" alt="SimRush Series" style="height:84px;width:auto;opacity:.9;filter:grayscale(1) brightness(1.75) drop-shadow(0 0 18px rgba(255,255,255,.14))"></div>
           <div class="hero-stats" style="margin-top:6px;justify-content:flex-start" id="season-stats"></div>
-        </div>
-        <div class="card" style="flex:1">
-          <div class="card-head">
-            <h3>HALL OF <i style="color:var(--yellow)">FAME</i></h3>
-            <span class="tag" style="background:rgba(250,204,21,.12);color:var(--yellow)">LEGENDS</span>
-          </div>
-          <div class="hof-row hof-next" style="border-top:none;padding-top:0">
-            <span>⏱ Επόμενο track</span><b id="hof-next-name">—</b><span class="mono cdc-digits" id="cd-digits">—</span>
-          </div>
-          <div id="hall-fame"></div>
         </div>
       </div>
     </div>
@@ -806,19 +901,26 @@ body.drh-editing, body.drh-editing *{user-select:none !important;-webkit-user-se
   </div>
   <div class="dr-badges" id="dr-badges"></div>
   <div class="dr-actions"><button class="dr-share" id="dr-share" type="button">Μοιράσου την εβδομάδα μου</button></div>
+
+  <div class="dr-h">📋 OVERVIEW</div>
   <div id="dr-director"></div>
-  <div id="dr-quests"></div>
-  <div id="dr-duel"></div>
-  <div class="dr-h" style="margin-top:2px">ΠΟΡΕΙΑ ΧΡΟΝΩΝ</div>
+  <div id="dr-digest"></div>
+  <div class="dr-sub">ΣΤΑΤΙΣΤΙΚΑ</div>
+  <div class="dr-stats" id="dr-stats"></div>
+
+  <div class="dr-h">📈 ΠΡΟΟΔΟΣ</div>
+  <div class="dr-sub" style="margin-top:2px">ΠΟΡΕΙΑ ΧΡΟΝΩΝ</div>
   <div class="dr-spark"><canvas id="dr-spark"></canvas><div class="dr-spark-meta" id="dr-spark-meta"></div></div>
   <div id="dr-learn"></div>
-  <div class="dr-race" id="dr-race" style="display:none"></div>
-  <div class="dr-stats" id="dr-stats"></div>
-  <div class="dr-h">ΦΟΡΜΑ (τελευταίες εβδομάδες)</div>
+  <div id="dr-quests"></div>
+  <div class="dr-sub">ΦΟΡΜΑ (ΤΕΛΕΥΤΑΙΕΣ ΕΒΔΟΜΑΔΕΣ)</div>
   <div class="dr-form" id="dr-form"></div>
-  <div id="dr-digest"></div>
-  <div class="dr-h">ΑΝΑ ΕΒΔΟΜΑΔΑ</div>
+  <div class="dr-sub">ΑΝΑ ΕΒΔΟΜΑΔΑ</div>
   <div id="dr-weeks"></div>
+
+  <div class="dr-h">🥊 ΜΑΧΕΣ</div>
+  <div class="dr-race" id="dr-race" style="display:none"></div>
+  <div id="dr-duel"></div>
 </aside>
 
 <div id="onboard-modal" role="dialog" aria-modal="true" aria-labelledby="ob-title">
