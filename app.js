@@ -15,109 +15,6 @@ const initials = (name) => String(name || "").replace(/[^A-Za-z0-9]/g, "").slice
 const fmtTime = (t) => (t == null ? "—" : Number(t).toFixed(3) + "s");
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
-// ---------------------------------------------------------------- pilot identity («Είμαι εγώ»)
-// Η ταυτότητα ζει ΜΟΝΟ στο localStorage του browser — κανένας λογαριασμός.
-const ME_KEY = "drh.me";
-function getMe() { try { return localStorage.getItem(ME_KEY) || null; } catch { return null; } }
-function setMe(name) { try { name ? localStorage.setItem(ME_KEY, name) : localStorage.removeItem(ME_KEY); } catch {} }
-
-function pickerPilots(d) {
-  const names = new Set();
-  (d.standings || []).forEach(s => names.add(s.pilot));
-  (d.currentLb || []).forEach(r => names.add(r.pilot));
-  Object.keys(d.profiles || {}).forEach(n => names.add(n));
-  return [...names].sort((a, b) => a.localeCompare(b));
-}
-
-function openPicker(d, raw) {
-  const modal = $("#pick-modal");
-  if (!modal || !d) return;
-  const list = pickerPilots(d);
-  const grid = $("#pick-grid");
-  const search = $("#pick-search");
-  const paint = (q) => {
-    const needle = (q || "").trim().toLowerCase();
-    const shown = needle ? list.filter(n => n.toLowerCase().includes(needle)) : list;
-    grid.innerHTML = shown.length
-      ? shown.map(n => `<button class="pick-item" type="button" data-pick="${esc(n)}">
-          <span class="av">${esc(initials(n))}</span>
-          <span class="nm2">${esc(n)}</span>
-        </button>`).join("")
-      : `<div class="dr-empty" style="grid-column:1/-1;padding:24px 6px;text-align:center">Κανένας πιλότος με «${esc(q)}».<br><span style="font-size:12px">Πέτα πρώτος και θα εμφανιστείς εδώ.</span></div>`;
-  };
-  paint("");
-  if (search) search.value = "";
-  modal.classList.add("on");
-  setTimeout(() => search && search.focus(), 120);
-  if (search) search.oninput = () => paint(search.value);
-  grid.onclick = (e) => {
-    const btn = e.target.closest("[data-pick]");
-    if (btn) choosePilot(btn.dataset.pick, d, raw);
-  };
-}
-
-function closePicker() {
-  const m = $("#pick-modal");
-  if (m) m.classList.remove("on");
-}
-
-function choosePilot(name, d, raw) {
-  setMe(name);
-  closePicker();
-  syncMeButton();
-  renderMeCard(d, raw);
-  toast(`Γεια σου, ${name}! Το site είναι πλέον δικό σου.`, "👋");
-  setTimeout(() => openDrawer(name, d, raw), 420);
-}
-
-function syncMeButton() {
-  const btn = $("#me-btn");
-  if (!btn) return;
-  const me = getMe();
-  if (me) {
-    btn.textContent = me;
-    btn.classList.add("set");
-    btn.title = "Αλλαγή πιλότου";
-  } else {
-    btn.textContent = "Είμαι εγώ";
-    btn.classList.remove("set");
-    btn.title = "Διάλεξε το callsign σου";
-  }
-}
-
-// Quest card πάνω από τα tabs του live — εμφανίζεται ΜΟΝΟ αν έχεις διαλέξει callsign
-function renderMeCard(d, raw) {
-  const slot = $("#me-slot");
-  if (!slot) return;
-  const me = getMe();
-  const p = me && d && d.profiles ? d.profiles[me] : null;
-  if (!me || !p) { slot.innerHTML = ""; return; }
-  const rankIdx = (d.standings || []).findIndex(s => s.pilot === me);
-  const rank = rankIdx >= 0 ? rankIdx + 1 : null;
-  const trackIdx = (d.currentLb || []).findIndex(r => r.pilot === me);
-  const cur = (d.currentLb || []).find(r => r.pilot === me);
-  const quests = (typeof pilotQuests === "function") ? pilotQuests(me, d, raw) : [];
-  const q = quests.find(x => (x.done || 0) < (x.target || 1)) || quests[0] || null;
-  const pct = q && q.target ? Math.max(0, Math.min(100, (q.done / q.target) * 100)) : 0;
-  const sub = [
-    rank ? `#${rank} σεζόν` : null,
-    trackIdx >= 0 ? `#${trackIdx + 1} track` : null,
-    cur && cur.time != null ? fmtTime(cur.time) : null
-  ].filter(Boolean).join(" · ") || "χωρίς χρόνο ακόμα";
-  slot.innerHTML = `
-    <div class="mec" role="button" tabindex="0" title="Άνοιξε το προφίλ σου">
-      <div class="mec-id">
-        <span class="mec-av">${esc(initials(me))}</span>
-        <div class="mec-idc"><b>${esc(me)}</b><span>${esc(sub)}</span></div>
-      </div>
-      <div class="mec-q">
-        <div class="mec-q-top"><span>🎯 ${esc(q ? q.label : "Κατέγραψε τον πρώτο σου χρόνο")}</span><span class="mono">${esc(q && q.note || "")}</span></div>
-        <div class="mec-bar"><div class="mec-fill" style="width:${pct}%"></div></div>
-      </div>
-      <span class="mec-go">Προφίλ →</span>
-    </div>`;
-}
-
 // ---------------------------------------------------------------- hero canvas
 function heroCanvas() {
   const cv = $("#bg-canvas"), ctx = cv.getContext("2d");
@@ -264,24 +161,18 @@ function buildHeroStats(d) {
 
 // ---------------------------------------------------------------- countdown
 // Started ONCE; the target is updated on re-renders (no interval stacking).
-const countdown = { target: 0, started: false, trackName: "" };
+const countdown = { target: 0, started: false };
 function startCountdown(raw) {
   countdown.target = new Date(raw.__derived0.nextTrackAt).getTime();
-  countdown.trackName = (raw.current_track || "").toUpperCase();
-  $("#cd-track").textContent = countdown.trackName;
+  const nextName = $("#hof-next-name");
+  if (nextName) nextName.textContent = (raw.track_reveal && raw.track_reveal.track) ? String(raw.track_reveal.track).toUpperCase() : "—";
   if (countdown.started) return;
   countdown.started = true;
-  const refreshRing = 2 * 60;
-  let refreshT = refreshRing;
   function tick() {
     let ms = countdown.target - Date.now();
     if (ms < 0) ms = 0;
     const dd = Math.floor(ms / 864e5), hh = Math.floor(ms % 864e5 / 36e5), mm = Math.floor(ms % 36e5 / 6e4), ss = Math.floor(ms % 6e4 / 1e3);
     $("#cd-digits").textContent = `${String(dd).padStart(2, "0")}η ${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}:${String(ss).padStart(2, "0")}`;
-    refreshT--;
-    if (refreshT <= 0) refreshT = refreshRing;
-    const off = 31.4 * (1 - refreshT / refreshRing);
-    $("#cd-refresh").innerHTML = `<div class="ring"><svg width="14" height="14"><circle class="bg" cx="7" cy="7" r="5"></circle><circle class="fg" cx="7" cy="7" r="5" style="stroke-dashoffset:${off}"></circle></svg></div> refresh σε ${Math.floor(refreshT / 60)}:${String(refreshT % 60).padStart(2, "0")}`;
   }
   tick(); setInterval(tick, 1000);
 }
@@ -297,7 +188,7 @@ function buildTitleFight(d) {
     <div class="tf-pilot ${side}">
       <div class="tf-avatar">${esc(initials(p.pilot))}</div>
       <div class="tf-name" data-pilot="${esc(p.pilot)}">${esc(p.pilot)}</div>
-      <div class="tf-pts">${p.points}<span style="font-size:.5em;color:rgba(255,255,255,.4)"> pts</span></div>
+      <div class="tf-pts">${p.points}<span style="font-size:.5em;color:rgba(255,255,255,.55)"> pts</span></div>
       <div class="tf-meta"><span><b>${p.wins}</b> WINS</span><span><b>${p.podiums}</b> PODIUMS</span><span>BEST <b>${fmtTime(p.best)}</b></span></div>
     </div>`;
   if (!b) {
@@ -326,6 +217,8 @@ function buildLeaderboard(d, raw, isErr) {
   const cur = d.currentLb;
   const sea = d.standings;
   $("#live-track-name").textContent = ((raw.current_track || "") + " · " + classLabel(d.cls)).toUpperCase();
+  const subTrack = $("#live-sub-track");
+  if (subTrack) subTrack.textContent = (raw.current_track || "").toUpperCase();
   $("#live-updated").textContent = new Date(raw.generated_at).toLocaleString("el-GR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) + (isErr ? " · SNAPSHOT" : "");
 
   // week progress
@@ -397,9 +290,8 @@ function buildLeaderboard(d, raw, isErr) {
     const delta = mv === "up" ? `<span class="delta up">▲</span>` : mv === "dn" ? `<span class="delta dn">▼</span>` : "";
     return `<div class="pod ${cls}">
       ${oi === 0 ? `<div class="crown">👑</div>` : `<div class="medal">${medals[oi]}</div>`}
-      <div class="name" data-pilot="${esc(p.pilot)}">${esc(p.pilot)}</div>
+      <div class="name" data-pilot="${esc(p.pilot)}">${esc(p.pilot)}${delta}</div>
       <div class="time mono">${lbMode === "current" ? fmtTime(p.time) : p.points + " pts"}</div>
-      ${delta}
       <div class="block"><div class="rk">${oi + 1}</div><div class="shine"></div></div>
     </div>`;
   }).join("") + `</div>`;
@@ -441,7 +333,7 @@ const chart = {
   inited: false, hover: -1, names: [], prog: {}, weeks: [], maxX: 1,
   off: new Set(), // legend-hidden pilots
   ctx: null, cv: null, W: 0, H: 0,
-  pad: { l: 34, r: 12, t: 16, b: 26 },
+  pad: { l: 10, r: 12, t: 16, b: 10 },
 
   init() {
     if (this.inited) return;
@@ -510,13 +402,10 @@ const chart = {
     const y = (v) => pad.t + ih - (v / this.maxX) * ih;
     ctx.clearRect(0, 0, W, H);
     ctx.strokeStyle = "rgba(255,255,255,.06)"; ctx.lineWidth = 1;
-    ctx.fillStyle = "rgba(255,255,255,.35)"; ctx.font = "10px 'JetBrains Mono'";
     for (let g = 0; g <= 4; g++) {
       const gy = pad.t + ih - g / 4 * ih;
       ctx.beginPath(); ctx.moveTo(pad.l, gy); ctx.lineTo(W - pad.r, gy); ctx.stroke();
-      ctx.fillText(Math.round(this.maxX * g / 4), 4, gy + 3);
     }
-    this.weeks.forEach((w, i) => { ctx.fillText(w, x(i) - 8, H - 8); });
 
     const shown = Math.max(1, Math.ceil(this.anim * this.weeks.length));
     this.names.forEach((n, ni) => {
@@ -801,13 +690,24 @@ function buildSpotlight(d, raw) {
 function buildHallOfFame(d) {
   const box = $("#hall-fame");
   if (!box) return;
-  const wins = [...(d.standings || [])].sort((a, b) => (b.wins || 0) - (a.wins || 0))[0];
+  // νίκες με tie-handling: όλοι όσοι ισοβαθμούν στο max
+  const maxWins = Math.max(0, ...(d.standings || []).map(s => s.wins || 0));
+  const winTied = maxWins > 0 ? (d.standings || []).filter(s => (s.wins || 0) === maxWins) : [];
   const mostRecordsWeek = [...(d.weeks || [])].sort((a, b) => (b.records || 0) - (a.records || 0))[0];
   const mostAppearances = Object.values(d.profiles || {}).sort((a, b) => (b.appearances || 0) - (a.appearances || 0))[0];
   const bestImp = Object.values(d.profiles || {}).filter(p => p.bestImprovementPct > 0).sort((a, b) => b.bestImprovementPct - a.bestImprovementPct)[0];
+  // ποιος κρατάει το season best (το χρόνο τον έχουμε — βρίσκουμε τον πιλότο)
+  let sbPilot = "";
+  if (d.seasonBest != null && isFinite(d.seasonBest)) {
+    outer: for (const w of d.weeks || []) {
+      for (const r of w.results || []) {
+        if (r.time === d.seasonBest) { sbPilot = r.pilot; break outer; }
+      }
+    }
+  }
   const rows = [
-    wins ? ["👑", "Περισσότερες νίκες", wins.pilot, `${wins.wins} wins`] : null,
-    d.seasonBest != null && isFinite(d.seasonBest) ? ["⚡", "Season best", "", fmtTime(d.seasonBest)] : null,
+    winTied.length ? ["👑", "Περισσότερες νίκες", winTied.map(s => s.pilot).join(" · "), `${maxWins} wins`] : null,
+    d.seasonBest != null && isFinite(d.seasonBest) ? ["⚡", "Season best", sbPilot, fmtTime(d.seasonBest)] : null,
     mostRecordsWeek ? ["📈", "Περισσότερα records σε track", mostRecordsWeek.track, `${mostRecordsWeek.records} records`] : null,
     mostAppearances ? ["🗓", "Περισσότερες εμφανίσεις", mostAppearances.pilot, `${mostAppearances.appearances} weeks`] : null,
     bestImp ? ["💥", "Μεγαλύτερη βελτίωση", bestImp.pilot, `−${Number(bestImp.bestImprovementPct).toFixed(1)}%`] : null
@@ -859,22 +759,9 @@ function buildFeed(d, raw) {
     text: `Pilot of the Week με βελτίωση ${Number(d.potw.improvement_pct).toFixed(1)}%`,
     meta: d.potw.track || "", date: generated });
 
-  // Race Director notes (από το Discord log του bot) — το νεότερο καρφιτσώνεται πάνω
+  // Race Director notes (από το Discord log του bot) — μόνο στο feed, φίλτρο «RD Notes»
   const rdMsgs = raw && Array.isArray(raw.race_director_messages) ? raw.race_director_messages : [];
 
-  // pinned RD note: πάντα ορατό κάτω από τα tabs του live
-  const rdSlot = $("#rd-note-slot");
-  if (rdSlot) {
-    const latest = rdMsgs.slice().sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")))[0];
-    rdSlot.innerHTML = latest ? `
-      <div class="rdn">
-        <div class="rdn-body">
-          <div class="rdn-txt">${esc(latest.text || "")}</div>
-          <div class="rdn-date">${latest.date ? new Date(latest.date).toLocaleDateString("el-GR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : ""}</div>
-        </div>
-        <span class="rdn-tag">Race Director</span>
-      </div>` : "";
-  }
   rdMsgs.forEach(m => events.push({ type: "NOTE", icon: "📣", color: "var(--violet)", pilot: null,
     text: m.text || "", meta: m.tag || "race director", date: m.date || generated }));
   if (!rdMsgs.length) events.push({ type: "NOTE", icon: "📣", color: "var(--violet)", pilot: null, ph: true,
@@ -1078,7 +965,7 @@ function buildDuels(raw, d) {
       <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:36px 12px;gap:8px">
         <div style="font-size:32px">⚔️</div>
         <div style="color:rgba(255,255,255,.6);font-size:14px;font-weight:700">Καμία μονομαχία ακόμα</div>
-        <div style="color:rgba(255,255,255,.4);font-size:12px">Όταν οριστούν duels, θα εμφανιστούν εδώ αυτόματα.</div>
+        <div style="color:rgba(255,255,255,.55);font-size:12px">Όταν οριστούν duels, θα εμφανιστούν εδώ αυτόματα.</div>
       </div>`;
   }
 
@@ -1113,7 +1000,7 @@ function buildArchive(d) {
             <span class="n">${esc(r.pilot)}</span>
             <span class="q">${esc(w.quads[r.pilot] || "—")}</span>
             <span class="t">${fmtTime(r.time)}</span>
-            <span class="pt mono" style="color:rgba(255,255,255,.4);width:34px;text-align:right">${r.points}p</span>
+            <span class="pt mono" style="color:rgba(255,255,255,.55);width:34px;text-align:right">${r.points}p</span>
           </div>`).join("")}
       </div></div>
     </div>`).join("")
@@ -1305,10 +1192,6 @@ function openDrawer(pilotName, d, raw) {
   }
   $("#dr-chips").innerHTML = chips.join("");
 
-  // το share της εβδομάδας μόνο στο ΔΙΚΟ σου drawer
-  const shareRow = $(".dr-actions");
-  if (shareRow) shareRow.style.display = (getMe() === pilotName) ? "" : "none";
-
   // insights row του πιλότου για την τρέχουσα εβδομάδα (χρήση σε badge + καμπύλη)
   const ins = raw && raw.insights && Array.isArray(raw.insights.pilots)
     ? raw.insights.pilots.find(x => x.pilot === pilotName && x.class === d.cls) || null
@@ -1381,7 +1264,7 @@ function openDrawer(pilotName, d, raw) {
         <div class="dl-head">📉 Καμπύλη εκμάθησης${d.currentTrack ? " · " + esc(d.currentTrack) : ""}</div>
         <div class="dl-row">
           <span class="dl-from">${Number(ins.first_time).toFixed(3)}s</span>
-          <span style="color:rgba(255,255,255,.4)">→</span>
+          <span style="color:rgba(255,255,255,.55)">→</span>
           <span class="dl-to">${Number(ins.time).toFixed(3)}s</span>
           <span class="dl-pct">−${lpct.toFixed(1)}%</span>
         </div>
@@ -1435,7 +1318,7 @@ function openDrawer(pilotName, d, raw) {
       <span class="w">W${i + 1}</span>
       <span class="pos p${w.rank <= 3 ? w.rank : ""}">${w.rank === 1 ? "🏆" : w.rank}</span>
       <span style="color:rgba(255,255,255,.65)">${esc(d.weeks[i].track)}</span>
-      ${pctBehind != null ? `<span class="mono" style="font-size:11px;color:rgba(255,255,255,.4);width:52px;text-align:right;flex-shrink:0">+${pctBehind.toFixed(1)}%</span>` : ""}
+      ${pctBehind != null ? `<span class="mono" style="font-size:11px;color:rgba(255,255,255,.55);width:52px;text-align:right;flex-shrink:0">+${pctBehind.toFixed(1)}%</span>` : ""}
       <span class="t">${fmtTime(w.time)}</span>
       <span class="pt">+${w.points || 0}p</span>
     </div>`;
@@ -1451,7 +1334,7 @@ function drawSpark(p) {
   const pts = (p.weeks || []).map((w, i) => (w && w.time != null) ? { i: i + 1, v: w.time } : null).filter(Boolean);
   if (pts.length < 2) {
     cv.style.display = "none";
-    meta.innerHTML = `<span style="color:rgba(255,255,255,.35)">Χρειάζονται 2+ εβδομάδες για γράφημα πορείας.</span>`;
+    meta.innerHTML = `<span style="color:rgba(255,255,255,.5)">Χρειάζονται 2+ εβδομάδες για γράφημα πορείας.</span>`;
     return;
   }
   cv.style.display = "";
@@ -1524,6 +1407,9 @@ function liveTabsInit() {
   $$(".lt-tab").forEach(b => b.addEventListener("click", () => {
     $$(".lt-tab").forEach(x => x.classList.toggle("on", x === b));
     $$(".lt-panel").forEach(p => { p.hidden = p.id !== "ltp-" + b.dataset.tab; });
+    // τα pills Current/Season αφορούν μόνο το leaderboard
+    const mp = $("#lb-mode-pills");
+    if (mp) mp.style.display = b.dataset.tab === "lb" ? "" : "none";
   }));
 }
 
@@ -1597,8 +1483,6 @@ function cardGlow() {
     buildArchive(d);
     buildHallOfFame(d);
     buildSeasonStats(d, state);
-    syncMeButton();
-    renderMeCard(d, state.data);
     $("#err-banner").classList.toggle("on", state.error);
   }
 
@@ -1665,22 +1549,7 @@ function cardGlow() {
   if (obModal) obModal.addEventListener("click", e => { if (e.target === obModal) closeOnboarding(); });
   if (obLive) obLive.addEventListener("click", closeOnboarding);
 
-  // pilot picker («Είμαι εγώ»)
-  const pickModal = $("#pick-modal"), pickSkip = $("#pick-skip"), meBtn = $("#me-btn"), meSlot = $("#me-slot");
-  if (pickModal) pickModal.addEventListener("click", e => { if (e.target === pickModal) closePicker(); });
-  if (pickSkip) pickSkip.addEventListener("click", () => { closePicker(); toast("Πάτα «Είμαι εγώ» όποτε θέλεις για να το ενεργοποιήσεις.", "👀"); });
-  if (meBtn) meBtn.addEventListener("click", () => openPicker(state.derivedByClass[activeClass], state.data));
-  if (meSlot) {
-    const openMe = () => {
-      const me = getMe();
-      const d = state.derivedByClass[activeClass];
-      if (me && d && d.profiles[me]) openDrawer(me, d, state.data);
-    };
-    meSlot.addEventListener("click", openMe);
-    meSlot.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openMe(); } });
-  }
-
-  addEventListener("keydown", e => { if (e.key === "Escape") { closeDrawer(); closeOnboarding(); closePicker(); } });
+  addEventListener("keydown", e => { if (e.key === "Escape") { closeDrawer(); closeOnboarding(); } });
 
   // retry
   $("#retry-btn").addEventListener("click", async () => {
@@ -1689,4 +1558,501 @@ function cardGlow() {
     renderAll();
     toast(state.error ? "Ακόμα offline — δείχνουμε snapshot" : "Επανασύνδεση επιτυχής", state.error ? "⚠" : "✓");
   });
+})();
+
+/* ================= LAYOUT EDIT MODE v4 (preview tool) =================
+   «✎ ΔΙΑΤΑΞΗ» κάτω δεξιά. Σε edit mode:
+   - DRAG: ελεύθερη μετακίνηση κάθε στοιχείου + SNAP στις άκρες/κέντρα
+     των γειτονικών (γαλάζιες γραμμές οδηγοί).
+   - ΚΛΙΚ: mini μενού → ✏ ΚΕΙΜΕΝΟ (inline edit) · A− / A+ (μέγεθος) ·
+     ↺ ΘΕΣΗ · 👁 ΚΡΥΨΕ (κρυμμένα: λίστα από το κουμπί στη μπάρα).
+   - ΒΕΛΑΚΙΑ: μετακινούν το επιλεγμένο 1px (Shift = 10px).
+   - UNDO ↩ / Ctrl+Z · REDO ↪ / Ctrl+Y (ή Ctrl+Shift+Z).
+   - Esc: έξοδος · 2×κλικ: επαναφορά θέσης.
+   Storage: drh_free_v1 (θέσεις), drh_text_v1 (κείμενα), drh_font_v1
+   (μεγέθη px), drh_hide_v1 (κρυμμένα), drh_hist_v1 / drh_redo_v1. */
+(function () {
+  var POSKEY = "drh_free_v1", TXTKEY = "drh_text_v1", FONTKEY = "drh_font_v1",
+      HIDEKEY = "drh_hide_v1", HISTKEY = "drh_hist_v1", REDOKEY = "drh_redo_v1";
+  var SEL = [
+    ".section-head .kick", ".section-head h2", ".section-head p",
+    ".hero-kicker", ".hero-title", ".hero-sub", ".hero-stats", ".hero-cta", ".hero-badge-wrap",
+    ".top-nav", ".hero-ticker", ".err-banner", ".class-bar",
+    ".card", ".titlefight", ".hof-row", ".card-head img", ".show-more", ".lt-tabs"
+  ].join(",");
+
+  function load(k, fb) { try { var v = JSON.parse(localStorage.getItem(k) || "null"); return v == null ? fb : v; } catch (e) { return fb; } }
+  function save(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+
+  function normCls(el) {
+    return (typeof el.className === "string" && el.className.trim())
+      ? el.className.trim().split(/\s+/).filter(function (c) { return ["drh-hover","drh-dragging","drh-textedit","drh-selected"].indexOf(c) < 0; }).join(" ")
+      : "";
+  }
+  function keyFor(el) {
+    var sec = el.closest("section");
+    var prefix = sec ? sec.id : (el.closest("header") ? "hero" : "page");
+    var tag = el.tagName.toLowerCase();
+    var ncls = normCls(el);
+    var cls = ncls ? "." + ncls.split(" ").join(".") : "";
+    var idx = 0;
+    if (el.parentElement) {
+      var sibs = Array.prototype.filter.call(el.parentElement.children, function (c) {
+        return c.tagName === el.tagName && normCls(c) === ncls;
+      });
+      idx = Math.max(0, sibs.indexOf(el));
+    }
+    return prefix + "|" + tag + cls + "#" + idx;
+  }
+  function prefixOf(el) {
+    var sec = el.closest("section");
+    return sec ? "#" + sec.id : (el.closest("header") ? "hero" : "page");
+  }
+  function plain(html) {
+    var d = document.createElement("div"); d.innerHTML = html || "";
+    return (d.textContent || "").replace(/\s+/g, " ").trim();
+  }
+  function labelOf(el, k) {
+    return prefixOf(el) + " <" + el.tagName.toLowerCase() + "> «" + plain(origHTML[k] != null ? origHTML[k] : el.innerHTML).slice(0, 30) + "»";
+  }
+
+  var offsets = load(POSKEY, {}) || {};
+  var texts = load(TXTKEY, {}) || {};
+  var fonts = load(FONTKEY, {}) || {};
+  var hidden = load(HIDEKEY, {}) || {};
+  var hist = load(HISTKEY, []) || [];
+  var redoStack = load(REDOKEY, []) || [];
+
+  var origHTML = {}, origFS = {};
+  document.querySelectorAll(SEL).forEach(function (el) {
+    origHTML[keyFor(el)] = el.innerHTML;
+    origFS[keyFor(el)] = parseFloat(getComputedStyle(el).fontSize) || 16;
+  });
+
+  function findByKey(k) {
+    var els = document.querySelectorAll(SEL);
+    for (var i = 0; i < els.length; i++) if (keyFor(els[i]) === k) return els[i];
+    return null;
+  }
+  function setPos(key, arr) {
+    if (arr && (Math.abs(arr[0]) > 0.5 || Math.abs(arr[1]) > 0.5)) offsets[key] = arr; else delete offsets[key];
+    var el = findByKey(key);
+    if (el) el.style.translate = offsets[key] ? Math.round(offsets[key][0]) + "px " + Math.round(offsets[key][1]) + "px" : "";
+    save(POSKEY, offsets);
+  }
+  function setFont(key, px) {
+    if (px != null && Math.abs(px - origFS[key]) > 0.5) fonts[key] = px; else delete fonts[key];
+    var el = findByKey(key);
+    if (el) el.style.fontSize = fonts[key] ? fonts[key] + "px" : "";
+    save(FONTKEY, fonts);
+  }
+  function setHidden(key, on) {
+    if (on) hidden[key] = true; else delete hidden[key];
+    var el = findByKey(key);
+    if (el) el.style.display = on ? "none" : "";
+    save(HIDEKEY, hidden);
+    updateHiddenBtn();
+  }
+  function applyAll() {
+    document.querySelectorAll(SEL).forEach(function (el) {
+      var k = keyFor(el);
+      var o = offsets[k];
+      el.style.translate = o ? (Math.round(o[0]) + "px " + Math.round(o[1]) + "px") : "";
+      if (texts[k] != null) el.innerHTML = texts[k];
+      if (fonts[k] != null) el.style.fontSize = fonts[k] + "px";
+      if (hidden[k]) el.style.display = "none";
+    });
+  }
+  applyAll();
+
+  /* ---------- UI ---------- */
+  var btn = document.createElement("button");
+  btn.className = "layout-toggle"; btn.type = "button"; btn.textContent = "✎ ΔΙΑΤΑΞΗ";
+  document.body.appendChild(btn);
+
+  var bar = document.createElement("div");
+  bar.className = "layout-bar";
+  bar.innerHTML =
+    '<span class="lb-hint">σύρε · κλικ = μενού · βέλη = 1px (Shift 10px)</span>' +
+    '<button type="button" data-act="undo">↩</button>' +
+    '<button type="button" data-act="redo">↪</button>' +
+    '<button type="button" data-act="hidden">👁 <span id="drh-hcount">0</span></button>' +
+    '<button type="button" data-act="copy">📋 ΑΝΤΙΓΡΑΦΗ</button>' +
+    '<button type="button" data-act="reset">↺ ΟΛΑ ΠΙΣΩ</button>' +
+    '<button type="button" data-act="done">✓</button>';
+  document.body.appendChild(bar);
+
+  var pop = document.createElement("div");
+  pop.className = "layout-pop";
+  pop.innerHTML =
+    '<button type="button" data-pop="text">✏ ΚΕΙΜΕΝΟ</button>' +
+    '<button type="button" data-pop="fminus">A−</button>' +
+    '<button type="button" data-pop="fplus">A+</button>' +
+    '<button type="button" data-pop="pos">↺ ΘΕΣΗ</button>' +
+    '<button type="button" data-pop="hide">👁 ΚΡΥΨΕ</button>';
+  document.body.appendChild(pop);
+
+  var hpanel = document.createElement("div");
+  hpanel.className = "layout-hidden-panel";
+  document.body.appendChild(hpanel);
+
+  var guideV = document.createElement("div"); guideV.className = "drh-guide-v"; document.body.appendChild(guideV);
+  var guideH = document.createElement("div"); guideH.className = "drh-guide-h"; document.body.appendChild(guideH);
+
+  var toastEl = document.createElement("div");
+  toastEl.className = "layout-toast";
+  document.body.appendChild(toastEl);
+  function toastMsg(t) {
+    toastEl.textContent = t;
+    toastEl.classList.add("on");
+    setTimeout(function () { toastEl.classList.remove("on"); }, 2400);
+  }
+
+  var editing = false, hoverEl = null, drag = null, justDragged = false;
+  var popEl = null, textEditEl = null, snapEdges = null;
+
+  function updateUndo() {
+    var u = bar.querySelector('[data-act="undo"]');
+    var r = bar.querySelector('[data-act="redo"]');
+    if (u) u.style.opacity = hist.length ? "1" : ".35";
+    if (r) r.style.opacity = redoStack.length ? "1" : ".35";
+  }
+  function updateHiddenBtn() {
+    var c = bar.querySelector("#drh-hcount");
+    if (c) c.textContent = String(Object.keys(hidden).length);
+  }
+  function pushHist(a) { hist.push(a); redoStack = []; save(HISTKEY, hist); save(REDOKEY, redoStack); updateUndo(); }
+
+  function applyAction(a, dir) { // dir: -1 undo, +1 redo/apply
+    if (a.type === "move" || a.type === "nudge") setPos(a.key, dir < 0 ? a.from : a.to);
+    else if (a.type === "posreset") setPos(a.key, dir < 0 ? a.prev : null);
+    else if (a.type === "text") {
+      var v;
+      if (dir < 0) {
+        if (a.from != null) texts[a.key] = a.from; else delete texts[a.key];
+        v = a.from != null ? a.from : a.orig;
+      } else {
+        texts[a.key] = a.to; v = a.to;
+      }
+      save(TXTKEY, texts);
+      var el = findByKey(a.key);
+      if (el && v != null) el.innerHTML = v;
+    }
+    else if (a.type === "hide") setHidden(a.key, dir > 0);
+    else if (a.type === "unhide") setHidden(a.key, dir < 0);
+    else if (a.type === "font") setFont(a.key, dir < 0 ? a.from : a.to);
+  }
+  function undo() {
+    var a = hist.pop();
+    if (!a) { toastMsg("Τίποτα για αναίρεση"); return; }
+    applyAction(a, -1);
+    redoStack.push(a); save(HISTKEY, hist); save(REDOKEY, redoStack); updateUndo();
+    toastMsg("Αναίρεση ✓");
+  }
+  function redo() {
+    var a = redoStack.pop();
+    if (!a) { toastMsg("Τίποτα για redo"); return; }
+    applyAction(a, +1);
+    hist.push(a); save(HISTKEY, hist); save(REDOKEY, redoStack); updateUndo();
+    toastMsg("Redo ✓");
+  }
+
+  function setEditing(on) {
+    editing = on;
+    document.body.classList.toggle("drh-editing", on);
+    bar.classList.toggle("on", on);
+    btn.textContent = on ? "✎ ΕΠΕΞΕΡΓΑΣΙΑ…" : "✎ ΔΙΑΤΑΞΗ";
+    if (!on) {
+      if (hoverEl) { hoverEl.classList.remove("drh-hover"); hoverEl = null; }
+      hidePop(); hideHpanel();
+      if (textEditEl) finishText(true);
+      guideV.style.display = "none"; guideH.style.display = "none";
+    }
+    updateUndo(); updateHiddenBtn();
+  }
+
+  function showPop(el) {
+    if (popEl) popEl.classList.remove("drh-selected");
+    popEl = el;
+    el.classList.add("drh-selected");
+    var r = el.getBoundingClientRect();
+    pop.classList.add("on");
+    var pw = 400;
+    var top = r.top - 48; if (top < 8) top = r.bottom + 8;
+    var left = Math.min(Math.max(8, r.left), window.innerWidth - pw - 8);
+    pop.style.top = Math.round(top) + "px";
+    pop.style.left = Math.round(left) + "px";
+  }
+  function hidePop() {
+    pop.classList.remove("on");
+    if (popEl) popEl.classList.remove("drh-selected");
+    popEl = null;
+  }
+  function showHpanel() {
+    var keys = Object.keys(hidden);
+    hpanel.innerHTML = '<div class="lhp-title">ΚΡΥΜΜΕΝΑ — κλικ για επαναφορά</div>' +
+      keys.map(function (k) {
+        var el = findByKey(k);
+        var label = el ? labelOf(el, k) : k;
+        return '<button type="button" data-key="' + k.replace(/"/g, "&quot;") + '">👁 ' + label.replace(/</g, "&lt;") + "</button>";
+      }).join("");
+    hpanel.classList.add("on");
+  }
+  function hideHpanel() { hpanel.classList.remove("on"); }
+
+  function resetPos(el) {
+    var k = keyFor(el);
+    var prev = offsets[k] ? offsets[k].slice() : null;
+    if (!prev) { toastMsg("Δεν έχει μετακινηθεί"); return; }
+    setPos(k, null);
+    pushHist({ type: "posreset", key: k, prev: prev });
+    toastMsg("Επαναφορά θέσης ✓");
+  }
+  function changeFont(el, dir) {
+    var k = keyFor(el);
+    var cur = fonts[k] != null ? fonts[k] : (origFS[k] || 16);
+    var next = Math.round(cur * (dir > 0 ? 1.125 : 1 / 1.125) * 10) / 10;
+    setFont(k, next);
+    var last = hist[hist.length - 1], now = Date.now();
+    if (last && last.type === "font" && last.key === k && now - last.t < 900) { last.to = next; last.t = now; save(HISTKEY, hist); }
+    else pushHist({ type: "font", key: k, from: cur, to: next, t: now });
+    toastMsg("Μέγεθος: " + next + "px");
+  }
+  function hideEl(el) {
+    var k = keyFor(el);
+    setHidden(k, true);
+    pushHist({ type: "hide", key: k });
+    hidePop();
+    toastMsg("Κρύφτηκε — επαναφορά από το 👁 της μπάρας");
+  }
+
+  function startText(el) {
+    hidePop();
+    textEditEl = el;
+    el.contentEditable = "true";
+    el.classList.add("drh-textedit");
+    el.classList.remove("drh-hover");
+    el.focus();
+    try {
+      var r = document.createRange(); r.selectNodeContents(el); r.collapse(false);
+      var s = getSelection(); s.removeAllRanges(); s.addRange(r);
+    } catch (e) {}
+  }
+  function finishText(cancel) {
+    var el = textEditEl; if (!el) return;
+    textEditEl = null;
+    el.contentEditable = "false";
+    el.classList.remove("drh-textedit");
+    var k = keyFor(el);
+    var savedCur = texts[k] != null ? texts[k] : origHTML[k];
+    if (cancel) { el.innerHTML = savedCur; return; }
+    var now = el.innerHTML;
+    if (now !== savedCur) {
+      var prev = texts[k] != null ? texts[k] : null;
+      texts[k] = now; save(TXTKEY, texts);
+      pushHist({ type: "text", key: k, from: prev, to: now, orig: origHTML[k] });
+      toastMsg("Κείμενο αποθηκεύτηκε ✓");
+    }
+  }
+
+  btn.addEventListener("click", function () { setEditing(!editing); });
+
+  bar.addEventListener("click", function (ev) {
+    var b = ev.target.closest ? ev.target.closest("button") : null;
+    if (!b) return;
+    var act = b.getAttribute("data-act");
+    if (act === "undo") undo();
+    else if (act === "redo") redo();
+    else if (act === "hidden") { hpanel.classList.contains("on") ? hideHpanel() : showHpanel(); }
+    else if (act === "copy") {
+      var lines = [];
+      document.querySelectorAll(SEL).forEach(function (el) {
+        var k = keyFor(el);
+        var label = labelOf(el, k);
+        var o = offsets[k];
+        if (o && (Math.abs(o[0]) > 0.5 || Math.abs(o[1]) > 0.5)) lines.push("→ " + label + "  x:" + Math.round(o[0]) + "px, y:" + Math.round(o[1]) + "px");
+        var t = texts[k];
+        if (t != null && t !== origHTML[k]) lines.push("✎ " + label + "  ΝΕΟ ΚΕΙΜΕΝΟ: «" + plain(t).slice(0, 60) + "»");
+        if (fonts[k] != null) lines.push("Αα " + label + "  ΜΕΓΕΘΟΣ: " + fonts[k] + "px (ήταν " + (origFS[k] || "?") + "px)");
+      });
+      Object.keys(hidden).forEach(function (k) {
+        var el = findByKey(k);
+        lines.push("✖ " + (el ? labelOf(el, k) : k) + "  → ΝΑ ΦΥΓΕΙ");
+      });
+      var text = lines.length ? lines.join("\n") : "(καμία αλλαγή ακόμα)";
+      var done = function () { toastMsg("Αντιγράφηκαν " + lines.length + " αλλαγές — επικόλλησέ τις στο chat"); };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, done);
+      else { window.prompt("Αντίγραψε τις αλλαγές:", text); done(); }
+    }
+    else if (act === "reset") {
+      Object.keys(texts).forEach(function (k) { var el = findByKey(k); if (el && origHTML[k] != null) el.innerHTML = origHTML[k]; });
+      offsets = {}; texts = {}; fonts = {}; hidden = {}; hist = []; redoStack = [];
+      save(POSKEY, offsets); save(TXTKEY, texts); save(FONTKEY, fonts); save(HIDEKEY, hidden);
+      save(HISTKEY, hist); save(REDOKEY, redoStack);
+      document.querySelectorAll(SEL).forEach(function (el) { el.style.translate = ""; el.style.fontSize = ""; el.style.display = ""; });
+      updateUndo(); updateHiddenBtn(); hideHpanel();
+      toastMsg("Όλα γύρισαν στις αρχικές τους μορφές");
+    }
+    else if (act === "done") setEditing(false);
+  });
+
+  hpanel.addEventListener("click", function (ev) {
+    var b = ev.target.closest ? ev.target.closest("button") : null;
+    if (!b) return;
+    var k = b.getAttribute("data-key");
+    setHidden(k, false);
+    pushHist({ type: "unhide", key: k });
+    showHpanel();
+    toastMsg("Επανήλθε ✓");
+  });
+
+  pop.addEventListener("click", function (ev) {
+    var b = ev.target.closest ? ev.target.closest("button") : null;
+    if (!b || !popEl) return;
+    var act = b.getAttribute("data-pop");
+    var el = popEl;
+    if (act === "text") startText(el);
+    else if (act === "pos") { resetPos(el); hidePop(); }
+    else if (act === "hide") hideEl(el);
+    else if (act === "fminus") changeFont(el, -1);
+    else if (act === "fplus") changeFont(el, +1);
+  });
+
+  /* ---------- hover ---------- */
+  document.addEventListener("pointerover", function (ev) {
+    if (!editing || drag || textEditEl) return;
+    var el = ev.target && ev.target.closest ? ev.target.closest(SEL) : null;
+    if (el === hoverEl) return;
+    if (hoverEl) hoverEl.classList.remove("drh-hover");
+    hoverEl = el;
+    if (hoverEl) hoverEl.classList.add("drh-hover");
+  }, true);
+
+  /* ---------- drag + snap ---------- */
+  function collectSnapEdges(except) {
+    var vx = [], hy = [];
+    document.querySelectorAll(SEL).forEach(function (el) {
+      if (el === except || el.style.display === "none") return;
+      if (!el.getClientRects().length) return;
+      var r = el.getBoundingClientRect();
+      if (r.bottom < -100 || r.top > window.innerHeight + 100) return;
+      vx.push(r.left, r.left + r.width / 2, r.right);
+      hy.push(r.top, r.top + r.height / 2, r.bottom);
+    });
+    vx.push(window.innerWidth / 2);
+    return { vx: vx, hy: hy };
+  }
+
+  document.addEventListener("pointerdown", function (ev) {
+    if (!editing || textEditEl) return;
+    if (ev.target.closest && (ev.target.closest(".layout-bar") || ev.target.closest(".layout-toggle") || ev.target.closest(".layout-pop") || ev.target.closest(".layout-hidden-panel"))) return;
+    var el = ev.target && ev.target.closest ? ev.target.closest(SEL) : null;
+    if (!el) return;
+    var k = keyFor(el);
+    var o = offsets[k] || [0, 0];
+    drag = { el: el, key: k, baseX: o[0], baseY: o[1], startX: ev.clientX, startY: ev.clientY, moved: false };
+  }, true);
+
+  document.addEventListener("pointermove", function (ev) {
+    if (!drag) return;
+    var dx = ev.clientX - drag.startX, dy = ev.clientY - drag.startY;
+    if (!drag.moved && Math.abs(dx) + Math.abs(dy) < 4) return;
+    if (!drag.moved) {
+      drag.moved = true;
+      drag.el.classList.add("drh-dragging");
+      if (hoverEl) { hoverEl.classList.remove("drh-hover"); hoverEl = null; }
+      hidePop();
+      snapEdges = collectSnapEdges(drag.el);
+    }
+    var nx = drag.baseX + dx, ny = drag.baseY + dy;
+    drag.el.style.translate = Math.round(nx) + "px " + Math.round(ny) + "px";
+    // snap
+    var T = 6, r = drag.el.getBoundingClientRect(), gv = null, gh = null, i, d, best;
+    best = null;
+    var ex = [r.left, r.left + r.width / 2, r.right];
+    for (i = 0; i < ex.length; i++) for (var j = 0; j < snapEdges.vx.length; j++) {
+      d = snapEdges.vx[j] - ex[i];
+      if (Math.abs(d) <= T && (!best || Math.abs(d) < Math.abs(best.d))) best = { d: d, at: snapEdges.vx[j] };
+    }
+    if (best) { nx += best.d; gv = best.at; }
+    best = null;
+    var ey = [r.top, r.top + r.height / 2, r.bottom];
+    for (i = 0; i < ey.length; i++) for (var m = 0; m < snapEdges.hy.length; m++) {
+      d = snapEdges.hy[m] - ey[i];
+      if (Math.abs(d) <= T && (!best || Math.abs(d) < Math.abs(best.d))) best = { d: d, at: snapEdges.hy[m] };
+    }
+    if (best) { ny += best.d; gh = best.at; }
+    if (gv != null) { guideV.style.left = Math.round(gv) + "px"; guideV.style.display = "block"; } else guideV.style.display = "none";
+    if (gh != null) { guideH.style.top = Math.round(gh) + "px"; guideH.style.display = "block"; } else guideH.style.display = "none";
+    offsets[drag.key] = [nx, ny];
+    drag.el.style.translate = Math.round(nx) + "px " + Math.round(ny) + "px";
+  }, true);
+
+  document.addEventListener("pointerup", function () {
+    if (!drag) return;
+    if (drag.moved) {
+      drag.el.classList.remove("drh-dragging");
+      save(POSKEY, offsets);
+      pushHist({ type: "move", key: drag.key, from: [drag.baseX, drag.baseY], to: offsets[drag.key].slice() });
+      justDragged = true;
+    }
+    guideV.style.display = "none"; guideH.style.display = "none";
+    snapEdges = null;
+    drag = null;
+  }, true);
+
+  /* ---------- clicks ---------- */
+  document.addEventListener("click", function (ev) {
+    if (!editing || textEditEl) return;
+    if (ev.target.closest && (ev.target.closest(".layout-bar") || ev.target.closest(".layout-toggle") || ev.target.closest(".layout-pop") || ev.target.closest(".layout-hidden-panel"))) return;
+    ev.preventDefault(); ev.stopPropagation();
+    hideHpanel();
+    if (justDragged) { justDragged = false; hidePop(); return; }
+    var el = ev.target && ev.target.closest ? ev.target.closest(SEL) : null;
+    if (el) showPop(el); else hidePop();
+  }, true);
+
+  document.addEventListener("dblclick", function (ev) {
+    if (!editing || textEditEl) return;
+    var el = ev.target && ev.target.closest ? ev.target.closest(SEL) : null;
+    if (!el) return;
+    ev.preventDefault(); ev.stopPropagation();
+    resetPos(el);
+  }, true);
+
+  /* ---------- keys: undo/redo/arrows/esc ---------- */
+  document.addEventListener("keydown", function (ev) {
+    if (textEditEl) {
+      if (ev.key === "Enter" && !ev.shiftKey) { ev.preventDefault(); finishText(false); }
+      else if (ev.key === "Escape") { ev.preventDefault(); finishText(true); }
+      return;
+    }
+    if (!editing) return;
+    var k = ev.key.toLowerCase();
+    if ((ev.ctrlKey || ev.metaKey) && k === "z" && !ev.shiftKey) { ev.preventDefault(); undo(); return; }
+    if ((ev.ctrlKey || ev.metaKey) && (k === "y" || (k === "z" && ev.shiftKey))) { ev.preventDefault(); redo(); return; }
+    if (ev.key === "Escape") { setEditing(false); return; }
+    if (popEl && ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].indexOf(ev.key) >= 0) {
+      ev.preventDefault();
+      var step = ev.shiftKey ? 10 : 1;
+      var kk = keyFor(popEl);
+      var o = (offsets[kk] || [0, 0]).slice();
+      var from = o.slice();
+      if (ev.key === "ArrowLeft") o[0] -= step;
+      if (ev.key === "ArrowRight") o[0] += step;
+      if (ev.key === "ArrowUp") o[1] -= step;
+      if (ev.key === "ArrowDown") o[1] += step;
+      setPos(kk, o);
+      showPop(popEl);
+      var last = hist[hist.length - 1], now = Date.now();
+      if (last && last.type === "nudge" && last.key === kk && now - last.t < 900) { last.to = o.slice(); last.t = now; save(HISTKEY, hist); }
+      else pushHist({ type: "nudge", key: kk, from: from, to: o.slice(), t: now });
+    }
+  }, true);
+
+  document.addEventListener("blur", function (ev) {
+    if (textEditEl && ev.target === textEditEl) finishText(false);
+  }, true);
+
+  document.addEventListener("dragstart", function (ev) { if (editing) ev.preventDefault(); }, true);
 })();
