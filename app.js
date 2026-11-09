@@ -369,6 +369,12 @@ function buildLeaderboard(d, raw, isErr) {
 
   // list: πλήρης κατάταξη από το rank 1 — top 8 ορατά, οι υπόλοιποι με «ΕΜΦΑΝΙΣΗ ΟΛΩΝ»
   const showN = lbExpanded ? 999 : 8;
+  const pilotTitleHtml = pilot => {
+  const title = pilotTitle(pilot, d, raw);
+  return title
+    ? `<span class="drh-performance-title" style="color:${title.color}">★ ${esc(title.label)}</span>`
+    : "";
+};
   $("#lb-body").innerHTML = rows.slice(0, showN).map(r => `
     <div class="lb-row r${r.rank}${r.far ? " far" : ""}">
       <span class="rk">${String(r.rank).padStart(2, "0")}</span>
