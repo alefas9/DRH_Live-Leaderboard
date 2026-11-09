@@ -1,1125 +1,384 @@
 <!DOCTYPE html>
+
 <html lang="el">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>DRH — Drone Racing Hellas · Live Leaderboard</title>
-<meta name="description" content="Ζωντανές κατατάξεις, βαθμολογία σεζόν και head-to-head μονομαχίες — DRH SimRush Racing 2026" />
-<meta property="og:title" content="DRH — Live Drone Racing Leaderboard" />
-<meta property="og:description" content="Ζωντανές κατατάξεις, βαθμολογία σεζόν και head-to-head μονομαχίες" />
-<meta property="og:type" content="website" />
-<meta property="og:image" content="drh-badge.png" />
-<meta name="theme-color" content="#0a0a0f" />
-<link rel="icon" type="image/png" href="favicon.png" />
-<link rel="apple-touch-icon" href="icon-192.png" />
-<link rel="manifest" href="manifest.webmanifest" />
-<link rel="preload" as="image" href="bg-traces.webp" fetchpriority="high" />
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@700;900&family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
-<style>
-:root{
-  --bg:#0a0a0f; --card:#141419; --line:rgba(255,255,255,.08);
-  --cyan:#22d3ee; --fuchsia:#e879f9; --violet:#a78bfa; --orange:#fb923c;
-  --emerald:#34d399; --yellow:#facc15; --amber:#f59e0b; --red:#ef4444;
-  --font-display:'Archivo',sans-serif; --font-body:'Inter',sans-serif; --font-mono:'JetBrains Mono',monospace;
-
-  /* ---- DESIGN TOKENS v1 (DESIGN-RULES.md) — χρησιμοποίησε ΑΥΤΑ σε κάθε νέο στυλ ---- */
-  /* Backgrounds */
-  --surface-1:#141419; --surface-2:#1a1a22; --surface-3:#22222c;
-  /* Κείμενο */
-  --text:#fff; --text-2:rgba(255,255,255,.72); --text-3:rgba(255,255,255,.55); --text-dim:rgba(255,255,255,.4);
-  /* Borders */
-  --line-strong:rgba(255,255,255,.14); --line-accent:rgba(34,211,238,.22);
-  /* Radius */
-  --r-sm:8px; --r-md:12px; --r-lg:16px; --r-xl:24px; --r-pill:999px;
-  /* Font sizes */
-  --fs-micro:10px; --fs-label:11px; --fs-small:12px; --fs-body:13px;
-  --fs-body-lg:14px; --fs-h3:16px; --fs-h2:20px; --fs-stat:24px;
-  /* Spacing */
-  --s-1:4px; --s-2:8px; --s-3:12px; --s-4:16px; --s-5:24px; --s-6:32px; --s-7:48px;
-  /* Shadows / glows */
-  --shadow-card:0 8px 30px rgba(0,0,0,.55); --shadow-pop:0 24px 80px rgba(0,0,0,.5);
-  --glow-cyan:0 0 44px rgba(34,211,238,.2); --glow-fuchsia:0 0 44px rgba(232,121,249,.2);
-}
-*{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
-body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:
-  radial-gradient(ellipse 55% 40% at 12% 22%,rgba(34,211,238,.05),transparent 65%),
-  radial-gradient(ellipse 45% 35% at 30% 85%,rgba(52,211,153,.035),transparent 65%)}
-body{background:var(--bg);color:#fff;font-family:var(--font-body);overflow-x:hidden}
-::selection{background:var(--cyan);color:#000}
-::-webkit-scrollbar{width:10px;height:10px}
-::-webkit-scrollbar-track{background:#0d0d13}
-::-webkit-scrollbar-thumb{background:#2a2a35;border-radius:5px}
-::-webkit-scrollbar-thumb:hover{background:#3a3a48}
-button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
-.mono{font-family:var(--font-mono)}
-:focus-visible{outline:2px solid var(--cyan);outline-offset:3px;border-radius:4px}
-.display{font-family:var(--font-display)}
-
-/* ---------- HERO ---------- */
-#hero{position:relative;min-height:100svh;display:flex;flex-direction:column;overflow:hidden}
-.hero-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:1;animation:bgDrift 26s ease-in-out infinite alternate;transform-origin:center;
-  -webkit-mask-image:linear-gradient(to bottom,#000 72%,transparent 100%);mask-image:linear-gradient(to bottom,#000 72%,transparent 100%)}
-@keyframes bgDrift{0%{transform:scale(1.02) scaleX(-1) translate(0,0)}50%{transform:scale(1.07) scaleX(-1) translate(-1.2%,.8%)}100%{transform:scale(1.04) scaleX(-1) translate(1%, -.6%)}}
-#bg-canvas{position:absolute;inset:0;width:100%;height:100%}
-.hero-vignette{position:absolute;inset:0;background:
-  linear-gradient(90deg,rgba(10,10,15,.62) 0%,rgba(10,10,15,.14) 45%,rgba(10,10,15,0) 68%),
-  linear-gradient(to bottom,rgba(10,10,15,.5),rgba(10,10,15,.05) 26%,rgba(10,10,15,.18) 58%,rgba(10,10,15,.72) 84%,rgba(10,10,15,.32) 100%);pointer-events:none}
-.top-nav{position:relative;z-index:10;display:flex;align-items:center;justify-content:center;padding:20px 24px;max-width:1700px;margin:0 auto;width:100%}
-.nav-links{display:flex;gap:34px;align-items:center}
-.nav-links a{color:var(--text-3);text-decoration:none;font-weight:600;font-size:var(--fs-body-lg);transition:color .2s}
-.nav-links a:hover{color:#fff}
-.live-pill{display:flex;align-items:center;gap:8px;padding:8px 16px;border:1px solid rgba(239,68,68,.4);border-radius:var(--r-pill);background:rgba(239,68,68,.08);font-size:var(--fs-small);font-weight:700;letter-spacing:.1em}
-.live-pill .dot{width:8px;height:8px;border-radius:50%;background:var(--red);animation:pulse 1.6s infinite}
-@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.8)}}
-
-.hero-center{position:relative;z-index:5;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 24px;gap:0}
-.hero-badge-wrap{position:relative;margin-bottom:28px}
-.hero-badge-wrap img{height:400px;width:auto;animation:breathe 3.2s ease-in-out infinite;filter:drop-shadow(0 0 40px rgba(34,211,238,.3))}
-@keyframes breathe{0%,100%{filter:drop-shadow(0 0 25px rgba(34,211,238,.2))}50%{filter:drop-shadow(0 0 55px rgba(232,121,249,.45))}}
-.hero-kicker{font-family:var(--font-mono);font-size:var(--fs-body);letter-spacing:.35em;color:var(--cyan);text-transform:uppercase;margin-bottom:18px;opacity:0;animation:rise .8s .2s forwards}
-h1.hero-title{font-family:var(--font-display);font-weight:900;font-size:clamp(3rem,9vw,7.5rem);line-height:.92;letter-spacing:-.03em;text-transform:uppercase}
-h1.hero-title .l{display:inline-block;opacity:0;transform:translateY(40px) rotate(4deg);animation:letter .5s cubic-bezier(.2,.8,.2,1) forwards}
-h1.hero-title .grad{background:none;-webkit-text-stroke:2.5px rgba(255,255,255,.75);color:transparent;text-shadow:none}
-@keyframes letter{to{opacity:1;transform:none}}
-@keyframes rise{to{opacity:1}}
-.hero-sub{max-width:640px;margin-top:22px;color:rgba(255,255,255,.6);font-size:clamp(1rem,2vw,1.35rem);opacity:0;animation:rise .8s 1s forwards}
-.hero-sub b{color:#fff}
-
-.hero-stats{display:flex;gap:clamp(16px,4vw,56px);margin-top:44px;flex-wrap:wrap;justify-content:center;opacity:0;animation:rise .8s 1.2s forwards}
-.hstat{text-align:center}
-.hstat .v{font-family:var(--font-display);font-weight:900;font-size:clamp(1.6rem,4vw,2.6rem);color:#fff}
-.hstat .v.c{color:var(--cyan)} .hstat .v.f{color:var(--fuchsia)} .hstat .v.y{color:var(--yellow)} .hstat .v.e{color:var(--emerald)}
-.hstat .k{font-size:var(--fs-label);letter-spacing:.2em;text-transform:uppercase;color:var(--text-3);margin-top:4px}
-
-.hero-cta{display:flex;gap:16px;margin-top:40px;opacity:0;animation:rise .8s 1.4s forwards;flex-wrap:wrap;justify-content:center}
-.btn{padding:16px 32px;border-radius:14px;font-weight:700;font-size:15px;transition:transform .2s,box-shadow .2s;position:relative;overflow:hidden}
-.btn:active{transform:scale(.97)}
-.btn-primary{background:linear-gradient(100deg,var(--cyan),var(--fuchsia));color:var(--bg);box-shadow:0 8px 32px rgba(34,211,238,.25)}
-.btn-primary:hover{transform:translateY(-2px);box-shadow:0 12px 40px rgba(232,121,249,.35)}
-.btn-ghost{border:1px solid var(--line);color:rgba(255,255,255,.7);background:rgba(255,255,255,.03)}
-.btn-ghost:hover{border-color:rgba(255,255,255,.3);color:#fff}
-
-.hero-ticker{position:relative;z-index:5;border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:rgba(10,10,15,.6);backdrop-filter:blur(8px);overflow:hidden;white-space:nowrap}
-.ticker-track{display:inline-flex;gap:0;padding:12px 0;animation:tick 40s linear infinite}
-.ticker-track:hover{animation-play-state:paused}
-@keyframes tick{to{transform:translateX(-50%)}}
-.tick-item{display:inline-flex;align-items:center;gap:10px;padding:0 28px;font-family:var(--font-mono);font-size:var(--fs-body);color:var(--text-3)}
-.tick-item .sep{color:var(--cyan)}
-.tick-item b{color:#fff}
-.tick-item .win{color:var(--yellow)}
-
-.scroll-hint{display:none}
-
-/* ---------- COUNTDOWN ---------- */
-.hero .cd-chip{margin-top:26px;justify-content:center;opacity:0;animation:rise .8s 1.4s forwards}
-.cd-chip{display:flex;align-items:center;gap:14px;flex-wrap:wrap;font-family:var(--font-mono)}
-.cdc-label{font-size:var(--fs-label);letter-spacing:.18em;color:rgba(255,255,255,.5);text-transform:uppercase}
-.cdc-label b{color:var(--cyan);font-weight:700}
-.cdc-digits{font-size:var(--fs-h3);font-weight:700;color:#fff;font-variant-numeric:tabular-nums;letter-spacing:.05em}
-.cd-refresh{font-family:var(--font-mono);font-size:var(--fs-label);color:var(--text-3);display:flex;align-items:center;gap:8px}
-.cd-refresh .ring{width:14px;height:14px;position:relative}
-.cd-refresh .ring svg{transform:rotate(-90deg)}
-.cd-refresh .ring circle{fill:none;stroke-width:2.5;r:5}
-.cd-refresh .ring .bg{stroke:rgba(255,255,255,.15)}
-.cd-refresh .ring .fg{stroke:var(--cyan);stroke-dasharray:31.4;stroke-linecap:round;transition:stroke-dashoffset 1s linear}
-
-/* ---------- SECTIONS ---------- */
-main{position:relative;max-width:1700px;margin:0 auto;padding:0 24px 80px}
-.section-head{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin:64px 0 28px;flex-wrap:wrap}
-.sh-left .kick{font-family:var(--font-mono);font-size:var(--fs-small);letter-spacing:.3em;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:10px}
-.sh-left h2{font-family:var(--font-display);font-weight:900;font-size:clamp(2rem,5vw,3.8rem);letter-spacing:-.03em;text-transform:uppercase;line-height:1}
-.sh-left h2 span{color:var(--cyan)}
-.sh-left p{color:rgba(255,255,255,.5);margin-top:10px;max-width:560px}
-
-.reveal{opacity:0;transform:translateY(28px);transition:opacity .7s cubic-bezier(.2,.8,.2,1),transform .7s cubic-bezier(.2,.8,.2,1)}
-.reveal.in{opacity:1;transform:none}
-
-/* ---------- TITLE FIGHT ---------- */
-.titlefight{position:relative;border-radius:28px;overflow:hidden;
-  background:radial-gradient(ellipse 120% 160% at 50% -40%,rgba(232,121,249,.18),transparent 60%),linear-gradient(165deg,rgba(255,255,255,.05),rgba(255,255,255,.012) 55%);
-  box-shadow:0 24px 60px rgba(0,0,0,.4),0 0 80px rgba(232,121,249,.08),inset 0 1px 0 rgba(255,255,255,.05);
-  padding:clamp(24px,4vw,48px);margin-top:8px}
-.titlefight.compact{border-radius:var(--r-xl);padding:clamp(14px,2vw,22px)}
-.titlefight.compact .tf-head{margin-bottom:14px}
-.titlefight.compact .tf-avatar{width:52px;height:52px;border-radius:var(--r-lg);font-size:var(--fs-stat);margin-bottom:2px}
-.titlefight.compact .tf-name{font-size:clamp(.95rem,1.8vw,1.2rem)}
-.titlefight.compact .tf-pts{font-size:clamp(1.3rem,2.6vw,1.9rem)}
-.titlefight.compact .tf-meta{font-size:var(--fs-label);gap:9px}
-.titlefight.compact .tf-vs .vs{font-size:clamp(1.1rem,2.2vw,1.6rem)}
-.titlefight.compact .tf-vs .gap{font-size:var(--fs-label);padding:4px 10px}
-.tf-head{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:clamp(20px,3vw,36px)}
-.tf-head .chip{padding:7px 16px;border-radius:var(--r-pill);font-family:var(--font-mono);font-size:var(--fs-label);letter-spacing:.2em;text-transform:uppercase;font-weight:700}
-.tf-head .chip.l{background:rgba(239,68,68,.12);color:var(--red);border:1px solid rgba(239,68,68,.35);animation:pulse 1.6s infinite}
-.tf-head .chip.r{background:rgba(255,255,255,.05);color:rgba(255,255,255,.5)}
-.tf-grid{display:grid;grid-template-columns:1fr auto 1fr;gap:clamp(14px,3vw,40px);align-items:stretch}
-.tf-pilot{display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;padding:clamp(16px,3vw,32px) 12px;border-radius:20px;transition:transform .25s}
-.tf-pilot:hover{transform:translateY(-4px)}
-.tf-pilot.a{background:linear-gradient(180deg,rgba(34,211,238,.1),transparent)}
-.tf-pilot.b{background:linear-gradient(180deg,rgba(232,121,249,.1),transparent)}
-.tf-avatar{width:clamp(64px,8vw,96px);height:clamp(64px,8vw,96px);border-radius:var(--r-xl);display:flex;align-items:center;justify-content:center;
-  font-family:var(--font-display);font-weight:900;font-size:clamp(24px,3.5vw,38px);position:relative;margin-bottom:6px}
-.tf-pilot.a .tf-avatar{background:linear-gradient(135deg,rgba(34,211,238,.25),rgba(34,211,238,.05));border:1.5px solid rgba(34,211,238,.5);color:var(--cyan);box-shadow:var(--glow-cyan)}
-.tf-pilot.b .tf-avatar{background:linear-gradient(135deg,rgba(232,121,249,.25),rgba(232,121,249,.05));border:1.5px solid rgba(232,121,249,.5);color:var(--fuchsia);box-shadow:var(--glow-fuchsia)}
-.tf-name{font-family:var(--font-display);font-weight:900;font-size:clamp(1.3rem,2.6vw,2rem);letter-spacing:-.02em}
-.tf-pts{font-family:var(--font-mono);font-weight:700;font-size:clamp(1.8rem,4vw,3rem);line-height:1}
-.tf-pilot.a .tf-pts{color:var(--cyan)} .tf-pilot.b .tf-pts{color:var(--fuchsia)}
-.tf-meta{display:flex;gap:14px;font-size:var(--fs-small);color:rgba(255,255,255,.5)}
-.tf-meta b{color:#fff}
-.tf-vs{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-width:90px}
-.tf-vs .vs{font-family:var(--font-display);font-weight:900;font-size:clamp(1.6rem,3.5vw,2.6rem);letter-spacing:-.05em;
-  background:linear-gradient(100deg,#fff,rgba(255,255,255,.5));-webkit-background-clip:text;background-clip:text;color:transparent}
-.tf-vs .gap{font-family:var(--font-mono);font-size:var(--fs-small);padding:6px 14px;border-radius:var(--r-pill);background:rgba(255,255,255,.06);color:rgba(255,255,255,.7);white-space:nowrap}
-.tf-vs .gap b{color:var(--yellow)}
-.tf-bar{height:10px;border-radius:var(--r-pill);overflow:hidden;display:flex;margin-top:clamp(18px,3vw,30px);background:rgba(255,255,255,.06)}
-.tf-bar .pa{background:linear-gradient(90deg,var(--cyan),#67e8f9);transition:width 1.2s cubic-bezier(.2,.8,.2,1)}
-.tf-bar .pb{background:linear-gradient(90deg,#f0abfc,var(--fuchsia));transition:width 1.2s cubic-bezier(.2,.8,.2,1)}
-
-/* ---------- CARDS / GRID ---------- */
-.grid-2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(420px,100%),1fr));gap:40px}
-.card{position:relative;background:none;border:none;border-radius:0;box-shadow:none;padding:clamp(20px,3vw,32px);z-index:0}
-.card::before{display:none}
-.card::before{content:"";position:absolute;inset:-1px;border-radius:inherit;padding:1.5px;
-  background:conic-gradient(from var(--led-angle,0deg),var(--cyan) 0%,var(--fuchsia) 25%,transparent 42%,transparent 58%,var(--fuchsia) 75%,var(--cyan) 100%);
-  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
-  -webkit-mask-composite:xor;mask-composite:exclude;
-  opacity:0;transition:opacity .3s;pointer-events:none;
-  animation:ledSweep 1.6s linear infinite paused;z-index:1}
-.card:hover::before{opacity:1;animation-play-state:running}
-@keyframes ledSweep{to{--led-angle:360deg}}
-.card::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:0;transition:opacity .4s;
-  background:radial-gradient(520px circle at var(--mx,50%) var(--my,50%),rgba(34,211,238,.08),transparent 45%);z-index:1}
-.card:hover::after{opacity:1}
-.card>*{position:relative;z-index:2}
-.card-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:20px;flex-wrap:wrap;padding-bottom:14px;border-bottom:1px solid rgba(255,255,255,.06)}
-.card-head h3{font-family:var(--font-display);font-weight:900;font-size:clamp(1.25rem,2.2vw,1.7rem);letter-spacing:-.02em;text-transform:uppercase}
-.card-head h3 i{font-style:normal}
-.tag{padding:5px 12px;border-radius:var(--r-pill);font-size:var(--fs-label);font-weight:700;letter-spacing:.08em}
-
-/* tab pills */
-.pills{display:flex;gap:10px;flex-wrap:wrap}
-.pill{padding:9px 20px;border-radius:var(--r-md);font-size:var(--fs-body);font-weight:700;color:var(--text-3);background:rgba(255,255,255,.05);transition:all .2s}
-.pill:hover{color:#fff}
-.pill.on{background:var(--cyan);color:#06121a}
-.pill.on.f{background:var(--fuchsia);color:#1a0618}
-
-/* week progress */
-.week-progress{display:flex;align-items:center;gap:14px;margin-bottom:16px}
-.wp-bar{flex:1;height:5px;border-radius:var(--r-pill);background:rgba(255,255,255,.07);overflow:hidden}
-.wp-fill{height:100%;border-radius:var(--r-pill);background:linear-gradient(90deg,var(--emerald),var(--cyan));width:0;transition:width 1.2s cubic-bezier(.2,.8,.2,1)}
-.wp-txt{font-family:var(--font-mono);font-size:var(--fs-small);color:var(--text-3);white-space:nowrap}
-.wp-txt b{color:var(--emerald)}
-
-/* ---------- PODIUM ---------- */
-.podium{display:flex;align-items:flex-end;justify-content:center;gap:clamp(8px,2vw,20px);margin:26px 0 30px}
-.pod{display:flex;flex-direction:column;align-items:center;gap:0;flex:1;max-width:210px;position:relative}
-.pod .crown{font-size:clamp(20px,3vw,28px);margin-bottom:6px;filter:drop-shadow(0 0 12px rgba(250,204,21,.6))}
-.pod .medal{font-size:clamp(18px,2.6vw,24px);margin-bottom:6px}
-.pod .name{font-family:var(--font-display);font-weight:900;font-size:clamp(.85rem,1.6vw,1.15rem);letter-spacing:-.01em;text-align:center;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.pod .time{font-family:var(--font-mono);font-size:clamp(.7rem,1.3vw,.85rem);color:var(--text-3);margin-top:3px}
-.pod .block{width:100%;border-radius:14px 14px 0 0;margin-top:12px;position:relative;overflow:hidden;
-  display:flex;align-items:flex-start;justify-content:center;padding-top:12px;
-  font-family:var(--font-display);font-weight:900;font-size:clamp(1.4rem,3.5vw,2.4rem)}
-.pod .block::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,var(--line-strong),transparent 50%)}
-.pod .block .rk{position:relative;z-index:1}
-.pod.p1 .block{height:clamp(110px,16vw,170px);background:linear-gradient(180deg,rgba(250,204,21,.85),rgba(250,204,21,.12));color:#221a00;box-shadow:0 0 60px rgba(250,204,21,.18)}
-.pod.p2 .block{height:clamp(80px,11vw,120px);background:linear-gradient(180deg,rgba(203,213,225,.8),rgba(203,213,225,.1));color:#0f1720}
-.pod.p3 .block{height:clamp(58px,8vw,90px);background:linear-gradient(180deg,rgba(245,158,11,.8),rgba(245,158,11,.1));color:#221200}
-.pod .shine{position:absolute;top:0;left:-80%;width:50%;height:100%;background:linear-gradient(105deg,transparent,rgba(255,255,255,.35),transparent);transform:skewX(-20deg);animation:shine 3.4s infinite}
-@keyframes shine{0%{left:-80%}55%,100%{left:130%}}
-.pod .delta{display:inline-block;margin-left:6px;vertical-align:middle;font-family:var(--font-mono);font-size:var(--fs-label);font-weight:700;padding:2px 7px;border-radius:6px}
-.delta.up{color:var(--emerald);background:rgba(52,211,153,.12)}
-.delta.dn{color:var(--red);background:rgba(239,68,68,.12)}
-
-/* ---------- LEADERBOARD TABLE ---------- */
-.lb-table{width:100%}
-.lb-head{display:grid;grid-template-columns:44px minmax(0,1fr) 96px 84px 92px;gap:12px;padding:12px 10px 10px;font-size:var(--fs-label);font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.5)}
-.lb-head span:last-child{text-align:right}
-.lb-row{display:grid;grid-template-columns:44px minmax(0,1fr) 96px 84px 92px;gap:12px;align-items:center;padding:13px 10px;border-bottom:1px solid rgba(255,255,255,.045);transition:background .2s;position:relative}
-.lb-row:last-child{border-bottom:none}
-.lb-row:hover{background:rgba(255,255,255,.04)}
-.lb-row .rk{display:flex;align-items:baseline;gap:4px;font-family:var(--font-display);font-weight:900;font-size:18px;color:rgba(255,255,255,.5)}
-.lb-row.r1 .rk{color:var(--yellow)} .lb-row.r2 .rk{color:#cbd5e1} .lb-row.r3 .rk{color:var(--amber)}
-.lb-row .pl{min-width:0;display:flex;align-items:center;gap:8px}
-.lb-row .nm{font-weight:700;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;transition:color .2s}
-.lb-row .nm:hover{color:var(--cyan)}
-.lb-row .val{font-family:var(--font-mono);font-weight:700;font-size:var(--fs-h3);text-align:right;color:var(--cyan);font-variant-numeric:tabular-nums;white-space:nowrap}
-.lb-table.season .lb-row{grid-template-columns:44px minmax(0,1fr) minmax(0,1fr) 92px}
-.lb-table.season .lb-row .val{color:#fff}
-.lb-row .season-sub{font-size:var(--fs-small);color:var(--text-3)}
-.lb-row .pace{position:relative;height:5px;border-radius:var(--r-pill);background:var(--line);overflow:hidden;min-width:40px}
-.lb-row .pace-fill{display:block;height:100%;border-radius:var(--r-pill);background:linear-gradient(90deg,#0e7490,var(--cyan))}
-.lb-row .intv{font-family:var(--font-mono);font-size:var(--fs-body);color:var(--text-3);font-variant-numeric:tabular-nums;white-space:nowrap}
-.lb-row.tight .intv{color:var(--orange);font-weight:700}
-.lb-row .fromlead{font-family:var(--font-mono);font-size:var(--fs-body);color:var(--text-3);font-variant-numeric:tabular-nums;white-space:nowrap}
-.lb-row .move{font-size:var(--fs-micro);font-weight:800;font-family:var(--font-mono)}
-.move.up{color:var(--emerald)} .move.dn{color:var(--red)} .move.eq{color:var(--text-3)}
-.flash-new{animation:flashNew 2.5s ease-out}
-@keyframes flashNew{0%{background:rgba(52,211,153,.25)}100%{background:transparent}}
-
-.show-more{display:block;width:100%;text-align:center;padding:14px;margin-top:14px;border-radius:14px;color:var(--text-3);font-weight:600;font-size:var(--fs-body-lg);transition:all .2s}
-.show-more:hover{color:var(--cyan);background:rgba(255,255,255,.04)}
-
-/* ---------- CHART ---------- */
-.chart-wrap{position:relative;height:220px;margin-top:8px}
-#progress-chart{width:100%;height:100%;display:block}
-.chart-legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:14px}
-.lg-item{display:flex;align-items:center;gap:7px;font-size:var(--fs-small);color:rgba(255,255,255,.6);cursor:pointer;padding:4px 10px;border-radius:var(--r-sm);transition:background .2s}
-.lg-item:hover{background:rgba(255,255,255,.05)}
-.lg-item .sw{width:16px;height:4px;border-radius:2px}
-.lg-item.off{opacity:.35}
-
-/* ---------- DUELS ---------- */
-.duel{display:flex;align-items:center;gap:12px;padding:18px 4px;background:none;border-bottom:1px solid rgba(255,255,255,.05);transition:background .2s}
-.duel:last-child{border-bottom:none}
-#duels{flex:1;display:flex;flex-direction:column}
-#duels .duel{flex:1 0 auto}
-#duels>:last-child{margin-bottom:0}
-.duel:hover{background:rgba(255,255,255,.065)}
-.duel.done{opacity:.75}
-.duel .who{flex:1;min-width:0;text-align:center}
-.duel .who .n{font-weight:800;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.duel .who .n.w{color:var(--yellow);text-shadow:0 0 14px rgba(250,204,21,.4)}
-.duel .who .s{font-size:var(--fs-label);color:var(--text-3);margin-top:2px;font-family:var(--font-mono)}
-.duel .mid{display:flex;flex-direction:column;align-items:center;gap:4px;flex-shrink:0}
-.duel .score{font-family:var(--font-mono);font-weight:700;font-size:var(--fs-h3);letter-spacing:.02em;padding:6px 16px;border-radius:var(--r-md);background:rgba(251,146,60,.12)}
-.duel .score b:first-child{color:var(--cyan)} .duel .score b:last-child{color:var(--fuchsia)}
-.duel .score .d{color:rgba(255,255,255,.5);margin:0 8px}
-.duel-track{font-size:var(--fs-label);color:var(--text-3);letter-spacing:.04em;text-transform:uppercase;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.duel-sep{font-family:var(--font-mono);font-size:var(--fs-label);letter-spacing:.25em;color:rgba(255,255,255,.5);margin:16px 0 10px;display:flex;align-items:center;gap:10px}
-.duel-sub{font-size:11.5px;color:var(--text-3);margin:-4px 0 12px;line-height:1.45;font-style:italic}
-.duel-sep::after{content:"";flex:1;height:1px;background:var(--line)}
-.duel-sep:first-child{margin-top:0}
-
-/* ---------- ARCHIVE ---------- */
-.acc-item{border-bottom:1px solid rgba(255,255,255,.05)}
-.acc-item:last-child{border-bottom:none}
-.acc-btn{width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 6px;text-align:left}
-.acc-btn .tn{font-family:var(--font-display);font-weight:700;font-size:clamp(1rem,2vw,1.35rem);letter-spacing:-.01em;text-transform:uppercase;color:var(--cyan);transition:color .2s}
-.acc-btn:hover .tn{color:#fff}
-.acc-btn .meta{display:flex;align-items:center;gap:14px;font-size:var(--fs-small);color:var(--text-3)}
-.acc-btn .meta b{color:var(--yellow)}
-.acc-btn .arrow{transition:transform .3s;color:rgba(255,255,255,.5);font-size:var(--fs-body)}
-.acc-item.open .arrow{transform:rotate(180deg)}
-.acc-body{max-height:0;overflow:hidden;transition:max-height .45s cubic-bezier(.2,.8,.2,1)}
-.acc-inner{padding:4px 6px 18px}
-.acc-win{display:flex;align-items:center;gap:10px;margin-bottom:12px;font-size:var(--fs-body);color:rgba(255,255,255,.6)}
-.acc-win .crown{color:var(--yellow)}
-.acc-win b{color:#fff;font-size:15px}
-.mini-row{display:flex;align-items:center;gap:12px;padding:8px 6px;border-radius:10px;font-size:var(--fs-body)}
-.mini-row:hover{background:rgba(255,255,255,.04)}
-.mini-row .r{font-family:var(--font-display);font-weight:900;width:26px;text-align:center}
-.mini-row:nth-child(1) .r{color:var(--yellow)}
-.mini-row:nth-child(2) .r{color:#cbd5e1}
-.mini-row:nth-child(3) .r{color:var(--amber)}
-.mini-row .r{color:rgba(255,255,255,.5)}
-.mini-row .n{flex:1;font-weight:600}
-.mini-row .q{color:rgba(255,255,255,.5);font-size:var(--fs-label);width:110px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.mini-row .t{font-family:var(--font-mono);color:var(--cyan)}
-
-/* ---------- ARCHIVE WEEK VIEWER ---------- */
-.arc-controls{display:flex;align-items:center;gap:10px;margin:4px 0 10px}
-.arc-lab{font-size:var(--fs-micro);letter-spacing:.18em;font-weight:700;color:var(--text-dim);white-space:nowrap}
-.arc-week{flex:1;min-width:0;appearance:none;-webkit-appearance:none;background:#15151f;border:1px solid rgba(255,255,255,.12);border-radius:var(--r-md);padding:11px 40px 11px 14px;color:#fff;font-family:var(--font-display);font-weight:700;font-size:var(--fs-body);letter-spacing:.03em;cursor:pointer;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%238b8b9e' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center}
-.arc-week:focus{outline:none;border-color:var(--cyan)}
-.arc-week option{background:#15151f;color:#fff}
-.arc-filter{width:100%;box-sizing:border-box;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:var(--r-md);padding:10px 14px;color:#fff;font-size:var(--fs-body);margin-bottom:12px}
-.arc-filter::placeholder{color:rgba(255,255,255,.3)}
-.arc-filter:focus{outline:none;border-color:rgba(34,211,238,.5)}
-.arc-meta{display:flex;flex-wrap:wrap;align-items:center;gap:6px 16px;font-size:var(--fs-small);color:var(--text-3);padding:10px 2px;border-top:1px solid rgba(255,255,255,.07);border-bottom:1px solid rgba(255,255,255,.07);margin-bottom:6px}
-.arc-meta b{color:#fff}
-.arc-meta .crown{color:var(--yellow)}
-.arc-meta .mono{color:var(--cyan)}
-.arc-table{max-height:480px;overflow-y:auto;padding-right:4px}
-.arc-head,.arc-row{display:grid;grid-template-columns:44px minmax(0,1fr) minmax(0,.85fr) 84px 56px;gap:10px;align-items:center}
-.arc-head{position:sticky;top:0;z-index:2;background:var(--bg);padding:8px 6px;font-size:var(--fs-micro);letter-spacing:.16em;font-weight:700;color:rgba(255,255,255,.38)}
-.arc-head span:nth-child(4),.arc-head span:nth-child(5){text-align:right}
-.arc-row{padding:9px 6px;border-radius:10px;font-size:var(--fs-body)}
-.arc-row:hover{background:rgba(255,255,255,.04)}
-.arc-row .r{font-family:var(--font-display);font-weight:900;font-size:15px;text-align:center;color:rgba(255,255,255,.5)}
-.arc-row.m1 .r{color:var(--yellow)} .arc-row.m2 .r{color:#cbd5e1} .arc-row.m3 .r{color:var(--amber)}
-.arc-row .nm{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;transition:color .2s}
-.arc-row .nm:hover{color:var(--cyan)}
-.arc-row .q{color:rgba(255,255,255,.45);font-size:var(--fs-label);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.arc-row .t{font-family:var(--font-mono);color:var(--cyan);text-align:right}
-.arc-row .pt{font-family:var(--font-mono);font-size:var(--fs-small);color:var(--text-3);text-align:right}
-
-/* ---------- HALL OF FAME section ---------- */
-.hof-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 40px}
-.hof-grid .hof-row{border-top:1px solid rgba(255,255,255,.05);padding-top:10px}
-.hof-grid .hof-row:nth-child(-n+2){border-top:none;padding-top:0}
-
-/* ---------- PILOT DRAWER ---------- */
-#overlay{position:fixed;inset:0;background:rgba(5,5,9,.72);backdrop-filter:blur(6px);z-index:90;opacity:0;pointer-events:none;transition:opacity .3s}
-#overlay.on{opacity:1;pointer-events:auto}
-#drawer{position:fixed;top:0;right:0;height:100%;width:min(440px,100vw);max-width:100vw;z-index:100;background:#101018;border-left:1px solid var(--line);
-  transform:translateX(105%);transition:transform .38s cubic-bezier(.2,.8,.2,1);overflow-y:auto;overflow-x:hidden;padding:28px 26px 40px;box-sizing:border-box}
-#drawer.on{transform:none}
-.dr-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:22px}
-.dr-hero{position:relative;margin:-28px -26px 18px;padding:28px 26px 22px;overflow:hidden;border-bottom:1px solid var(--line);
-  background:linear-gradient(160deg,rgba(13,13,22,.5),rgba(16,16,24,.94)),url("dr-texture.webp") center/cover}
-.dr-hero::after{content:"";position:absolute;inset:0;pointer-events:none;
-  background:radial-gradient(120% 90% at 88% -10%,var(--dr-glow,var(--line-accent)),transparent 62%)}
-.dr-hero .dr-id{position:relative;z-index:1}
-.dr-hero .dr-close{position:absolute;top:16px;right:16px;z-index:2}
-.dr-chips{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap;justify-content:center}
-.dr-chip{font-family:var(--font-mono);font-size:var(--fs-label);font-weight:700;letter-spacing:.12em;padding:4px 10px;border-radius:var(--r-pill);text-transform:uppercase}
-.dr-badges{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;justify-content:center}
-.dr-badge{display:inline-flex;align-items:center;gap:7px;padding:8px 12px;border-radius:var(--r-md);font-size:var(--fs-small);font-weight:700}
-.dr-spark{background:rgba(255,255,255,.035);border-radius:var(--r-lg);padding:12px 12px 8px}
-#dr-spark{width:100%;height:88px;display:block}
-.dr-spark-meta{display:flex;justify-content:space-between;gap:10px;font-family:var(--font-mono);font-size:var(--fs-label);color:var(--text-3);margin-top:6px}
-.dr-race{margin:14px 0 20px;background:rgba(255,255,255,.035);border-radius:var(--r-lg);padding:14px 16px}
-.dr-learn{margin:14px 0 4px;background:linear-gradient(135deg,rgba(52,211,153,.1),rgba(34,211,238,.05));border-radius:var(--r-lg);padding:14px 16px}
-.dr-learn .dl-head{font-size:var(--fs-label);letter-spacing:.16em;text-transform:uppercase;color:var(--emerald);margin-bottom:8px;font-weight:700}
-.dr-learn .dl-row{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
-.dr-learn .dl-from{font-family:'JetBrains Mono',monospace;font-size:var(--fs-body);color:var(--text-3);text-decoration:line-through}
-.dr-learn .dl-to{font-family:'JetBrains Mono',monospace;font-size:19px;font-weight:700;color:#fff}
-.dr-learn .dl-pct{font-family:var(--font-display);font-weight:900;font-size:var(--fs-stat);color:var(--emerald)}
-.dr-learn .dl-sub{font-size:var(--fs-small);color:rgba(255,255,255,.5);margin-top:7px}
-.dr-race .rr-head{display:flex;justify-content:space-between;font-size:var(--fs-label);letter-spacing:.16em;text-transform:uppercase;color:var(--text-3);margin-bottom:9px;font-weight:700}
-.dr-race .rr-bar{height:8px;border-radius:99px;background:rgba(255,255,255,.07);overflow:hidden}
-.dr-race .rr-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--cyan),var(--fuchsia));transition:width .6s cubic-bezier(.2,.8,.2,1)}
-.dr-race .rr-sub{font-size:var(--fs-small);color:rgba(255,255,255,.5);margin-top:9px}
-.dr-id{display:flex;align-items:center;gap:16px}
-.dr-idc{position:relative;z-index:1;text-align:center}
-.dr-avatar{width:118px;height:118px;border-radius:32px;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:900;font-size:46px;
-  margin:10px auto 16px;position:relative;z-index:1;overflow:hidden;
-  background:linear-gradient(135deg,var(--line-accent),rgba(232,121,249,.22));border:1.5px solid rgba(34,211,238,.4);color:var(--cyan)}
-.dr-avatar img{width:100%;height:100%;object-fit:cover;display:block}
-.dr-avatar.has-img{background:none}
-.dr-name{font-family:var(--font-display);font-weight:900;font-size:var(--fs-stat);letter-spacing:-.02em}
-.dr-quad{font-size:var(--fs-small);color:rgba(255,255,255,.5);margin-top:3px}
-.dr-close{width:38px;height:38px;border-radius:var(--r-md);background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.6);font-size:19px;transition:all .2s}
-.dr-close:hover{background:rgba(255,255,255,.12);color:#fff}
-.dr-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:24px}
-.dr-stat{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:13px 14px;min-width:0}
-.dr-stat .v{font-family:var(--font-mono);font-weight:700;font-size:20px;overflow-wrap:anywhere}
-.dr-stat .k{font-size:var(--fs-label);letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);margin-bottom:6px;line-height:1.35;overflow-wrap:anywhere}
-.dr-stat .s{font-size:var(--fs-label);color:rgba(255,255,255,.45);margin-top:4px}
-.dr-sub{font-size:var(--fs-label);letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.45);margin:18px 0 10px;font-weight:700}
-.dr-stat[data-tip]{position:relative;cursor:help}
-.dr-stat[data-tip]::after{content:attr(data-tip);position:absolute;left:50%;bottom:calc(100% + 8px);transform:translateX(-50%) translateY(4px);width:max-content;max-width:200px;background:#131420;border:1px solid var(--line-strong);border-radius:10px;padding:8px 11px;font-size:var(--fs-label);line-height:1.45;color:rgba(255,255,255,.85);text-align:center;white-space:normal;opacity:0;pointer-events:none;transition:opacity .18s,transform .18s;z-index:60;box-shadow:var(--shadow-card)}
-.dr-stat[data-tip]:hover::after,.dr-stat[data-tip]:focus::after{opacity:1;transform:translateX(-50%) translateY(0)}
-.dr-stats .dr-stat[data-tip]:nth-child(4n)::after{left:auto;right:0;transform:translateY(4px)}
-.dr-stats .dr-stat[data-tip]:nth-child(4n):hover::after{transform:translateY(0)}
-.dr-stats .dr-stat[data-tip]:nth-child(4n+1)::after{left:0;transform:translateY(4px)}
-.dr-stats .dr-stat[data-tip]:nth-child(4n+1):hover::after{transform:translateY(0)}
-.dr-form{display:flex;gap:8px;margin-bottom:8px}
-.form-chip{flex:1;text-align:center;padding:8px 4px;border-radius:10px;font-family:var(--font-mono);font-weight:700;font-size:var(--fs-body)}
-.form-chip .w{font-size:var(--fs-label);color:var(--text-3);display:block;letter-spacing:.1em;margin-top:2px}
-.form-chip.g{background:rgba(52,211,153,.12);color:var(--emerald)}
-.form-chip.y{background:rgba(250,204,21,.12);color:var(--yellow)}
-.form-chip.o{background:rgba(255,255,255,.06);color:rgba(255,255,255,.5)}
-.dr-h{font-size:var(--fs-label);letter-spacing:.22em;text-transform:uppercase;color:var(--text-3);margin:22px -26px 12px;padding:9px 26px;font-weight:700;
-  position:sticky;top:0;z-index:5;background:#101018;border-bottom:1px solid rgba(255,255,255,.05)}
-.dr-week{display:flex;align-items:center;gap:12px;padding:9px 10px;border-radius:var(--r-md);background:rgba(255,255,255,.03);margin-bottom:8px;font-size:var(--fs-body)}
-.dr-week .w{font-family:var(--font-mono);color:var(--text-3);width:34px;flex-shrink:0}
-.dr-week .pos{font-family:var(--font-display);font-weight:900;width:26px;text-align:center;flex-shrink:0}
-.dr-week .pos.p1{color:var(--yellow)} .dr-week .pos.p2{color:#cbd5e1} .dr-week .pos.p3{color:var(--amber)} .dr-week .pos{color:rgba(255,255,255,.5)}
-.dr-week .t{font-family:var(--font-mono);color:var(--cyan);margin-left:auto}
-.dr-week .pt{color:var(--text-3);font-size:var(--fs-label);width:38px;text-align:right;flex-shrink:0}
-.dr-empty{color:rgba(255,255,255,.5);font-size:var(--fs-body);padding:8px 0}
-
-/* ---------- TOAST ---------- */
-#toast{position:fixed;bottom:24px;left:50%;transform:translate(-50%,80px);z-index:120;background:#161620;border:1px solid rgba(52,211,153,.4);
-  color:#fff;padding:13px 22px;border-radius:14px;font-size:var(--fs-body);font-weight:600;opacity:0;transition:all .35s;display:flex;gap:10px;align-items:center;box-shadow:0 12px 40px rgba(0,0,0,.5)}
-#toast.on{opacity:1;transform:translate(-50%,0)}
-
-/* ---------- FOOTER ---------- */
-footer{border-top:1px solid var(--line);padding:40px 24px 48px;background:linear-gradient(to bottom,transparent,rgba(34,211,238,.03))}
-.foot-in{max-width:1700px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap}
-.foot-l{display:flex;align-items:center;gap:14px}
-.foot-l img{height:36px;opacity:.85}
-.foot-l .t{font-size:var(--fs-small);color:var(--text-3);font-family:var(--font-mono);letter-spacing:.08em}
-.foot-links{display:flex;gap:22px}
-.foot-links a{color:rgba(255,255,255,.5);text-decoration:none;font-size:var(--fs-body);font-weight:600;transition:color .2s}
-.foot-links a:hover{color:var(--cyan)}
-
-/* error banner */
-.err-banner{display:none;margin:20px 0 0;padding:12px 20px;border-radius:var(--r-md);background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#fca5a5;font-size:var(--fs-body);align-items:center;gap:10px}
-.err-banner.on{display:flex}
-
-/* skeleton */
-.skel{position:relative;overflow:hidden;background:rgba(255,255,255,.05);border-radius:10px}
-.skel::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.07),transparent);animation:sk 1.4s infinite}
-@keyframes sk{to{transform:translateX(100%)}}
-
-/* ---------- IMPROVEMENT FEED ---------- */
-.feed-row{display:flex;align-items:center;gap:12px;padding:10px 8px;border-bottom:1px solid rgba(255,255,255,.04);font-size:var(--fs-body)}
-.feed-row:last-child{border-bottom:none}
-.feed-row .nm{font-weight:700;cursor:pointer;min-width:110px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.feed-row .nm:hover{color:var(--emerald)}
-.feed-row .fr-track{flex:1;min-width:0;color:var(--text-3);font-size:var(--fs-label);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-transform:uppercase;letter-spacing:.04em}
-.feed-row .fr-delta{font-family:var(--font-mono);font-weight:700;font-size:var(--fs-small);color:var(--emerald);background:rgba(52,211,153,.1);padding:3px 9px;border-radius:var(--r-sm);white-space:nowrap}
-.feed-row .fr-first{font-family:var(--font-mono);font-size:var(--fs-label);letter-spacing:.12em;color:var(--cyan);background:rgba(34,211,238,.08);padding:4px 8px;border-radius:var(--r-sm);white-space:nowrap}
-.feed-row .t{color:var(--cyan);font-size:var(--fs-body)}
-.feed-row .fr-date{font-family:var(--font-mono);font-size:var(--fs-label);color:rgba(255,255,255,.5);width:52px;text-align:right;flex-shrink:0}
-.feed-row .fr-rank{width:22px;text-align:center;font-family:var(--font-mono);font-size:var(--fs-small);color:var(--text-3);flex-shrink:0}
-
-/* ---------- DRAWER DUEL ---------- */
-.dr-duel{margin-bottom:20px;background:linear-gradient(135deg,rgba(251,146,60,.12),rgba(239,68,68,.06));border-radius:var(--r-lg);padding:14px 16px}
-.dd-head{font-size:var(--fs-label);letter-spacing:.2em;font-weight:700;color:var(--orange);margin-bottom:10px;text-transform:uppercase}
-.dd-pilots{display:flex;align-items:center;justify-content:space-between;gap:10px}
-.dd-p{min-width:0;flex:1}
-.dd-p:last-child{text-align:right}
-.dd-n{font-weight:800;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.dd-n.lead{color:var(--yellow)}
-.dd-t{font-family:var(--font-mono);font-size:var(--fs-small);color:rgba(255,255,255,.5);margin-top:2px}
-.dd-mid{text-align:center;flex-shrink:0}
-.dd-gap{font-family:var(--font-mono);font-weight:700;font-size:var(--fs-body-lg);color:var(--orange)}
-.dd-vs{font-size:var(--fs-label);color:rgba(255,255,255,.5);letter-spacing:.2em}
-.dd-status{margin-top:10px;font-size:var(--fs-small);color:var(--text-3)}
-
-/* ---------- CLASS SWITCHER ---------- */
-.class-bar{position:relative;z-index:6;max-width:1700px;margin:14px auto 0;width:100%;padding:0 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
-.cb-label{font-family:var(--font-mono);font-size:var(--fs-label);letter-spacing:.25em;color:var(--text-3);text-transform:uppercase}
-.cls-pill{border:1px solid var(--line)}
-.cls-pill.on{border-color:transparent}
-
-/* ---------- COMMUNITY / RACE DIRECTOR ---------- */
-.lt-tabs{display:inline-flex;gap:4px;align-items:center;flex-wrap:wrap;margin-bottom:16px;padding:5px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);max-width:100%}
-.lt-tab{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:10px;font-size:var(--fs-small);font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);transition:all .18s;white-space:nowrap}
-.lt-tab:hover{color:#fff;background:rgba(255,255,255,.07)}
-.lt-tab.on{color:var(--bg);background:var(--cyan)}
-.lt-tab .tag{margin:0}
-
-/* ---------- LIVE GRID + SIDEBAR ---------- */
-.live-grid{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:24px;align-items:start}
-.live-side{display:flex;flex-direction:column;gap:20px;position:sticky;top:84px}
-.side-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:18px;padding:18px 18px 20px}
-.side-label{font-size:var(--fs-label);font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:12px}
-.side-label.violet{color:var(--violet)}
-.side-label.orange{color:var(--orange)}
-.side-cd{font-size:36px;font-weight:800;color:var(--cyan);letter-spacing:.02em;font-variant-numeric:tabular-nums;line-height:1.15}
-.side-cd-date{font-size:var(--fs-body);color:rgba(255,255,255,.5);margin:4px 0 16px}
-.side-empty{color:var(--text-dim);font-size:var(--fs-body)}
-.rd-msg{font-size:14.5px;line-height:1.55;color:rgba(255,255,255,.85);word-break:break-word}
-.rd-date{font-family:var(--font-mono);font-size:var(--fs-small);color:rgba(255,255,255,.45);margin-top:10px}
-.vid-placeholder{position:relative;width:100%;aspect-ratio:16/9;border-radius:14px;border:1px dashed rgba(255,255,255,.16);background:rgba(255,255,255,.025);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:rgba(255,255,255,.5);font-size:12.5px;text-align:center;padding:12px;box-sizing:border-box}
-.vid-placeholder .vp-play{width:52px;height:52px;border-radius:50%;border:2px solid var(--cyan);color:var(--cyan);display:flex;align-items:center;justify-content:center;font-size:17px;padding-left:4px;box-sizing:border-box}
-.hb-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.05)}
-.hb-row:last-child{border-bottom:none;padding-bottom:0}
-.hb-row:first-child{padding-top:0}
-.hb-names{font-weight:700;font-size:15px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.hb-names .nm{cursor:pointer;transition:color .2s}
-.hb-names .nm:hover{color:var(--cyan)}
-.hb-names .vs{color:var(--text-dim);font-weight:400;margin:0 5px}
-.hb-sub{display:block;font-size:var(--fs-label);color:rgba(255,255,255,.45);font-weight:400;margin-top:3px}
-.hb-gap{font-family:var(--font-mono);font-weight:700;color:var(--orange);font-size:15px;flex-shrink:0;font-variant-numeric:tabular-nums}
-@media(max-width:1020px){
-  .live-grid{grid-template-columns:minmax(0,1fr)}
-  .live-side{position:static;flex-direction:row;flex-wrap:wrap;min-width:0}
-  .side-card{flex:1 1 260px;min-width:0}
-  #live-card{min-width:0}
-}
-.lt-panel[hidden]{display:none}
-.spot-awards{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px;padding-top:18px;border-top:1px solid rgba(255,255,255,.05)}
-.spot-award{display:inline-flex;align-items:center;gap:9px;padding:9px 14px;border-radius:var(--r-md);background:rgba(255,255,255,.03);font-size:var(--fs-small)}
-.spot-award .sa-label{font-size:var(--fs-label);letter-spacing:.14em;text-transform:uppercase;color:var(--text-3);font-weight:800}
-.spot-award b{font-weight:800}
-.spot-award .mono{color:var(--emerald);font-size:var(--fs-label)}
-.feed-filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
-.ff{padding:6px 13px;border-radius:var(--r-pill);font-size:var(--fs-label);font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.5);background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);transition:all .18s}
-.ff:hover{color:#fff;background:rgba(255,255,255,.09)}
-.ff.on{color:var(--ff-c,#fff);background:color-mix(in srgb,var(--ff-c,#fff) 14%,transparent);border-color:color-mix(in srgb,var(--ff-c,#fff) 35%,transparent)}
-.reveal-vid{position:relative;width:100%;aspect-ratio:16/9;border-radius:14px;overflow:hidden;border:1px solid rgba(255,255,255,.1);background:#000}
-.reveal-vid iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
-.rdn{display:flex;gap:14px;padding:14px 16px;border-left:3px solid var(--violet);background:rgba(167,139,250,.05);border-radius:0 12px 12px 0;margin-bottom:10px}
-.rdn:last-child{margin-bottom:0}
-.rdn .rdn-body{flex:1;min-width:0}
-.rdn .rdn-txt{font-size:var(--fs-body-lg);line-height:1.6;color:rgba(255,255,255,.88);overflow-wrap:anywhere}
-.rdn .rdn-date{font-family:var(--font-mono);font-size:var(--fs-label);letter-spacing:.08em;color:rgba(255,255,255,.5);margin-top:5px;text-transform:uppercase}
-.rdn .rdn-tag{font-size:var(--fs-label);font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--violet);background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.25);padding:2px 8px;border-radius:var(--r-pill);height:fit-content;white-space:nowrap}
-.pilot-title{font-size:var(--fs-label);font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--violet);background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.2);padding:3px 8px;border-radius:var(--r-pill);white-space:nowrap}
-.dr-title{margin-top:5px;font-family:var(--font-mono);font-size:var(--fs-label);font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--violet)}
-.dr-title span{display:inline-block;background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.24);border-radius:var(--r-pill);padding:5px 10px}
-.dr-actions{display:flex;gap:10px;margin:-6px 0 18px}
-.dr-share{flex:1;padding:11px 14px;border-radius:var(--r-md);background:rgba(167,139,250,.12);color:var(--violet);font-size:var(--fs-small);font-weight:800;letter-spacing:.08em;text-transform:uppercase;transition:all .2s}
-.dr-share:hover{background:rgba(167,139,250,.18);color:#fff;transform:translateY(-1px)}
-.rd-block{background:linear-gradient(135deg,rgba(167,139,250,.1),rgba(34,211,238,.04));border-radius:var(--r-lg);padding:14px 16px;margin-bottom:18px}
-.rd-head{font-size:var(--fs-label);letter-spacing:.18em;text-transform:uppercase;color:var(--violet);font-weight:800;margin-bottom:9px;display:flex;align-items:center;justify-content:space-between;gap:10px}
-.rd-line{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-top:1px solid rgba(255,255,255,.05);font-size:var(--fs-small);color:rgba(255,255,255,.6)}
-.rd-line:first-of-type{border-top:none}
-.rd-line b{color:#fff;font-weight:700}
-.rd-line .mono{color:var(--cyan)}
-.rd-note{font-size:var(--fs-small);line-height:1.55;color:rgba(255,255,255,.58);font-style:italic}
-.quest{margin:9px 0 12px}
-.quest-top{display:flex;justify-content:space-between;gap:10px;font-size:var(--fs-small);color:rgba(255,255,255,.65);margin-bottom:6px}
-.quest-top b{color:#fff}
-.quest-bar{height:7px;border-radius:99px;background:rgba(255,255,255,.07);overflow:hidden}
-.quest-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--emerald),var(--cyan));transition:width .5s ease}
-.quest.done .quest-fill{background:linear-gradient(90deg,var(--yellow),var(--amber))}
-.quest.done .quest-top{color:var(--yellow)}
-.feed-icon{width:28px;height:28px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.06);flex-shrink:0;font-size:var(--fs-body-lg)}
-.feed-main{flex:1;min-width:0;line-height:1.45}
-.feed-main .nm{min-width:0;white-space:normal}
-.feed-type{font-family:var(--font-mono);font-size:var(--fs-label);font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:4px 8px;border-radius:var(--r-pill);white-space:nowrap;flex-shrink:0}
-.feed-copy{color:var(--text-3);font-size:var(--fs-small);overflow:hidden;text-overflow:ellipsis}
-.award-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid rgba(255,255,255,.05)}
-.award-row:first-child{border-top:none;padding-top:0}
-.award-ic{width:34px;height:34px;border-radius:var(--r-md);display:flex;align-items:center;justify-content:center;background:rgba(250,204,21,.1);flex-shrink:0}
-.award-main{flex:1;min-width:0}
-.award-name{font-size:var(--fs-label);letter-spacing:.16em;text-transform:uppercase;color:var(--text-3);font-weight:800}
-.award-pilot{font-weight:800;font-size:var(--fs-body-lg);margin-top:2px;cursor:pointer}
-.award-pilot:hover{color:var(--cyan)}
-.award-val{font-family:var(--font-mono);font-size:var(--fs-small);color:var(--emerald);text-align:right;white-space:nowrap}
-.spot-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
-.spot-item{background:rgba(255,255,255,.03);border-radius:18px;padding:18px;min-height:150px;display:flex;flex-direction:column;gap:8px}
-.spot-k{font-family:var(--font-mono);font-size:var(--fs-label);letter-spacing:.2em;text-transform:uppercase;color:var(--cyan)}
-.spot-v{font-family:var(--font-display);font-weight:900;font-size:clamp(1.2rem,2.4vw,1.7rem);letter-spacing:-.02em}
-.spot-s{font-size:var(--fs-small);line-height:1.5;color:rgba(255,255,255,.52)}
-.hof-row{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:14px;padding:10px 0;border-top:1px solid rgba(255,255,255,.05);font-size:var(--fs-body);color:var(--text-3)}
-.hof-row:first-child{border-top:none;padding-top:0}
-.hof-row b{color:#fff;text-align:center}
-.hof-row .mono{color:var(--cyan);text-align:right}
-#onboard-modal{position:fixed;inset:0;z-index:130;display:none;align-items:center;justify-content:center;padding:22px;background:rgba(5,5,9,.78);backdrop-filter:blur(8px)}
-#onboard-modal.on{display:flex}
-.ob-card{width:min(560px,100%);background:#111119;border:1px solid rgba(34,211,238,.24);border-radius:var(--r-xl);padding:28px;box-shadow:var(--shadow-pop)}
-.ob-head{display:flex;align-items:flex-start;justify-content:space-between;gap-14px;gap:14px;margin-bottom:18px}
-.ob-k{font-family:var(--font-mono);font-size:var(--fs-label);letter-spacing:.22em;text-transform:uppercase;color:var(--cyan);margin-bottom:6px}
-.ob-t{font-family:var(--font-display);font-weight:900;font-size:28px;letter-spacing:-.02em}
-.ob-step{display:flex;gap:14px;padding:13px 0;border-top:1px solid rgba(255,255,255,.07);color:rgba(255,255,255,.62);font-size:var(--fs-body-lg);line-height:1.5}
-.ob-n{width:30px;height:30px;border-radius:10px;background:rgba(34,211,238,.1);color:var(--cyan);display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-weight:800;flex-shrink:0}
-.ob-foot{margin-top:20px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
-.ob-foot a{color:var(--cyan);font-weight:700;text-decoration:none}
-.ob-foot a:hover{text-decoration:underline}
-
-/* pills Current/Season στην ίδια σειρά με τα tabs */
-#lb-mode-pills{margin-left:auto}
-
-/* ---------- RESPONSIVE ---------- */
-@media(max-width:760px){
-  .nav-links a:not(.keep){display:none}
-  .hero-badge-wrap img{height:120px}
-  .hero-sub{font-size:var(--fs-body-lg);margin-top:14px}
-  .hero-stats{margin-top:24px;gap:20px}
-  .hero-cta{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:28px}
-  .hero-cta a:first-child{grid-column:1/-1}
-  .hero-cta a{text-decoration:none}
-  .tf-grid{grid-template-columns:1fr}
-  .tf-vs{flex-direction:row;justify-content:center}
-  .lb-row{padding:12px 6px;gap:8px;grid-template-columns:34px minmax(0,1fr) 76px 84px}
-  .lb-row .pace,.lb-row .fromlead{display:none}
-  .lb-head{display:none}
-  .lb-table.season .lb-row{grid-template-columns:34px minmax(0,1fr) 84px}
-  .lb-table.season .lb-row .season-sub{display:none}
-  .lb-row .pilot-title{display:none}
-  .lb-row .val{font-size:var(--fs-body-lg)}
-  .lb-row .rk{font-size:15px}
-  .pod .block{border-radius:10px 10px 0 0}
-  .podium{gap:6px}
-  .pod .name{font-size:.8rem}
-  .dr-stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
-  #drawer{padding:0 16px 32px}
-  .dr-hero{margin:0 -16px 18px;padding:16px 16px 20px}
-  .dr-avatar{width:96px;height:96px;border-radius:26px;font-size:36px}
-  .dr-h{margin-left:-16px;margin-right:-16px;padding-left:16px;padding-right:16px}
-  .dr-name{font-size:clamp(18px,6vw,24px);line-height:1.15}
-  .dr-stat{padding:10px 6px}
-  .dr-stat .k{font-size:var(--fs-label);letter-spacing:.06em}
-  .class-bar{padding:0 16px;margin-top:12px}
-  .section-head .kick{font-size:var(--fs-label);letter-spacing:.18em;flex-wrap:wrap;line-height:1.7}
-  .week-progress{flex-wrap:wrap;gap:8px}
-  .week-progress .wp-bar{flex-basis:100%;order:3}
-  .chart-wrap{height:190px}
-  .duel{flex-wrap:wrap;justify-content:center}
-  .duel .who{flex:1 1 40%}
-  .duel .mid{order:3;flex-basis:100%;margin-top:10px}
-  .feed-row{flex-wrap:wrap;gap:6px}
-  .feed-row .fr-track{order:5;flex-basis:100%}
-  .feed-row .nm{min-width:0;flex:1}
-  .arc-head,.arc-row{grid-template-columns:34px minmax(0,1fr) 76px 46px;gap:8px}
-  .arc-head span:nth-child(3),.arc-row .q{display:none}
-  .hof-grid{grid-template-columns:1fr}
-  .hof-grid .hof-row:nth-child(-n+2){border-top:1px solid rgba(255,255,255,.05);padding-top:10px}
-  .hof-grid .hof-row:first-child{border-top:none;padding-top:0}
-  .hof-row{grid-template-columns:minmax(0,1.25fr) auto minmax(0,.75fr);gap:10px;font-size:var(--fs-small)}
-  .dr-week{flex-wrap:wrap;gap:6px;padding:9px 8px}
-  .dr-week>span:nth-child(3){flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .dr-week .pt{display:none}
-  .dr-week .t{font-size:var(--fs-small)}
-  main{padding:0 16px 60px}
-  .btn{padding:12px 18px;font-size:var(--fs-body)}
-  .pilot-title{font-size:var(--fs-label);padding:2px 7px}
-  .spot-grid{grid-template-columns:1fr}
-  .spot-item{min-height:0}
-  .rd-block{padding:12px 13px}
-  .dr-actions{margin-top:0}
-  .ob-card{padding:22px 18px;border-radius:20px}
-  .ob-t{font-size:var(--fs-stat)}
-  .lt-tabs{display:grid;width:100%;box-sizing:border-box;grid-template-columns:1fr 1fr;gap:5px}
-  .lt-tab{justify-content:center;padding:9px 8px;font-size:var(--fs-label);white-space:normal;text-align:center;line-height:1.25}
-}
-@media(prefers-reduced-motion:reduce){
-  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
-}
+<meta content="Ζωντανές κατατάξεις, βαθμολογία σεζόν και head-to-head μονομαχίες — DRH SimRush Racing 2026" name="description"/>
+<meta content="DRH — Live Drone Racing Leaderboard" property="og:title"/>
+<meta content="Ζωντανές κατατάξεις, βαθμολογία σεζόν και head-to-head μονομαχίες" property="og:description"/>
+<meta content="website" property="og:type"/>
+<meta content="drh-badge.png" property="og:image"/>
+<meta content="#0a0a0f" name="theme-color"/>
+<link href="favicon.png" rel="icon" type="image/png"/>
+<link href="icon-192.png" rel="apple-touch-icon"/>
+<link href="manifest.webmanifest" rel="manifest"/>
+<link as="image" fetchpriority="high" href="neon-stadium-road.webp" rel="preload"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@700;900&amp;family=Inter:wght@400;600;700&amp;family=JetBrains+Mono:wght@400;700&amp;display=swap" rel="stylesheet"/>
 
 
-/* float drift (parallax) */
-[data-float]{will-change:transform}
-#season-stats{gap:clamp(20px,3vw,44px)}
-#season-stats .hstat .v{font-size:clamp(2rem,3.4vw,3rem)}
-#season-stats .hstat .k{font-family:var(--font-mono);font-size:var(--fs-label);letter-spacing:.22em}
-
-/* season stats: inline strip, μεγαλύτερα νούμερα */
-#season-stats{gap:clamp(20px,3vw,44px)}
-#season-stats .hstat .v{font-size:clamp(2rem,3.4vw,3rem)}
-#season-stats .hstat .k{font-family:var(--font-mono);font-size:var(--fs-label);letter-spacing:.22em}
-/* ===== FPV HUD v1 — media-first redesign (φάση 1) ===== */
-/* HUD top bar */
-.top-nav{justify-content:space-between;gap:24px}
-.hud-brand{font-family:var(--font-mono);font-weight:700;font-size:var(--fs-body-lg);letter-spacing:.12em;color:#fff;display:flex;align-items:center;gap:10px}
-.hud-brand i{width:9px;height:9px;background:var(--cyan);display:inline-block;box-shadow:0 0 12px var(--cyan)}
-.hud-tele{display:flex;gap:22px;font-family:var(--font-mono);font-size:var(--fs-micro);letter-spacing:.18em;color:var(--text-3)}
-.hud-tele b{color:var(--cyan);font-weight:700}
-/* Hero: bottom-aligned 2-col, left-aligned text */
-.hero-center{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,.65fr);gap:40px;align-items:end;text-align:left;padding:40px 32px 64px;max-width:1360px;margin:0 auto;width:100%}
-.hero-main{min-width:0}
-.hero-badge-wrap{margin-bottom:20px}
-.hero-badge-wrap img{height:110px}
-.hero-sub{margin-left:0;max-width:520px;text-shadow:0 2px 14px rgba(0,0,0,.85)}
-.hero-kicker{text-shadow:0 2px 14px rgba(0,0,0,.9)}
-h1.hero-title{text-shadow:0 4px 34px rgba(0,0,0,.7)}
-.hero-stats{justify-content:flex-start;margin-top:34px}
-.hstat{text-align:left}
-.hero-cta{justify-content:flex-start}
-/* HUD widgets */
-.hero-hud{display:flex;flex-direction:column;gap:12px;min-width:0}
-.hudw{background:rgba(10,14,20,.5);border:1px solid rgba(255,255,255,.09);border-radius:var(--r-lg);
-  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);padding:16px 20px;
-  box-shadow:0 20px 50px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.07)}
-.hudw .wl{font-family:var(--font-mono);font-size:var(--fs-micro);letter-spacing:.24em;color:var(--text-3);margin-bottom:8px}
-.hudw .wv{font-family:var(--font-mono);font-weight:700;font-size:var(--fs-h2);color:var(--yellow)}
-.hudw .wv small{font-size:var(--fs-small);color:var(--text-3);font-weight:400;margin-left:8px;letter-spacing:.08em}
-.cd-cells{display:flex;gap:8px}
-.cd-cells>div{flex:1;text-align:center;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:9px 4px}
-.cd-cells b{display:block;font-family:var(--font-mono);font-size:19px;font-weight:700}
-.cd-cells span{font-family:var(--font-mono);font-size:8px;letter-spacing:.14em;color:var(--text-3)}
-/* Leaderboard glass panel */
-#live-card{background:rgba(14,17,24,.55);border:1px solid rgba(255,255,255,.09);border-radius:20px;
-  backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
-  box-shadow:0 24px 60px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.06)}
-/* Position pills στον πίνακα */
-.lb-head{grid-template-columns:48px minmax(0,1fr) 132px 84px 92px}
-.lb-row{grid-template-columns:48px minmax(0,1fr) 132px 84px 92px}
-.lb-row .rk{width:36px;height:36px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;
-  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);font-size:var(--fs-body-lg)}
-.lb-row .rk b{line-height:1}
-.lb-row .rk .move{font-size:8px;line-height:1.2}
-.lb-row.r1 .rk{background:var(--yellow);border-color:var(--yellow);color:#221a00;box-shadow:0 0 22px rgba(250,204,21,.35)}
-.lb-row.r2 .rk{border-color:rgba(203,213,225,.4)}
-.lb-row.r3 .rk{border-color:rgba(245,158,11,.45)}
-.lb-table.season .lb-row{grid-template-columns:48px minmax(0,1fr) minmax(0,1fr) 92px}
-/* inline battle tag */
-.bt{display:inline-block;margin-left:6px;padding:2px 7px;border-radius:var(--r-pill);
-  background:rgba(251,146,60,.14);color:var(--orange);font-size:var(--fs-micro);font-weight:700;letter-spacing:.06em;white-space:nowrap}
-/* Glass side-cards */
-.side-card{background:rgba(18,21,29,.5);border:1px solid rgba(255,255,255,.09);border-radius:var(--r-lg);
-  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
-  box-shadow:0 16px 44px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.05)}
-/* Mobile */
-@media (max-width:960px){
-  .hud-tele{display:none}
-  .hero-center{grid-template-columns:1fr;gap:26px;padding:32px 20px 48px}
-  .hero-hud{flex-direction:row;flex-wrap:wrap}
-  .hero-hud .hudw{flex:1 1 200px}
-  .lb-head,.lb-row{grid-template-columns:40px minmax(0,1fr) 110px 92px}
-  .lb-row .fromlead,.lb-head span:nth-child(5){display:none}
-  .lb-table.season .lb-row{grid-template-columns:40px minmax(0,1fr) minmax(0,1fr) 92px}
-}
-/* ===== FPV HUD v2 — πιστά στο εγκεκριμένο mock ===== */
-.hud-logo{height:34px;width:auto;filter:drop-shadow(0 0 10px rgba(34,211,238,.35))}
-.top-nav{max-width:none;background:linear-gradient(180deg,rgba(10,10,15,.8),rgba(10,10,15,0));padding:16px 30px 26px}
-.nav-links{gap:26px}
-.nav-links a{font-family:var(--font-mono);font-size:var(--fs-small);letter-spacing:.14em;text-transform:uppercase}
-.hero-kicker{display:flex;align-items:center;gap:16px}
-.hero-kicker::after{content:"";width:72px;height:1px;background:linear-gradient(90deg,var(--cyan),transparent)}
-.hero-center{padding:40px 32px 84px}
-/* hero stats ως HUD strip */
-.hero-stats{gap:0;margin-top:36px;width:fit-content;background:rgba(8,12,16,.45);border:1px solid rgba(255,255,255,.09);border-radius:14px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);padding:14px 8px;box-shadow:0 16px 40px rgba(0,0,0,.35)}
-.hstat{padding:2px 22px;border-left:1px solid rgba(255,255,255,.08)}
-.hstat:first-child{border-left:none}
-.hstat .v{font-family:var(--font-mono);font-weight:700;font-size:clamp(1.3rem,2.6vw,1.8rem)}
-.hstat .k{font-family:var(--font-mono);font-size:var(--fs-micro)}
-.hero-cta{margin-top:30px}
-/* ===== FPV HUD v3 — global backdrop + cursor glow + HUD αναλογίες ===== */
-/* η εικόνα θολωμένη σε ΟΛΗ τη σελίδα */
-body::before{content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;transform:scaleX(-1);
-  background:linear-gradient(rgba(10,10,15,.55),rgba(10,10,15,.38)),url("bg-traces.webp") center/cover no-repeat;
-  filter:blur(22px) brightness(.5) saturate(1.15)}
-/* glow που ακολουθεί τον κέρσορα σε όλο το background */
-body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
-  background:radial-gradient(560px circle at var(--mx,70vw) var(--my,30vh),rgba(34,211,238,.09),transparent 46%)}
-/* HUD top bar — αναλογίες mock */
-.top-nav{padding:20px 34px 30px}
-.hud-brand{font-size:15px}
-.hud-logo{height:40px}
-.hud-tele{gap:28px;font-size:18px;letter-spacing:.16em}
-.nav-links{gap:30px}
-.nav-links a{font-size:13px}
-.live-pill{padding:9px 18px;font-size:12px}
-@media (max-width:960px){
-  .hero-stats{display:grid;grid-template-columns:1fr 1fr;width:100%;gap:4px}
-  .hstat{border-left:none;padding:8px 12px}
-  .top-nav{padding:14px 18px 20px}
-}
-/* Pilot avatar chips στους πίνακες κατάταξης */
-.pav{width:26px;height:26px;border-radius:8px;flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;
-  font-family:var(--font-mono);font-size:var(--fs-micro);font-weight:700;color:var(--cyan);
-  background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.25);overflow:hidden}
-.pav.has-img{border-color:rgba(255,255,255,.18);background:none}
-.pav img{width:100%;height:100%;object-fit:cover;display:block}
-.arc-row .nmpl{display:flex;align-items:center;gap:8px;min-width:0}
-.arc-row .pav{width:24px;height:24px}
-/* ===== v4 — κεντραρισμένο hero (παλιά διάταξη) με HUD elements ===== */
-.hero-center{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:48px 24px 150px;max-width:none}
-.hero-badge-wrap{margin-bottom:26px}
-.hero-badge-wrap img{height:220px;width:auto;animation:breathe 3.2s ease-in-out infinite;filter:drop-shadow(0 0 40px rgba(34,211,238,.3))}
-.hero-kicker{justify-content:center}
-.hero-kicker::before{content:"";width:72px;height:1px;background:linear-gradient(-90deg,var(--cyan),transparent)}
-.hero-sub{margin-left:auto;margin-right:auto;max-width:640px}
-.hero-stats{margin-left:auto;margin-right:auto;justify-content:center}
-.hstat{text-align:center}
-.hero-cta{justify-content:center}
-/* HUD widgets στις κάτω γωνίες του hero */
-.hero-hud{position:absolute;left:34px;right:34px;bottom:26px;flex-direction:row;justify-content:space-between;align-items:flex-end;gap:12px;pointer-events:none}
-.hero-hud .hudw{pointer-events:auto;min-width:250px}
-.hero-hud .hudw:last-child{text-align:right}
-.hero-hud .hudw:last-child .cd-cells{justify-content:flex-end}
-/* v4 — βελάκια σε δική τους στήλη δεξιά του rank */
-.lb-head{grid-template-columns:48px 26px minmax(0,1fr) 132px 84px 92px}
-.lb-row{grid-template-columns:48px 26px minmax(0,1fr) 132px 84px 92px}
-.lb-row .mv{display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);min-width:0}
-.lb-row .mv .move{font-size:var(--fs-micro)}
-.lb-table.season .lb-row{grid-template-columns:48px 26px minmax(0,1fr) minmax(0,1fr) 92px}
-/* v4 — μεγαλύτερα avatars στο live leaderboard */
-.lb-row .pav{width:36px;height:36px;border-radius:10px;font-size:12px}
-/* v4 — archive & hall of fame δίπλα-δίπλα (archive 2/3) */
-.arc-hof-grid{display:grid;grid-template-columns:2fr 1fr;gap:24px;align-items:start}
-.arc-hof-grid .hof-grid{grid-template-columns:1fr;gap:0}
-.arc-hof-grid .hof-grid .hof-row{border-top:1px solid rgba(255,255,255,.05);padding-top:10px}
-.arc-hof-grid .hof-grid .hof-row:first-child{border-top:none;padding-top:0}
-@media (max-width:960px){
-  .hero-center{padding:32px 20px 48px}
-  .hero-badge-wrap img{height:140px}
-  .hero-hud{position:static;flex-direction:row;flex-wrap:wrap;justify-content:center;margin-top:34px;width:100%;pointer-events:auto}
-  .hero-hud .hudw{flex:1 1 200px;min-width:0;text-align:left!important}
-  .hero-hud .hudw .cd-cells{justify-content:stretch!important}
-  .lb-head,.lb-row{grid-template-columns:40px 20px minmax(0,1fr) 110px 92px}
-  .lb-head span:nth-child(5){display:none}
-  .lb-table.season .lb-row{grid-template-columns:40px 20px minmax(0,1fr) minmax(0,1fr) 92px}
-  .arc-hof-grid{grid-template-columns:1fr}
-}
-/* ===== v5 — export εργαλείου + νέες αλλαγές (2026-11-05) ===== */
-/* (2) ομοιόμορφο μέγεθος σε όλα τα κείμενα του nav */
-.hud-tele{font-size:13px;letter-spacing:.14em}
-/* (3) η δεξιά στήλη δεν κολλάει/σκρολάρει πλέον — ακολουθεί τη σελίδα */
-.live-side{position:static}
-/* (4) simrush logo χρωματιστό */
-#archive .section-head img{filter:drop-shadow(0 0 18px rgba(255,255,255,.18));opacity:1}
-/* (8) φίλτρο archive στην ίδια σειρά με το dropdown εβδομάδας */
-.arc-controls{flex-wrap:wrap;margin-bottom:12px}
-.arc-controls .arc-filter{width:auto;flex:1;min-width:130px;margin-bottom:0}
-/* (1) hero moves από το export — όλα χαμηλότερα με περισσότερο αέρα (κλιμακωμένα ώστε να χωρούν στην οθόνη) */
-@media (min-width:961px){
-  .hero-center{padding:32px 24px 88px}
-  .hero-badge-wrap{translate:5px 50px;margin-bottom:40px}
-  .hero-badge-wrap img{height:180px}
-  .hero-kicker{translate:5px 78px}
-  h1.hero-title{translate:5px 78px;font-size:clamp(3rem,7.6vw,6.6rem)}
-  .hero-sub{translate:0 74px;margin-top:16px}
-  .hero-stats{translate:0 92px;margin-top:20px}
-  /* side cards: NEXT TRACK +57, HOT RIVALS +102 */
-  .live-side .side-card:nth-child(2){translate:0 57px}
-  .live-side .side-card:nth-child(3){translate:0 102px}
-}
-</style>
+<link rel="stylesheet" href="styles.css">
 </head>
 <body>
-
 <!-- ======================= HERO ======================= -->
 <header id="hero">
-  <img class="hero-bg" src="bg-traces.webp" alt="" aria-hidden="true">
-  <canvas id="bg-canvas"></canvas>
-  <div class="hero-vignette"></div>
+<img alt="" aria-hidden="true" class="hero-bg" src="neon-stadium-road.webp"/>
+<div class="hero-vignette"></div>
+<nav class="top-nav">
+<span class="hud-brand">DRH</span>
+<div class="hud-tele">
+<span>SEASON <b id="hud-season">2026</b></span>
+<span>ROUND <b id="hud-round">—</b></span>
+<span>TRACK <b id="hud-track">—</b></span>
+</div>
+<div class="nav-links">
+<a href="#track-reveal">Track Reveal</a>
+<a href="#timing">Timing</a>
+<a href="#championship">Championship</a>
+<a href="#battles">Battles</a>
 
-  <nav class="top-nav">
-    <span class="hud-brand"><img class="hud-logo" src="drh-badge.webp" alt="">DRH</span>
-    <div class="hud-tele">
-      <span>SEASON <b id="hud-season">2026</b></span>
-      <span>ROUND <b id="hud-round">—</b></span>
-      <span>TRACK <b id="hud-track">—</b></span>
-    </div>
-    <div class="nav-links">
-      <a href="#live">Live</a>
-      <a href="#season">Season</a>
-      <a href="#community">Community</a>
-      <a href="#archive">Archive</a>
-      <span class="live-pill"><span class="dot"></span>LIVE</span>
-    </div>
-  </nav>
-
-  <div class="hero-center">
-    <div class="hero-badge-wrap"><img src="drh-badge.webp" alt="DRH badge"></div>
-    <div class="hero-kicker">FPV RACING · SEASON 2026</div>
-    <h1 class="hero-title" id="hero-title"
-        data-text="DRONE RACING HELLAS"></h1>
-    <p class="hero-sub">Ζωντανές κατατάξεις, βαθμολογία σεζόν και <b>head-to-head μονομαχίες</b> — με νέα πίστα κάθε εβδομάδα.</p>
-    <div class="hero-stats" id="hero-stats"></div>
-    <div class="hero-hud">
-      <div class="hudw">
-        <div class="wl">FASTEST LAP — THIS WEEK</div>
-        <div class="wv" id="hud-fastest">—</div>
-      </div>
-      <div class="hudw">
-        <div class="wl">SESSION CLOSES IN</div>
-        <div class="cd-cells">
-          <div><b id="cd2-d">—</b><span>DAYS</span></div>
-          <div><b id="cd2-h">—</b><span>HRS</span></div>
-          <div><b id="cd2-m">—</b><span>MIN</span></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
+<a href="#archive">Archive</a>
+<a href="#hall-of-fame">Hall of Fame</a>
+<span class="live-pill" id="drh-feed-badge"><span class="dot"></span>CHECKING FEED</span>
+</div>
+</nav>
+<div class="hero-center">
+<div class="hero-main">
+<div class="hero-kick"><span class="hk-dot"></span>DRH / RACE BROADCAST<span class="hk-sep">—</span><span id="hero-season-text">2026 SEASON</span></div>
+<h1 class="hero-title">DRONE<br/>RACING<br/><span class="cy">HELLAS</span><span class="sq"></span></h1>
+<p class="hero-sub"><em>Δεν μετράμε απλώς γύρους.<br/><b>Κυνηγάμε το επόμενο χιλιοστό.</b></em></p>
+<button class="hero-cta" id="onboard-open" type="button" aria-haspopup="dialog" aria-controls="onboard-modal">ΠΩΣ ΣΥΜΜΕΤΕΧΩ <span class="ar">↗</span></button>
+</div>
+</div>
+<div class="hero-bottom">
+<div class="rd-block" id="hero-radio" style="display:none">
+<div class="rd-top"><span class="rd-ico"></span><span class="rd-tag">RACE DIRECTOR / <b id="hr-cat">TIMING RADIO</b></span><span class="rd-date" id="hr-date"></span></div>
+<div class="rd-track" id="hr-track"></div>
+<div class="rd-text" id="hr-text"></div>
+</div>
+<div class="fastlap" id="fastlap">
+<div class="fl-kick" id="fl-kick">THE CURRENT GRID / —</div>
+<div class="fl-name" id="fl-name">—</div>
+<div class="fl-time"><span id="fl-time">—</span><small>s</small></div>
+<div class="fl-meta"><span>FASTEST LAP</span><span id="fl-track">—</span></div>
+</div>
+</div>
+<div class="hero-bar">
+<span>TRACK<b id="tk-track">—</b></span>
+<span>LEADER<b id="tk-leader">—</b></span>
+<span>BEST LAP<b id="tk-best">—</b></span>
+<span>TITLE LEADER<b id="tk-title">—</b></span>
+<span>PILOTS<b id="tk-pilots">—</b></span>
+<span>SYNC<b id="tk-sync">—</b></span>
+</div>
 </header>
-
+<div class="drh-road-transition" aria-hidden="true"></div>
 <!-- countdown -->
 <!-- class switcher (κρυφή όταν υπάρχει μία μόνο κατηγορία) -->
 <div class="class-bar" id="class-bar" style="display:none">
-  <span class="cb-label">Κατηγορία</span>
-  <div class="pills" id="class-pills"></div>
+<span class="cb-label">Κατηγορία</span>
+<div class="pills" id="class-pills"></div>
 </div>
-
 <!-- ======================= MAIN ======================= -->
 <main>
+<!-- PAGE HEAD BAND -->
+<div class="page-head reveal">
+<div class="ph-l">
+<div class="ph-kick mono">DRH / THE CHAMPIONSHIP</div>
+<div class="ph-title">BUILT FOR THE <span>CHASE.</span></div>
+</div>
+<div class="ph-meta mono">ONE COMMUNITY · ONE GRID · EVERY MILLISECOND</div>
+</div>
+<!-- 01 · TRACK REVEAL -->
+<section class="reveal" id="track-reveal">
+<div class="section-head">
+<div class="sh-left">
+<div class="kick" style="color:var(--cyan)"><span class="sec-no">01 /</span>THE TRACK REVEAL</div>
+<h2>TRACK <span>REVEAL.</span></h2>
+<p>Η πίστα αλλάζει. Η πίεση ανεβαίνει. Το επόμενο κεφάλαιο αρχίζει εδώ.</p>
+</div>
+</div>
+<div class="card reveal-card">
+<div aria-hidden="true" class="rc-ghost" id="rc-ghost">—</div>
+<div class="rc-info">
+<div class="rc-brand"><img alt="SimRush Series" loading="lazy" src="simrush-logo.png"/><span class="rc-pre mono">OFFICIAL SIMRUSH TRACK PREMIERE</span></div>
+<div class="rc-kick mono">SIMRUSH / OFFICIAL TRACK</div>
+<div class="rc-title">TRACK REVEAL · <span id="rc-track">—</span></div>
+<p class="rc-copy">Μάθε την πίστα, δες τη διαδρομή και ετοιμάσου για τον επόμενο γύρο.</p>
+<div class="rc-cd mono"><span class="rc-cd-l">NEXT TRACK //</span><b id="cd-digits">—</b><span class="rc-cd-d" id="cd-date"></span></div>
+<a class="rc-btn off" href="#track-reveal" id="rc-btn">WATCH TRACK REVEAL <span>↗</span></a>
+<div class="drh-inline-radio" id="drh-inline-reveal" hidden></div>
+</div>
+<div id="reveal-body"></div>
+</div>
+</section>
+<!-- 02 · THE GRID & PODIUM -->
+<section class="reveal" data-layout-group="A" id="timing">
+<div class="eml-band">
+<span class="eml-kick mono"><span class="sec-no">02 /</span> THE RACE</span>
+<h2 class="eml-title">EVERY MILLISECOND <span>MATTERS.</span></h2>
+<span class="eml-right mono">↓ LIVE TIMING</span>
+</div>
+<div class="section-head">
+<div class="sh-left">
+<div class="kick" style="color:var(--cyan)">RACE WEEKEND · GRID + CHAMPIONSHIP</div>
+<h2>THE GRID <span>&amp; PODIUM</span></h2>
+<p>Οι χρόνοι δεν λένε ψέματα. Πάτησε έναν πιλότο και μπες στην ιστορία του.</p>
+</div>
+<span class="tag mono" id="live-class-tag" style="background:rgba(34,211,238,.1);color:var(--cyan);border:1px solid rgba(34,211,238,.25)">— / CURRENT GRID</span>
+</div>
+<div class="drh-inline-radio drh-inline-timing" id="drh-inline-timing" hidden></div>
+<div class="timing-grid">
+<div class="timing-left">
+<div class="card podium-card">
+<div class="pc-kick mono">THE SEASON / TOP THREE</div>
+<h3 class="pc-h">CHAMPIONSHIP <span>PODIUM.</span></h3>
+<div id="podium-box"></div>
+<div class="rd-block podium-rd" id="podium-rd" style="display:none">
+<div class="rd-top"><span class="rd-ico"></span><span class="rd-tag">RACE DIRECTOR / <b id="prd-cat">—</b></span><span class="rd-date" id="prd-date"></span></div>
+<div class="rd-text" id="prd-text"></div>
+</div>
+<div class="rounds-line mono" id="rounds-line">—</div>
+</div>
+<div class="card intel-card">
+<div class="pc-kick mono">SEASON INTELLIGENCE</div>
+<h3 class="pc-h">Η σεζόν σε <span style="color:var(--cyan)">αριθμούς</span></h3>
+<div class="intel-grid">
+<div class="itile"><span class="it-k mono">SEASON PILOTS</span><b id="it-pilots">—</b></div>
+<div class="itile"><span class="it-k mono">CURRENT GRID</span><b id="it-grid">—</b></div>
+<div class="itile"><span class="it-k mono">COMPLETED ROUNDS</span><b id="it-rounds">—</b></div>
+<div class="itile"><span class="it-k mono">IMPROVEMENTS</span><b id="it-impr">—</b></div>
+</div>
+<div aria-hidden="true" class="intel-ghost">SEASON</div>
+</div>
+</div>
+<div class="card" id="live-card">
+<div class="lc-head">
+<div>
+<div class="pc-kick mono">DRH // OFFICIAL TIMING</div>
+<h3 class="pc-h" style="margin-bottom:0">THE GRID<span style="color:var(--cyan)">.</span></h3>
+</div>
+<div class="lt-tabs" id="lt-tabs">
+<button class="lt-tab on" data-mode="current" data-tab="lb" id="lt-week">WEEK</button>
+<button class="lt-tab" data-mode="season" data-tab="lb">SEASON</button>
+</div>
+</div>
+<div class="drh-timing-context mono" id="drh-timing-context" aria-live="polite">WEEK · LIVE TIMING</div>
+<div class="lb-head" id="lb-head"><span>POS</span><span>PILOT / QUAD</span><span>GAP</span><span>BEST LAP / PTS</span></div>
+<div class="lb-table" id="lb-body"></div>
+<button class="lb-all" id="lb-more" style="display:none"></button>
+<div class="lc-foot mono"><span>DATA SOURCE / SIMRUSH 2026</span><span id="live-updated">—</span></div>
+</div>
+</div>
+<div class="err-banner" id="err-banner">⚠ Δεν φτάνει το live data — δείχνουμε το τελευταίο snapshot. <button id="retry-btn" style="color:var(--cyan);font-weight:700;text-decoration:underline">Δοκίμασε ξανά</button></div>
+</section>
+<!-- 03 · OFFICIAL CHALLENGES -->
+<section class="reveal" id="challenges">
+<div class="card ch-card">
+<div class="ch-top">
+<div class="sh-left">
+<div class="drh-inline-radio" id="drh-inline-duels" hidden></div>
+<div class="kick" style="color:var(--orange)">RACE DIRECTOR / OFFICIAL RULINGS</div>
+<h2>OFFICIAL <span style="color:var(--orange)">CHALLENGES.</span></h2>
+</div>
+<span class="ch-meta mono">CONFIRMED DUELS ONLY</span>
+</div>
+<div class="drh-official-pair">
+<div class="card drh-official-active"><div class="card-head"><h3>ACTIVE <i>DUELS</i></h3><span class="tag">LIVE / OFFICIAL</span></div><div id="duels-active" class="drh-duels-list"></div></div>
+<div class="card drh-official-resolved"><div class="card-head"><h3>COMPLETED <i>DUELS</i></h3><span class="tag">RESULTS / ARCHIVE</span></div><div id="duels-resolved" class="drh-duels-list"></div></div>
+</div><div class="ch-box" id="duels" hidden></div>
+</div>
+</section>
+<!-- 04 · THE TITLE FIGHT -->
+<section class="reveal" id="championship">
+<div class="tf-wrap">
+<div class="card tf-card">
+<div aria-hidden="true" class="tf-ghost" id="tf-ghost">TITLE/2026</div>
+<div class="kick" style="color:var(--fuchsia)"><span class="sec-no">04 /</span> THE TITLE FIGHT</div>
+<h2 class="tf-h">ΔΥΟ ΠΙΛΟΤΟΙ. ΕΝΑΣ ΤΙΤΛΟΣ.</h2>
+<div class="tf-arena" id="tf-grid"></div>
+<div class="tf-names"><span class="tf-nm a nm" data-pilot="" id="tf-name-a">—</span><span class="tf-nm c nm" data-pilot="" id="tf-name-c" hidden>—</span><span class="tf-nm b nm" data-pilot="" id="tf-name-b">—</span></div>
+<div class="tf-bar2"><div class="pa" id="tf-pa"></div><div class="pc"></div><div class="pb" id="tf-pb"></div></div>
+<div class="tf-cap mono" id="tf-cap">—</div>
+</div>
+<div class="margin-card">
+<div class="mc-kick mono">RACE CONTROL / POINTS GAP</div>
+<div class="mc-t">THE MARGIN</div>
+<div class="mc-n" id="margin-n">—</div>
+<div class="mc-sub">βαθμοί διαφοράς στην κορυφή της σεζόν</div>
+</div>
+</div>
+</section>
+<!-- EDITORIAL RIBBON -->
+<div aria-hidden="true" class="ribbon reveal">
+<div class="ribbon-line">RACE <span>HARD.</span> FLY <span>FASTER.</span></div>
+</div>
+<!-- 05 · COMMUNITY PADDOCK -->
+<section class="reveal" data-layout-group="B" id="battles">
+<div class="section-head">
+<div class="sh-left">
+<div class="kick" style="color:var(--emerald)"><span class="sec-no">05 /</span>COMMUNITY PADDOCK</div>
+<h2>THE <span style="color:var(--emerald)">PADDOCK</span></h2>
+<p>Εδώ γεννιούνται οι αντιπαλότητες. Εδώ φαίνεται η πρόοδος.</p>
+</div>
+</div>
+<div class="drh-paddock-pair"><div class="card drh-breakthrough-panel">
+<div class="card-head">
+<h3>THE <i style="color:var(--emerald)">BREAKTHROUGH</i></h3>
+<span class="tag" style="background:rgba(52,211,153,.12);color:var(--emerald)">ΑΥΤΗ ΤΗΝ ΕΒΔΟΜΑΔΑ</span>
+</div>
+<div class="spot-grid" id="spotlight-list"></div>
+<div class="spot-awards" id="spotlight-awards"></div>
+<div class="drh-breakthrough-radio" id="drh-inline-breakthrough" hidden></div>
+</div><div class="drh-rivalry-column">
+<div class="drh-inline-radio drh-inline-paddock" id="drh-inline-paddock" hidden></div>
+<div class="card drh-rivalry-panel">
+<div class="card-head">
+<h3>CLOSE <i style="color:var(--orange)">RIVALRIES</i></h3>
+<span class="tag" style="background:rgba(251,146,60,.12);color:var(--orange)">ΣΤΑΤΙΣΤΙΚΕΣ ΜΑΧΕΣ</span>
+</div>
+<div class="riv-grid" id="rivalries"></div>
+</div></div></div>
+</section>
+<!-- 06 · RACE ARCHIVE -->
+<section class="reveal" data-layout-group="full" id="archive">
+<div class="section-head">
+<div class="sh-left">
+<div class="kick" style="color:var(--cyan)"><span class="sec-no">06 /</span>THE SEASON RECORD</div>
+<h2>RACE <span>ARCHIVE.</span></h2>
+<p>Κάθε εβδομάδα αφήνει αποτύπωμα. Δες ποιος έγραψε ιστορία.</p>
+</div>
+</div>
+<div class="card">
+<div class="arc-top">
+<span class="arc-lab mono">ΕΠΙΛΟΓΗ ΕΒΔΟΜΑΔΑΣ</span>
+<select aria-label="Επιλογή εβδομάδας" class="arc-week" id="arc-week"></select>
+</div>
+<div class="arc-race">
+<div class="arc-rtop">
+<div class="arc-rl">
+<div class="arc-kick mono">COMPLETED RACE · <span id="arc-date">—</span></div>
+<div class="arc-track" id="arc-track">—</div>
+<div class="arc-stats mono">
+<span>BEST LAP<b id="arc-best">—</b></span>
+<span>GRID<b id="arc-grid">—</b></span>
+<span id="arc-recs-wrap">RECORDS<b id="arc-recs">—</b></span>
+</div>
+</div>
+<div class="arc-w" id="arc-w"></div>
+</div>
+<div class="arc-class-h mono">FULL CLASSIFICATION</div>
+<div id="arc-rows"></div>
 
-  <!-- LIVE LEADERBOARD -->
-  <section id="live" class="reveal">
-    <div class="section-head">
-      <div class="sh-left">
-        <div class="kick" style="color:var(--cyan)"><span class="dot" style="width:8px;height:8px;background:var(--red);border-radius:50%;animation:pulse 1.6s infinite;display:inline-block"></span> <span id="live-track-name">SIMRUSHWEEK</span> · ενημερώθηκε <span id="live-updated">—</span></div>
-        <h2>LIVE <span>LEADERBOARD</span></h2>
-        <p>Τρέχουσα κατάταξη · <b id="live-sub-track">—</b></p>
-      </div>
-    </div>
-
-    <div class="live-grid">
-      <div class="card" id="live-card">
-        <div class="lt-tabs" id="lt-tabs">
-          <button class="lt-tab on" data-tab="lb" data-mode="current">THIS WEEK</button>
-          <button class="lt-tab" data-tab="lb" data-mode="season">SEASON STANDINGS</button>
-          <button class="lt-tab" data-tab="feed">FEED <span class="tag" id="feed-count" style="background:rgba(52,211,153,.12);color:var(--emerald)">0</span></button>
-          <button class="lt-tab" data-tab="duels">DUELS <span class="tag" id="duels-count" style="background:rgba(251,146,60,.12);color:var(--orange)">0 LIVE</span></button>
-        </div>
-
-        <div class="lt-panel" id="ltp-lb">
-          <div id="podium-box"></div>
-          <div class="lb-head" id="lb-head"><span>POS</span><span></span><span>PILOT</span><span>FROM RIVAL</span><span>% TO LEADER</span><span>TIME</span></div>
-          <div class="lb-table" id="lb-body"></div>
-          <button class="show-more" id="lb-more" style="display:none">Δες και τους υπόλοιπους ▾</button>
-        </div>
-
-        <div class="lt-panel" id="ltp-feed" hidden>
-          <div class="week-progress" id="week-progress">
-            <div class="wp-txt" id="wp-txt"></div>
-            <div class="wp-bar"><div class="wp-fill" id="wp-fill"></div></div>
-            <div class="wp-txt mono" id="wp-pct"></div>
-          </div>
-          <p style="color:var(--text-3);font-size:var(--fs-body);margin:0 0 14px">PBs, νέοι πιλότοι, σφιχτές μάχες και Race Director σημειώσεις — ό,τι κινείται αυτή την εβδομάδα.</p>
-          <div class="feed-filters" id="feed-filters"></div>
-          <div id="feed-list"></div>
-          <button class="show-more" id="feed-more" style="display:none"></button>
-        </div>
-
-        <div class="lt-panel" id="ltp-duels" hidden>
-          <div id="duels"></div>
-        </div>
-      </div>
-
-      <aside class="live-side">
-        <div class="side-card">
-          <div class="side-label violet">Race Director</div>
-          <div class="side-body" id="rd-card-body"><div class="side-empty">—</div></div>
-        </div>
-        <div class="side-card">
-          <div class="side-label">NEXT TRACK IN</div>
-          <div class="side-cd mono" id="cd-digits">—</div>
-          <div class="side-cd-date" id="cd-date">—</div>
-          <div id="reveal-body"></div>
-        </div>
-        <div class="side-card">
-          <div class="side-label orange">HOT RIVALS</div>
-          <div class="side-body" id="hb-body"><div class="side-empty">—</div></div>
-        </div>
-      </aside>
-    </div>
-    <div class="err-banner" id="err-banner">⚠ Δεν φτάνει το live data — δείχνουμε το τελευταίο snapshot. <button id="retry-btn" style="color:var(--cyan);font-weight:700;text-decoration:underline">Δοκίμασε ξανά</button></div>
-  </section>
-
-  <!-- SEASON: chart + title fight -->
-  <section id="season" class="reveal">
-    <div class="section-head">
-      <div class="sh-left">
-        <div class="kick" style="color:var(--fuchsia)">SEASON 2026</div>
-        <h2>AT A <span style="color:var(--fuchsia)">GLANCE</span></h2>
-        <p>Ό,τι έχει γίνει μέχρι τώρα — μια ματιά αρκεί.</p>
-      </div>
-    </div>
-
-    <div class="grid-2">
-      <div class="card">
-        <div class="card-head">
-          <h3>POINTS <i style="color:var(--cyan)">PROGRESSION</i></h3>
-          <span class="tag" style="background:rgba(34,211,238,.12);color:var(--cyan)">TOP 6</span>
-        </div>
-        <div class="chart-wrap"><canvas id="progress-chart"></canvas></div>
-        <div class="chart-legend" id="chart-legend"></div>
-      </div>
-
-      <div class="titlefight compact" data-float="0.035" style="align-self:start">
-        <div class="tf-head">
-          <span class="chip l">● Title Fight</span>
-          <span class="chip r" id="tf-weeks">SEASON 2026</span>
-        </div>
-        <div class="tf-grid" id="tf-grid"></div>
-        <div class="tf-bar"><div class="pa" id="tf-pa"></div><div class="pb" id="tf-pb"></div></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- COMMUNITY SPOTLIGHT -->
-  <section id="community" class="reveal">
-    <div class="section-head">
-      <div class="sh-left">
-        <div class="kick" style="color:var(--cyan)">RACE DIRECTOR NOTES</div>
-        <h2>COMMUNITY <span style="color:var(--cyan)">SPOTLIGHT</span></h2>
-        <p>Οι ιστορίες που ξεχώρισε ο Race Director.</p>
-      </div>
-    </div>
-    <div class="card">
-      <div class="spot-grid" id="spotlight-list"></div>
-      <div class="spot-awards" id="spotlight-awards"></div>
-    </div>
-  </section>
-
-  <!-- SEASON STATS + ARCHIVE -->
-  <section id="archive" class="reveal">
-    <div class="section-head">
-      <div class="sh-left">
-        <div class="kick" style="color:var(--violet)">SEASON 2026 · STATS</div>
-        <h2>ARCHIVE &amp; <span style="color:var(--violet)">STATS</span></h2>
-      </div>
-      <img src="simrush-logo.png" loading="lazy" alt="SimRush Series" style="height:64px;width:auto;opacity:.95;filter:drop-shadow(0 0 18px rgba(255,255,255,.18))">
-    </div>
-
-    <div class="arc-hof-grid">
-      <div class="card">
-        <div class="card-head">
-          <h3>ARCHIVE</h3>
-          <span class="tag" style="background:rgba(167,139,250,.12);color:var(--violet)" id="arc-count">0 TRACKS</span>
-        </div>
-        <div class="arc-controls">
-          <span class="arc-lab">ΕΒΔΟΜΑΔΑ</span>
-          <select id="arc-week" class="arc-week" aria-label="Επιλογή εβδομάδας"></select>
-          <input id="arc-filter" class="arc-filter" type="text" placeholder="Φίλτρο πιλότου…" autocomplete="off">
-        </div>
-        <div class="arc-meta" id="arc-meta"></div>
-        <div class="arc-table">
-          <div class="arc-head"><span>ΘΕΣΗ</span><span>ΠΙΛΟΤΟΣ</span><span>QUAD</span><span>ΧΡΟΝΟΣ</span><span>POINTS</span></div>
-          <div id="arc-rows"></div>
-        </div>
-      </div>
-      <div class="card" id="hof">
-        <div class="card-head">
-          <h3>HALL OF <i style="color:var(--yellow)">FAME</i></h3>
-          <span class="tag" style="background:rgba(250,204,21,.12);color:var(--yellow)">LEGENDS</span>
-        </div>
-        <div id="hall-fame" class="hof-grid"></div>
-      </div>
-    </div>
-  </section>
+</div>
+</div>
+</section>
+<!-- 07 · HALL OF FAME -->
+<section class="reveal" data-layout-group="solo" id="hall-of-fame">
+<div class="section-head">
+<div class="sh-left">
+<div class="kick" style="color:var(--cyan)"><span class="sec-no">07 /</span>THE LEGACY</div>
+<h2>HALL OF <span>FAME.</span></h2>
+<p>Η ιστορία δεν χαρίζεται. Γράφεται με γύρους, νίκες και συνέπεια.</p>
+</div>
+</div>
+<div class="card hof-card" id="hof-featured"></div>
+<div class="hof-foot mono" id="hof-foot">DRH / NIGHT RACE EDITION · SIMRUSH 2026 · SOURCE: VELOCIDRONE BOT · LAST EXPORT: —</div>
+</section>
 </main>
-
 <!-- ======================= DRAWER / OVERLAY ======================= -->
 <div id="overlay"></div>
-<aside id="drawer" aria-label="Pilot profile">
-  <div class="dr-hero" id="dr-hero">
-    <button class="dr-close" id="dr-close" aria-label="Close">✕</button>
-    <div class="dr-avatar" id="dr-av"></div>
-    <div class="dr-idc">
-      <div class="dr-name" id="dr-nm"></div>
-      <div class="dr-title" id="dr-title"></div>
-      <div class="dr-quad" id="dr-qd"></div>
-      <div class="dr-chips" id="dr-chips"></div>
-    </div>
-  </div>
-  <div class="dr-badges" id="dr-badges"></div>
-  <div class="dr-actions"><button class="dr-share" id="dr-share" type="button">Μοιράσου την εβδομάδα μου</button></div>
-
-  <div class="dr-h">📋 OVERVIEW</div>
-  <div id="dr-director"></div>
-  <div id="dr-digest"></div>
-  <div class="dr-sub">ΣΤΑΤΙΣΤΙΚΑ</div>
-  <div class="dr-stats" id="dr-stats"></div>
-
-  <div class="dr-h">📈 ΠΡΟΟΔΟΣ</div>
-  <div class="dr-sub" style="margin-top:2px">ΠΟΡΕΙΑ ΧΡΟΝΩΝ</div>
-  <div class="dr-spark"><canvas id="dr-spark"></canvas><div class="dr-spark-meta" id="dr-spark-meta"></div></div>
-  <div id="dr-learn"></div>
-  <div id="dr-quests"></div>
-  <div class="dr-sub">ΦΟΡΜΑ (ΤΕΛΕΥΤΑΙΕΣ ΕΒΔΟΜΑΔΕΣ)</div>
-  <div class="dr-form" id="dr-form"></div>
-  <div class="dr-sub">ΑΝΑ ΕΒΔΟΜΑΔΑ</div>
-  <div id="dr-weeks"></div>
-
-  <div class="dr-h">🥊 ΜΑΧΕΣ</div>
-  <div class="dr-race" id="dr-race" style="display:none"></div>
-  <div id="dr-duel"></div>
-</aside>
-
-<div id="onboard-modal" role="dialog" aria-modal="true" aria-labelledby="ob-title">
-  <div class="ob-card">
-    <div class="ob-head">
-      <div>
-        <div class="ob-k">RACE DIRECTOR BRIEFING</div>
-        <div class="ob-t" id="ob-title">Πώς συμμετέχω;</div>
-      </div>
-      <button class="dr-close" id="onboard-close" type="button" aria-label="Close">✕</button>
-    </div>
-    <div class="ob-step"><span class="ob-n">1</span><span>Μπες στο Discord της κοινότητας και δήλωσε το callsign σου.</span></div>
-    <div class="ob-step"><span class="ob-n">2</span><span>Στο Velocidrone ενεργοποίησε <b>Options → Main Settings → Auto Leaderboard Upload</b>.</span></div>
-    <div class="ob-step"><span class="ob-n">3</span><span>Πέταξε στο ενεργό εβδομαδιαίο track — ο χρόνος σου καταγράφεται αυτόματα.</span></div>
-    <div class="ob-step"><span class="ob-n">4</span><span>Άνοιξε το profile σου εδώ για PBs, quests, rival και Race Director title.</span></div>
-    <div class="ob-foot">
-      <a href="https://www.velocidrone.com/" target="_blank" rel="noopener">Velocidrone ↗</a>
-      <a href="#live" id="onboard-live">Δες το leaderboard ↓</a>
-    </div>
-  </div>
+<aside aria-label="Pilot profile" id="drawer">
+<div class="dr-hero" id="dr-hero">
+<button aria-label="Close" class="dr-close" id="dr-close">✕</button>
+<div class="dr-avatar" id="dr-av"></div>
+<div class="dr-idc">
+<div class="dr-name" id="dr-nm"></div>
+<div class="dr-title" id="dr-title"></div>
+<div class="dr-quad" id="dr-qd"></div>
+<div class="dr-chips" id="dr-chips"></div>
 </div>
-
+</div>
+<div class="dr-badges" id="dr-badges"></div>
+<div class="dr-actions"><button class="dr-share" id="dr-share" type="button">Μοιράσου την εβδομάδα μου</button></div>
+<div class="dr-h">📋 OVERVIEW</div>
+<div id="dr-director"></div>
+<div id="dr-digest"></div>
+<div class="dr-sub">ΣΤΑΤΙΣΤΙΚΑ</div>
+<div class="dr-stats" id="dr-stats"></div>
+<div class="dr-h">📈 ΠΡΟΟΔΟΣ</div>
+<div class="dr-sub" style="margin-top:2px">ΠΟΡΕΙΑ ΧΡΟΝΩΝ</div>
+<div class="dr-spark"><canvas id="dr-spark"></canvas><div class="dr-spark-meta" id="dr-spark-meta"></div></div>
+<div id="dr-learn"></div>
+<div id="dr-quests"></div>
+<div class="dr-sub">ΦΟΡΜΑ (ΤΕΛΕΥΤΑΙΕΣ ΕΒΔΟΜΑΔΕΣ)</div>
+<div class="dr-form" id="dr-form"></div>
+<div class="dr-sub">ΑΝΑ ΕΒΔΟΜΑΔΑ</div>
+<div id="dr-weeks"></div>
+<div class="dr-h">🥊 ΜΑΧΕΣ</div>
+<div class="dr-race" id="dr-race" style="display:none"></div>
+<div id="dr-duel"></div>
+</aside>
+<div aria-labelledby="ob-title" aria-modal="true" id="onboard-modal" role="dialog">
+<div class="ob-card">
+<div class="ob-head">
+<div>
+<div class="ob-k">RACE DIRECTOR BRIEFING</div>
+<div class="ob-t" id="ob-title">Μπες στο DRH Grid</div>
+</div>
+<button aria-label="Close" class="dr-close" id="onboard-close" type="button">✕</button>
+</div>
+<div class="ob-step"><span class="ob-n">1</span><span>Έλα στην κοινότητα DRH και δήλωσε το callsign σου. Ζήτησε από τους διοργανωτές τον ενεργό σύνδεσμο συμμετοχής.</span></div>
+<div class="ob-step"><span class="ob-n">2</span><span>Στο Velocidrone ενεργοποίησε <b>Options → Main Settings → Auto Leaderboard Upload</b>.</span></div>
+<div class="ob-step"><span class="ob-n">3</span><span>Πέταξε στο ενεργό εβδομαδιαίο track — ο χρόνος σου καταγράφεται αυτόματα.</span></div>
+<div class="ob-step"><span class="ob-n">4</span><span>Άνοιξε το profile σου εδώ για PBs, quests, rival και Race Director title.</span></div>
+<div class="ob-foot">
+<a href="https://www.velocidrone.com/" rel="noopener" target="_blank">Velocidrone ↗</a>
+<a href="#timing" id="onboard-live">Δες το leaderboard ↓</a>
+</div>
+</div>
+</div>
 <div id="toast"><span id="toast-ic">✓</span><span id="toast-tx"></span></div>
-
 <footer>
-  <div class="foot-in">
-    <div class="foot-l">
-      <img src="drh-badge.webp" alt="DRH">
-      <div class="t">© 2026 DRONE RACING HELLAS<br>SIMRUSH SERIES · ALL RIGHTS RESERVED</div>
-    </div>
-    <div class="foot-links">
-      <a href="https://www.velocidrone.com/" target="_blank" rel="noopener">Velocidrone</a>
-      <a href="#live">Leaderboard</a>
-      <a href="#archive">Archive</a>
-      <a href="#hero" id="back-top">↑ Top</a>
-    </div>
-  </div>
+<div class="foot-in">
+<div class="foot-l">
+<strong class="drh-footer-wordmark">DRH</strong>
+<div class="t">© 2026 DRONE RACING HELLAS<br/>SIMRUSH SERIES · ALL RIGHTS RESERVED</div>
+</div>
+<div class="foot-links">
+<a href="https://www.velocidrone.com/" rel="noopener" target="_blank">Velocidrone</a>
+<a href="#timing">Leaderboard</a>
+<a href="#archive">Archive</a>
+<a href="#hero" id="back-top">↑ Top</a>
+</div>
+<div class="foot-sync mono" id="foot-sync">SOURCE: site_data.json · SYNC —</div>
+</div>
 </footer>
 
+<script>/* V62: the editor is opt-in only. This runs immediately (the script is at
+   the end of <body>, so DOMContentLoaded has already come and gone). */
+(function(){if(new URLSearchParams(location.search).get("edit")==="1"){document.body.classList.add("drh-editor-enabled");}})();</script>
+<script src="site-config.js"></script>
 <script src="data.js"></script>
 <script src="app.js"></script>
+<script>/* The layout editor is development-only; never download or execute it for visitors. */
+if (new URLSearchParams(location.search).get("edit") === "1") {
+  const editorScript = document.createElement("script");
+  editorScript.src = "editor.js";
+  document.body.appendChild(editorScript);
+}
+</script>
+
+
+
+
+
+
+
+
+<script src="spotlight.js"></script>
 </body>
 </html>
