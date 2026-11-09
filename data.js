@@ -108,6 +108,10 @@ const FALLBACK = {
   hot_battles: []
 };
 
+const GATEWAY_URL =
+ window.DRH_CONFIG?.DATA_GATEWAY_URL ||
+  "https://drh-data-gateway.alefas9.workers.dev/data";
+
 const DATA_URL = "https://raw.githubusercontent.com/alefas9/velocidrone-bot-data/main/site_data.json";
 // Το GitHub API σερβίρει το ίδιο αρχείο με cache μόνο 60" (το raw.githubusercontent
 // έχει CDN cache 5' και ΑΓΝΟΕΙ τα query params — ο cache-buster εκεί δεν δουλεύει).
