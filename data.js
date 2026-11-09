@@ -285,29 +285,74 @@ function buildState(json, error) {
   state = { data: json, classes, derivedByClass, error, updatedAt: new Date() };
 }
 
+
 async function fetchNow() {
   try {
-    // Πρώτα το API (φρέσκο έως 60")· σε rate limit (403/429, όριο 60/h ανά IP)
-    // fallback στο raw URL (CDN cache έως 5').
-    let res = await fetch(API_URL, { headers: { Accept: "application/vnd.github.raw" }, cache: "no-store" });
-    if (res.status === 403 || res.status === 429) {
-      res = await fetch(DATA_URL + "?t=" + Date.now(), { cache: "no-store" });
+    let json = null;
+
+    // 1. Cloudflare Gateway — primary source
+    try {
+      const res = await fetch(GATEWAY_URL, {
+        cache: "no-store"
+      });
+
+      if (!res.ok) {
+        throw new Error("Gateway status " + res.status);
+      }
+
+      json = await res.json();
+
+      if (!json || typeof json !== "object" ||
+          !json.season_standings || !json.current_leaderboard) {
+        throw new Error("Invalid Gateway payload");
+      }
+
+      console.info("[DRH] Data loaded from Cloudflare Gateway");
+    } catch (gatewayError) {
+      console.warn("[DRH] Gateway unavailable:", gatewayError.message);
+
+      // 2. GitHub API — backup source
+      let res = await fetch(API_URL, {
+        headers: { Accept: "application/vnd.github.raw" },
+        cache: "no-store"
+      });
+
+      // 3. GitHub Raw — backup for rate limits
+      if (res.status === 403 || res.status === 429) {
+        res = await fetch(DATA_URL + "?t=" + Date.now(), {
+          cache: "no-store"
+        });
+      }
+
+      if (!res.ok) {
+        throw new Error("GitHub status " + res.status);
+      }
+
+      json = await res.json();
     }
-    if (!res.ok) throw new Error("bad status " + res.status);
-    const json = await res.json();
-    // minimal shape validation — a malformed payload must not kill the UI
-    if (!json || typeof json !== "object" || !json.season_standings || !json.current_leaderboard) {
-      throw new Error("unexpected payload shape");
+
+    // Validate all incoming data
+    if (!json || typeof json !== "object" ||
+        !json.season_standings || !json.current_leaderboard) {
+      throw new Error("Unexpected payload shape");
     }
-    if (!json.history) json.history = state.data ? state.data.history : FALLBACK.history;
+
+    if (!json.history) {
+      json.history = state.data ? state.data.history : FALLBACK.history;
+    }
+
     if (!json.duels) json.duels = [];
+
     buildState(json, false);
+
   } catch (e) {
-    console.warn("[DRH] live fetch failed, using fallback:", e.message);
+    console.warn("[DRH] Live fetch failed, using fallback:", e.message);
     buildState(state.data || FALLBACK, true);
   }
+
   return state;
 }
+
 
 async function initData() {
   if (!initStarted) {
