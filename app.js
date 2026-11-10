@@ -848,6 +848,9 @@ function buildSidebar(raw, d) {
     }
     let hb = Array.isArray(raw.hot_battles) ? raw.hot_battles.map(h => ({...h})) : [];
     hb = hb.filter(h => {
+      // Bot marks a rivalry as opened when the watched gap has opened up.
+      // Only show bot-monitored, still-close pairs; never invent a local gap threshold.
+      if (h.opened === true) return false;
       if (h.class && h.class !== d.cls) return false;
       // Gateway battles can omit week/track; verify against current live times below instead.
       if (h.week != null && Number(h.week) !== currentWeek) return false;
