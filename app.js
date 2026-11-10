@@ -378,8 +378,8 @@ function buildLeaderboard(d, raw, isErr) {
   $("#lb-body").innerHTML = rows.slice(0, showN).map(r => `
     <div class="lb-row r${r.rank}${r.far ? " far" : ""}">
       <span class="rk">${String(r.rank).padStart(2, "0")}</span>
-      <span class="pl">${avHtml(r.pilot)}<span class="pl-tx"><span class="nm" data-pilot="${esc(r.pilot)}">${esc(r.pilot)}</span>${pilotTitleHtml(r.pilot)}<span class="${lbMode === "season" ? "season-sub" : "qd"}">${esc(r.quad)}</span><span class="lb-awards lb-awards-inline">${pilotAwardsHtml(r.pilot)}</span></span></span>
-      ${lbMode === "current" ? `<span class="lb-awards">${pilotAwardsHtml(r.pilot) || '<span class="lb-no-award">—</span>'}</span>` : ""}
+      <span class="pl">${avHtml(r.pilot)}<span class="pl-tx"><span class="nm" data-pilot="${esc(r.pilot)}">${esc(r.pilot)}</span><span class="${lbMode === "season" ? "season-sub" : "qd"}">${esc(r.quad)}</span><span class="lb-awards lb-awards-inline">${pilotAwardsHtml(r.pilot)}</span></span></span>
+      ${lbMode === "current" ? `<span class="lb-awards">${pilotTitleHtml(r.pilot) || '<span class="lb-no-award">—</span>'}</span>` : ""}
       <span class="gap">${esc(r.gap)}</span>
       ${lbMode === "current" ? `<span class="percent">${esc(r.percent)}</span>` : ""}
       <span class="val">${esc(r.val)}</span>
