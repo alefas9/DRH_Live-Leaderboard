@@ -26,6 +26,24 @@
 <!-- ======================= HERO ======================= -->
 <header id="hero">
 <img alt="" aria-hidden="true" class="hero-bg" src="neon-stadium-road.webp"/>
+<video class="hero-bg hero-video" aria-hidden="true" autoplay muted loop playsinline preload="metadata" poster="neon-stadium-road.webp">
+  <source src="drh-hero-racing.mp4" type="video/mp4"/>
+</video>
+<script>
+(function () {
+  var video = document.querySelector('#hero .hero-video');
+  if (!video) return;
+  var reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reducedMotion) { video.pause(); return; }
+  video.addEventListener('playing', function () { video.classList.add('is-ready'); });
+  video.addEventListener('error', function () { video.classList.remove('is-ready'); });
+  video.addEventListener('stalled', function () { video.classList.remove('is-ready'); });
+  var source = video.querySelector('source');
+  if (source) source.addEventListener('error', function () { video.classList.remove('is-ready'); });
+  var play = video.play();
+  if (play && typeof play.catch === 'function') play.catch(function () { video.classList.remove('is-ready'); });
+})();
+</script>
 <div class="hero-vignette"></div>
 <nav class="top-nav">
 <span class="hud-brand">DRH</span>
