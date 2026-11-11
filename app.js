@@ -1255,8 +1255,31 @@ async function shareCurrentPilot() {
 // ------------------------------------------------------------------ drawer
 let activeDrawer = null;
 function openDrawer(pilotName, d, raw) {
-  const match = Object.keys(d.profiles || {}).find(name => pilotKey(name) === pilotKey(pilotName));
-  if (!match) return; // no actual profile in this class
+  // Resolve the pilot against the active class first, then other classes.
+  // Official duels may contain pilots whose profile is in another class.
+  let match = Object.keys(d.profiles || {}).find(name => pilotKey(name) === pilotKey(pilotName));
+  if (!match && state && state.derivedByClass) {
+    for (const candidate of Object.values(state.derivedByClass)) {
+      const found = Object.keys(candidate.profiles || {}).find(name => pilotKey(name) === pilotKey(pilotName));
+      if (found) { d = candidate; match = found; break; }
+    }
+  }
+  if (!match) {
+    // A duel participant can be in the official feed before their first lap.
+    // Show a factual empty profile instead of making the click do nothing.
+    const key = pilotKey(pilotName);
+    const listed = (raw.duels || []).some(x =>
+      pilotKey(x.pilot_a) === key || pilotKey(x.pilot_b) === key) ||
+      (raw.hot_battles || []).some(x =>
+        pilotKey(x.leader) === key || pilotKey(x.chaser) === key) ||
+      (d.currentLb || []).some(x => pilotKey(x.pilot) === key);
+    if (!listed) return;
+    d = { ...d, profiles: { ...d.profiles,
+      [pilotName]: { pilot: pilotName, points: 0, wins: 0, podiums: 0,
+        pbs: 0, appearances: 0, bestImprovementPct: 0, best: null,
+        weeks: [], form: [] } } };
+    match = pilotName;
+  }
   pilotName = match;
   const p = d.profiles[pilotName];
   activeDrawer = { pilot: pilotName, d, raw };
