@@ -962,14 +962,16 @@ function buildDuels(raw, d) {
       return `
       <div class="duel">
         <div class="who">
-          <div class="n${lead === p.pilot_a ? " w" : ""}">${esc(p.pilot_a)}</div>
+          ${avHtml(p.pilot_a)}
+          <div class="n${lead === p.pilot_a ? " w" : ""}"><span class="nm" data-pilot="${esc(p.pilot_a)}">${esc(p.pilot_a)}</span></div>
           <div class="s">${ta != null ? Number(ta).toFixed(3) + "s" : "— δεν έχει ξαναπετάξει"}</div>
         </div>
         <div class="mid"><div class="score"><b>${ta != null ? Number(ta).toFixed(3) : "—"}</b><span class="d">vs</span><b>${tb != null ? Number(tb).toFixed(3) : "—"}</b></div>
           <div class="duel-track">${esc(p.track || "")}${dl}</div>
         </div>
         <div class="who">
-          <div class="n${lead === p.pilot_b ? " w" : ""}">${esc(p.pilot_b)}</div>
+          ${avHtml(p.pilot_b)}
+          <div class="n${lead === p.pilot_b ? " w" : ""}"><span class="nm" data-pilot="${esc(p.pilot_b)}">${esc(p.pilot_b)}</span></div>
           <div class="s">${tb != null ? Number(tb).toFixed(3) + "s" : "— δεν έχει ξαναπετάξει"}</div>
         </div>
       </div>`;
@@ -989,7 +991,8 @@ function buildDuels(raw, d) {
       return `
       <div class="duel done">
         <div class="who">
-          <div class="n${w === p.pilot_a ? " w" : ""}">${esc(p.pilot_a)}</div>
+          ${avHtml(p.pilot_a)}
+          <div class="n${w === p.pilot_a ? " w" : ""}"><span class="nm" data-pilot="${esc(p.pilot_a)}">${esc(p.pilot_a)}</span></div>
           <div class="s">${noFlight(p.best_time_a)}</div>
         </div>
         <div class="mid">
@@ -997,7 +1000,8 @@ function buildDuels(raw, d) {
           <div class="duel-track">${w ? "🏆 " + esc(w) + (walkover ? " · δεν ξαναπέταξε ο άλλος" : "") : (noA && noB ? "χωρίς πτήση — άκυρο" : "άκυρο")}</div>
         </div>
         <div class="who">
-          <div class="n${w === p.pilot_b ? " w" : ""}">${esc(p.pilot_b)}</div>
+          ${avHtml(p.pilot_b)}
+          <div class="n${w === p.pilot_b ? " w" : ""}"><span class="nm" data-pilot="${esc(p.pilot_b)}">${esc(p.pilot_b)}</span></div>
           <div class="s">${noFlight(p.best_time_b)}</div>
         </div>
       </div>`;
@@ -1030,6 +1034,8 @@ function buildDuels(raw, d) {
     if (!active.length) activeBox.insertAdjacentHTML("beforeend", '<div class="dr-empty">Δεν υπάρχουν ενεργά επίσημα duels αυτή τη στιγμή.</div>');
     if (!resolved.length) resolvedBox.insertAdjacentHTML("beforeend", '<div class="dr-empty">Δεν υπάρχουν καταγεγραμμένα ολοκληρωμένα duels για αυτή και την προηγούμενη εβδομάδα.</div>');
   }
+  hydrateAvatars(activeBox || box);
+  if (resolvedBox) hydrateAvatars(resolvedBox);
   const dm = $("#duels-more");
   if (dm) dm.addEventListener("click", () => { duelsExpanded = !duelsExpanded; buildDuels(raw, d); });
   const rm = $("#duels-resolved-more");
@@ -1249,8 +1255,10 @@ async function shareCurrentPilot() {
 // ------------------------------------------------------------------ drawer
 let activeDrawer = null;
 function openDrawer(pilotName, d, raw) {
+  const match = Object.keys(d.profiles || {}).find(name => pilotKey(name) === pilotKey(pilotName));
+  if (!match) return; // no actual profile in this class
+  pilotName = match;
   const p = d.profiles[pilotName];
-  if (!p) return; // pilot unknown in this class — don't open an empty drawer
   activeDrawer = { pilot: pilotName, d, raw };
   const cur = d.currentLb.find(r => r.pilot === pilotName);
   const rankIdx = d.standings.findIndex(s => s.pilot === pilotName);
@@ -1700,7 +1708,7 @@ function cardGlow() {
     if (nm) {
       const name = nm.dataset.pilot;
       const d = state.derivedByClass[activeClass];
-      if (name && d.profiles[name]) { e.preventDefault(); openDrawer(name, d, state.data); }
+      if (name) { e.preventDefault(); openDrawer(name, d, state.data); }
     }
   });
   $("#dr-close").addEventListener("click", closeDrawer);
