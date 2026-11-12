@@ -6403,3 +6403,33 @@ html,body {
   .drh-radio-item::before,
   #battles .drh-transmissions-card .feed-row::before { animation: none; }
 }
+
+/* V109 / Official Duels: larger avatars to the LEFT of pilot names. */
+#duels-active .duel .who,
+#duels-resolved .duel .who {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  column-gap: 10px;
+  align-items: center;
+  justify-content: center;
+  text-align: left;
+}
+#duels-active .duel .who > .pav,
+#duels-resolved .duel .who > .pav {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+  width: 44px;
+  height: 44px;
+  font-size: 13px;
+}
+#duels-active .duel .who > .n,
+#duels-resolved .duel .who > .n { grid-column: 2; grid-row: 1; align-self: end; }
+#duels-active .duel .who > .s,
+#duels-resolved .duel .who > .s { grid-column: 2; grid-row: 2; align-self: start; overflow-wrap: anywhere; }
+@media (max-width: 480px) {
+  #duels-active .duel .who,
+  #duels-resolved .duel .who { grid-template-columns: 38px minmax(0,1fr); column-gap: 7px; }
+  #duels-active .duel .who > .pav,
+  #duels-resolved .duel .who > .pav { width: 38px; height: 38px; }
+}
