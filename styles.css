@@ -6232,3 +6232,43 @@ html,body {
 #hero > .hero-vignette { z-index: 2 !important; }
 #hero > :not(.hero-bg):not(.hero-vignette):not(script) { position: relative; z-index: 3; }
 @media (prefers-reduced-motion: reduce) { #hero > video.hero-video { display: none !important; } }
+
+
+/* DRH V109 — Step 5: Paddock contrast + unified Race Director cards.
+   Scoped overrides; no layout, data, or JS changes. */
+#battles .drh-breakthrough-panel .card-head h3 i {
+  color: var(--bg) !important;
+}
+#battles .drh-breakthrough-panel .spot-item .spot-k {
+  color: var(--text) !important;
+}
+#battles .drh-breakthrough-panel .spot-item .spot-v {
+  color: var(--bg) !important;
+}
+/* Keep the emerald panel readable, including supporting copy. */
+#hero-radio,
+#podium-rd {
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--violet);
+  border-radius: var(--r-md);
+  box-shadow: 0 12px 30px rgba(0,0,0,.22);
+  padding: 16px 18px;
+}
+#hero-radio .rd-top,
+#podium-rd .rd-top {
+  color: var(--violet);
+}
+#hero-radio .rd-ico,
+#podium-rd .rd-ico {
+  border-color: var(--violet);
+}
+#hero-radio .rd-ico::after,
+#podium-rd .rd-ico::after {
+  background: var(--violet);
+}
+#hero-radio .rd-text,
+#podium-rd .rd-text {
+  color: var(--text-2);
+}
+#hero-radio::before { display: none; }
