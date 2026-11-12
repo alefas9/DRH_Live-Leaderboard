@@ -1827,7 +1827,7 @@ h1.hero-title {
 
   margin-left: auto;
   color: var(--text-3);
-  letter-spacing: .06em;
+  letter-spacing: .12em;
   white-space: nowrap;
   padding-left: 18px;
 }
@@ -1883,7 +1883,7 @@ h1.hero-title {
 .fl-kick {
   font-family: var(--font-mono);
   font-size: var(--fs-micro);
-  letter-spacing: .2em;
+  letter-spacing: .12em;
   color: var(--text-3);
 }
 .fl-name {
@@ -1908,7 +1908,7 @@ h1.hero-title {
   padding-top: 10px;
   font-family: var(--font-mono);
   font-size: var(--fs-micro);
-  letter-spacing: .16em;
+  letter-spacing: .12em;
   color: var(--text-3);
 }
 .hero-bar {
@@ -2062,7 +2062,7 @@ h1.hero-title {
 }
 .eml-kick {
   font-size: var(--fs-label);
-  letter-spacing: .22em;
+  letter-spacing: .12em;
   color: var(--text-3);
   justify-self: start;
 }
