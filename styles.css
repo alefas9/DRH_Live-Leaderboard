@@ -6433,3 +6433,40 @@ html,body {
   #duels-active .duel .who > .pav,
   #duels-resolved .duel .who > .pav { width: 38px; height: 38px; }
 }
+
+/* DRH V109 — unified Active/Completed Duel pilots, vertically centered. */
+#duels-active .duel .who,
+#duels-resolved .duel .who {
+  grid-template-columns: 52px minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  align-content: center;
+  align-items: center;
+  column-gap: 12px;
+  min-height: 52px;
+}
+#duels-active .duel .who > .pav,
+#duels-resolved .duel .who > .pav {
+  width: 52px;
+  height: 52px;
+  align-self: center;
+  justify-self: center;
+  object-fit: cover;
+}
+#duels-active .duel .who > .n,
+#duels-resolved .duel .who > .n { align-self: end; }
+#duels-active .duel .who > .s,
+#duels-resolved .duel .who > .s { align-self: start; }
+@media (max-width: 480px) {
+  #duels-active .duel .who,
+  #duels-resolved .duel .who { grid-template-columns: 44px minmax(0, 1fr); min-height: 44px; column-gap: 8px; }
+  #duels-active .duel .who > .pav,
+  #duels-resolved .duel .who > .pav { width: 44px; height: 44px; }
+}
+
+/* DRH V109 — matching Hero panel background opacity and blur. */
+#hero #hero-radio,
+#hero #fastlap {
+  background: rgba(10, 10, 15, .72) !important;
+  backdrop-filter: blur(9px);
+  -webkit-backdrop-filter: blur(9px);
+}
