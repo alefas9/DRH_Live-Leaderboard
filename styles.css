@@ -6272,3 +6272,131 @@ html,body {
   color: var(--text-2);
 }
 #hero-radio::before { display: none; }
+
+
+/* DRH V109 — Step 6: unified Race Director transmission language.
+   Design Rules typography: --fs-label (11px), --fs-body-lg (14px).
+   All non-hero announcements are transparent, frameless, with a pulsing dot.
+   Hero alone uses a subtle translucent backplate. */
+#hero-radio,
+#podium-rd {
+  border: 0;
+  border-left: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  padding: var(--s-3) 0;
+  overflow: visible;
+}
+#hero-radio {
+  background: rgba(10, 10, 15, .72);
+  backdrop-filter: blur(9px);
+  border-radius: var(--r-md);
+  padding: var(--s-4);
+  box-shadow: var(--shadow-card);
+}
+#hero-radio::before { display: none; }
+#hero-radio .rd-top, #podium-rd .rd-top,
+#hero-radio .rd-tag, #podium-rd .rd-tag,
+#hero-radio .rd-date, #podium-rd .rd-date,
+.drh-radio-item .drh-radio-head,
+#battles .drh-breakthrough-radio .drh-radio-head,
+#battles .drh-transmissions-card .feed-row .fr-date {
+  font-family: var(--font-mono);
+  font-size: var(--fs-label);
+  font-weight: 700;
+  letter-spacing: .12em;
+  line-height: 1.45;
+}
+#hero-radio .rd-text, #podium-rd .rd-text,
+.drh-radio-item .drh-radio-text,
+#battles .drh-transmissions-card .feed-row {
+  font-family: var(--font-body);
+  font-size: var(--fs-body-lg);
+  line-height: 1.55;
+}
+/* Make the dot consistent in Hero and Podium. */
+#hero-radio .rd-ico, #podium-rd .rd-ico {
+  position: relative;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+#hero-radio .rd-ico::after, #podium-rd .rd-ico::after {
+  background: var(--violet);
+  animation: drhPulse 2.5s ease-in-out infinite;
+}
+/* Transparent, borderless inline radio announcements across sections. */
+.drh-inline-radio, .drh-breakthrough-radio,
+#battles .drh-breakthrough-radio,
+#battles .drh-inline-paddock {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 0;
+}
+.drh-radio-item,
+.drh-inline-radio .drh-radio-item,
+.drh-breakthrough-radio .drh-radio-item {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  padding: var(--s-3) 0 var(--s-3) var(--s-6);
+}
+.drh-radio-item::before,
+.drh-inline-radio .drh-radio-item::before,
+.drh-breakthrough-radio .drh-radio-item::before {
+  left: var(--s-2);
+  top: var(--s-4);
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--radio-color, var(--violet));
+  box-shadow: 0 0 0 5px color-mix(in srgb,var(--radio-color,var(--violet)) 13%,transparent),0 0 16px var(--radio-color,var(--violet));
+  animation: drhPulse 2.5s ease-in-out infinite;
+}
+/* Transmissions feed: no filled rows, border strips or outlined boxes. */
+#battles .drh-transmissions-card .feed-row {
+  position: relative;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  padding: var(--s-3) 0 var(--s-3) var(--s-6);
+  margin: 0;
+  transform: none;
+}
+#battles .drh-transmissions-card .feed-row:hover { transform: none; background: transparent; }
+#battles .drh-transmissions-card .feed-row::before {
+  content: '';
+  position: absolute;
+  left: var(--s-2);
+  top: var(--s-4);
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--rd-accent, var(--violet));
+  box-shadow: 0 0 0 5px color-mix(in srgb,var(--rd-accent,var(--violet)) 13%,transparent),0 0 16px var(--rd-accent,var(--violet));
+  animation: drhPulse 2.5s ease-in-out infinite;
+}
+/* White metadata on the emerald breakthrough panel; preserve dark main values. */
+#battles .drh-breakthrough-panel .drh-radio-head,
+#battles .drh-breakthrough-panel .drh-radio-head *,
+#battles .drh-breakthrough-panel .drh-radio-head time,
+#battles .drh-breakthrough-panel .drh-radio-head span {
+  color: var(--text) !important;
+}
+#battles .drh-breakthrough-panel .drh-radio-text {
+  color: var(--bg);
+  font-size: var(--fs-body-lg);
+  font-weight: 400;
+}
+/* No motion for users who request reduced motion. */
+@media (prefers-reduced-motion: reduce) {
+  #hero-radio .rd-ico::after, #podium-rd .rd-ico::after,
+  .drh-radio-item::before,
+  #battles .drh-transmissions-card .feed-row::before { animation: none; }
+}
