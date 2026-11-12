@@ -369,17 +369,12 @@ function buildLeaderboard(d, raw, isErr) {
 
   // list: πλήρης κατάταξη από το rank 1 — top 8 ορατά, οι υπόλοιποι με «ΕΜΦΑΝΙΣΗ ΟΛΩΝ»
   const showN = lbExpanded ? 999 : 8;
-  const pilotTitleHtml = pilot => {
-  const title = pilotTitle(pilot, d, raw);
-  return title
-    ? `<span class="drh-performance-title" style="color:${title.color}">★ ${esc(title.label)}</span>`
-    : "";
-};
+  const pilotTitleHtml = pilot => "";
   $("#lb-body").innerHTML = rows.slice(0, showN).map(r => `
     <div class="lb-row r${r.rank}${r.far ? " far" : ""}">
       <span class="rk">${String(r.rank).padStart(2, "0")}</span>
       <span class="pl">${avHtml(r.pilot)}<span class="pl-tx"><span class="nm" data-pilot="${esc(r.pilot)}">${esc(r.pilot)}</span><span class="${lbMode === "season" ? "season-sub" : "qd"}">${esc(r.quad)}</span><span class="lb-awards lb-awards-inline">${pilotAwardsHtml(r.pilot)}</span></span></span>
-      ${lbMode === "current" ? `<span class="lb-awards">${pilotTitleHtml(r.pilot) || '<span class="lb-no-award">—</span>'}</span>` : ""}
+      ${lbMode === "current" ? `<span class="lb-awards"><span class="lb-no-award">—</span></span>` : ""}
       <span class="gap">${esc(r.gap)}</span>
       ${lbMode === "current" ? `<span class="percent">${esc(r.percent)}</span>` : ""}
       <span class="val">${esc(r.val)}</span>
@@ -419,82 +414,9 @@ function pilotInsight(pilot, d, raw) {
   return rows.find(x => x.pilot === pilot && (!x.class || x.class === d.cls)) || null;
 }
 
-const TITLE_ORDER = ["Season Leader", "PB Machine", "Rising Star", "Streak Hunter", "Gatekeeper", "Close Hunter", "Consistent Threat"];
-
-// Titles on THE GRID are based on the ACTIVE track, except the explicitly
-// season-scoped Season Leader. Never award a current-week title from old PBs,
-// previous tracks, or lifetime profile totals.
-function pilotTitleCandidates(pilot, d, raw) {
-  const grid = d.currentLb || [];
-  const idx = grid.findIndex(r => r.pilot === pilot);
-  if (idx < 0) return []; // No lap on this week's track: no grid title.
-  const ins = pilotInsight(pilot, d, raw);
-  const seasonRank = (d.standings || []).findIndex(x => x.pilot === pilot);
-  const current = grid[idx];
-  const ahead = idx > 0 ? grid[idx - 1] : null;
-  const behind = grid[idx + 1] || null;
-  const time = Number(current.time);
-  const gapAhead = ahead ? time - Number(ahead.time) : Infinity;
-  const gapBehind = behind ? Number(behind.time) - time : Infinity;
-  const improvements = Math.max(0, Number(ins?.improvements) || 0);
-  const firstTime = Number(ins?.first_time);
-  const improvementPct = Number.isFinite(firstTime) && firstTime > time && time > 0
-    ? (firstTime - time) / firstTime * 100 : 0;
-  const c = [];
-  if (seasonRank === 0) c.push({ label: "Season Leader", color: "var(--yellow)", score: 1000 });
-  if (improvements >= 5)
-    c.push({ label: "PB Machine", color: "var(--emerald)", score: improvements });
-  if (improvementPct >= 15)
-    c.push({ label: "Rising Star", color: "var(--cyan)", score: improvementPct });
-
-  // Streaks must be made of events on the current track, not older weeks.
-  const track = String(d.currentTrack || raw?.current_track || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-  const currentEvents = (d.feed || []).filter(e =>
-    e.pilot === pilot && e.date && e.track &&
-    String(e.track).toLowerCase().replace(/[^a-z0-9]/g, '') === track &&
-    (e.week == null || Number(e.week) === Number(d.weekNo)) &&
-    (e.class == null || e.class === d.cls));
-  const days = [...new Set(currentEvents.map(e => dayKey(e.date)).filter(Boolean))].sort();
-  let streak = days.length ? 1 : 0;
-  for (let i = days.length - 1; i > 0; i--) {
-    if ((Date.parse(days[i] + 'T00:00:00Z') - Date.parse(days[i - 1] + 'T00:00:00Z')) / 864e5 !== 1) break;
-    streak++;
-  }
-  if (streak >= 3) c.push({ label: "Streak Hunter", color: "var(--orange)", score: streak });
-  // Rival titles refer exclusively to adjacent pilots on today's grid.
-  if (Number.isFinite(gapBehind) && gapBehind >= 0 && gapBehind <= 1)
-    c.push({ label: "Gatekeeper", color: "var(--red)", score: 1 - gapBehind });
-  if (Number.isFinite(gapAhead) && gapAhead >= 0 && gapAhead <= 1)
-    c.push({ label: "Close Hunter", color: "var(--fuchsia)", score: 1 - gapAhead });
-  // A steady top-three position requires actual 24h position evidence.
-  if (idx < 3 && Number(ins?.pos_24h) > 0 && Number(ins.pos_24h) <= 3)
-    c.push({ label: "Consistent Threat", color: "var(--violet)", score: 4 - idx });
-  return c;
-}
-
-// κάθε τίτλος ανήκει σε ΕΝΑΝ πιλότο — τον πιο δυνατό υποψήφιο
-function titleMapFor(d, raw) {
-  if (!d || !d.currentLb) return new Map();
-  if (d._titleMap) return d._titleMap;
-  const pool = [];
-  (d.currentLb || []).map(r => r.pilot).forEach(name => {
-    pilotTitleCandidates(name, d, raw).forEach(t =>
-      pool.push({ name, label: t.label, color: t.color, score: t.score }));
-  });
-  pool.sort((a, b) => TITLE_ORDER.indexOf(a.label) - TITLE_ORDER.indexOf(b.label) || b.score - a.score);
-  const usedLabels = new Set(), usedPilots = new Set(), map = new Map();
-  for (const e of pool) {
-    if (usedLabels.has(e.label) || usedPilots.has(e.name)) continue;
-    usedLabels.add(e.label); usedPilots.add(e.name);
-    map.set(e.name, { label: e.label, color: e.color });
-  }
-  d._titleMap = map;
-  return map;
-}
-
-function pilotTitle(pilot, d, raw) {
-  return titleMapFor(d, raw).get(pilot) || null;
-}
+// Weekly titles are awarded exclusively by the bot after week close.
+// The site must never infer or award titles from live timing statistics.
+function pilotTitle(_pilot, _d, _raw) { return null; }
 
 function rivalInfo(pilot, d) {
   const rows = d.currentLb || [];
