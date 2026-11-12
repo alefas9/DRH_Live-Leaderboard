@@ -1254,6 +1254,70 @@ async function shareCurrentPilot() {
 
 // ------------------------------------------------------------------ drawer
 let activeDrawer = null;
+
+// DRH V109: official weekly awards come exclusively from the bot export.
+// The optional ?weekly_titles_demo=1 flag uses a clearly marked local mock fixture.
+const DRH_WEEKLY_ICONS = {
+  "Week Champion":"🏆", "PB Machine":"🟢", "Rising Star":"🔵",
+  "Streak Hunter":"🟠", "Gatekeeper":"🔴", "Close Hunter":"🟣",
+  "Consistent Threat":"🟤"
+};
+let drhWeeklyDemo = null;
+const drhWeeklyDemoMode = new URLSearchParams(location.search).get("weekly_titles_demo") === "1";
+if (drhWeeklyDemoMode) {
+  fetch("sample-weekly-titles.json", { cache: "no-store" })
+    .then(r => { if (!r.ok) throw new Error("Demo JSON unavailable"); return r.json(); })
+    .then(data => {
+      drhWeeklyDemo = Array.isArray(data.weekly_titles) ? data.weekly_titles : [];
+      if (activeDrawer) renderOfficialWeeklyAwards(activeDrawer.pilot, activeDrawer.raw);
+    })
+    .catch(() => { drhWeeklyDemo = []; if (activeDrawer) renderOfficialWeeklyAwards(activeDrawer.pilot, activeDrawer.raw); });
+}
+function renderOfficialWeeklyAwards(pilotName, raw) {
+  let box = document.getElementById("dr-weekly-awards");
+  if (!box) {
+    box = document.createElement("section");
+    box.id = "dr-weekly-awards";
+    box.className = "dr-weekly-awards";
+    const anchor = document.getElementById("dr-badges");
+    if (!anchor) return;
+    anchor.insertAdjacentElement("afterend", box);
+    if (!document.getElementById("dr-weekly-awards-style")) {
+      const style = document.createElement("style");
+      style.id = "dr-weekly-awards-style";
+      style.textContent = `.dr-weekly-awards{margin:12px 16px 16px;padding:15px;border:1px solid rgba(34,211,238,.25);border-radius:13px;background:rgba(8,20,34,.8);color:#f1f5f9}.drwa-head{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:13px;font-weight:800;letter-spacing:.07em}.drwa-demo{font-size:10px;font-weight:800;color:#fbbf24;border:1px solid #fbbf24;padding:3px 6px;border-radius:6px}.drwa-sub{font-size:12px;color:#94a3b8;margin:6px 0 10px}.drwa-counts{display:flex;flex-wrap:wrap;gap:7px;margin:9px 0}.drwa-count{font-size:12px;border:1px solid rgba(148,163,184,.25);padding:6px 9px;border-radius:9px;background:rgba(148,163,184,.08)}.drwa-entry{padding:9px 0;border-top:1px solid rgba(148,163,184,.18)}.drwa-title{font-size:13px;font-weight:700}.drwa-meta{font-size:11px;color:#94a3b8;margin-top:4px}.drwa-empty{font-size:12px;color:#94a3b8;margin-top:8px}`;
+      document.head.appendChild(style);
+    }
+  }
+  const weekly = drhWeeklyDemoMode ? drhWeeklyDemo : raw?.weekly_titles;
+  const demoTag = drhWeeklyDemoMode ? `<span class="drwa-demo">DEMO · MOCK DATA</span>` : "";
+  const head = `<div class="drwa-head"><span>🎖️ ΕΠΙΣΗΜΟΙ ΤΙΤΛΟΙ ΕΒΔΟΜΑΔΑΣ</span>${demoTag}</div>`;
+  if (!Array.isArray(weekly)) {
+    box.innerHTML = head + `<div class="drwa-empty">${drhWeeklyDemoMode ? "Φόρτωση δοκιμαστικών δεδομένων…" : "Αναμονή για το weekly_titles του bot."}</div>`;
+    return;
+  }
+  const key = pilotKey(pilotName);
+  const awards = [];
+  for (const w of weekly) {
+    if (!w || !Array.isArray(w.titles)) continue;
+    for (const t of w.titles) {
+      if (!t || (pilotKey(t.pilot) !== key && pilotKey(t.pilot_id) !== key)) continue;
+      if (!Object.prototype.hasOwnProperty.call(DRH_WEEKLY_ICONS, t.title)) continue;
+      awards.push({ week: String(w.week || "—"), date: String(w.awarded_at || ""), title: t.title, desc: String(t.desc || "") });
+    }
+  }
+  if (!awards.length) {
+    box.innerHTML = head + `<div class="drwa-empty">${weekly.length ? "Δεν υπάρχουν απονεμημένοι τίτλοι για αυτόν τον πιλότο." : "Δεν έχει κλείσει ακόμη εβδομάδα με απονομές."}</div>`;
+    return;
+  }
+  const counts = new Map();
+  for (const a of awards) counts.set(a.title, (counts.get(a.title) || 0) + 1);
+  const countsHtml = [...counts].map(([title, count]) => `<span class="drwa-count">${DRH_WEEKLY_ICONS[title]} ${count}× ${esc(title)}</span>`).join("");
+  awards.sort((a,b) => b.date.localeCompare(a.date) || b.week.localeCompare(a.week));
+  const history = awards.map(a => `<div class="drwa-entry"><div class="drwa-title">${DRH_WEEKLY_ICONS[a.title]} ${esc(a.title)}</div><div class="drwa-meta">${esc(a.week)}${a.desc ? " · " + esc(a.desc) : ""}</div></div>`).join("");
+  box.innerHTML = head + `<div class="drwa-sub">${awards.length} ${awards.length === 1 ? "επίσημη απονομή" : "επίσημες απονομές"} · Ιστορικό ανά εβδομάδα</div><div class="drwa-counts">${countsHtml}</div>${history}`;
+}
+
 function openDrawer(pilotName, d, raw) {
   // Keep the drawer independent of main()'s locally scoped state.
   // Names in the live grid, season standings, or official duel feed are valid
@@ -1338,6 +1402,8 @@ function openDrawer(pilotName, d, raw) {
   $("#dr-badges").innerHTML = badges.length
     ? badges.map(b => `<span class="dr-badge" style="background:${b[2]};color:${b[3]}">${b[0]} ${b[1]}</span>`).join("")
     : `<div class="dr-empty">Κανένα badge ακόμα — το πρώτο PB ή podium σε περιμένει.</div>`;
+
+  renderOfficialWeeklyAwards(pilotName, raw);
 
   // --- Race Director: προσωπικός επόμενος στόχος + auto-quests ---
   $("#dr-director").innerHTML = renderDirectorBlock(pilotName, d, raw);

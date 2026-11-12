@@ -1,0 +1,71 @@
+{
+  "note": "SAMPLE με mock weekly_titles — για ανάπτυξη frontend. Τα πραγματικά δεδομένα γράφονται στο πρώτο κλείσιμο εβδομάδας (Σάβ 18:06).",
+  "weekly_titles": [
+    {
+      "week": "SimRushWeek6",
+      "awarded_at": "2026-11-07T18:06:00+02:00",
+      "titles": [
+        {
+          "pilot": "ZOUP",
+          "pilot_id": "zoup",
+          "title": "Week Champion",
+          "desc": "πρωταθλητής εβδομάδας"
+        },
+        {
+          "pilot": "dimbazus",
+          "pilot_id": "dimbazus",
+          "title": "PB Machine",
+          "desc": "5+ βελτιώσεις στην πίστα"
+        },
+        {
+          "pilot": "Exo_FPV",
+          "pilot_id": "exo-fpv",
+          "title": "Gatekeeper",
+          "desc": "αμύνθηκε τη θέση του — gap ≤1s"
+        },
+        {
+          "pilot": "TettixPro",
+          "pilot_id": "tettixpro",
+          "title": "Streak Hunter",
+          "desc": "3+ συνεχόμενες μέρες πτήσης"
+        },
+        {
+          "pilot": "Cbeikos",
+          "pilot_id": "cbeikos",
+          "title": "Close Hunter",
+          "desc": "κυνήγησε την κορυφή — gap ≤1s"
+        },
+        {
+          "pilot": "DedalosFPV",
+          "pilot_id": "dedalosfpv",
+          "title": "Rising Star",
+          "desc": "βελτίωση 15%+ στην πίστα"
+        },
+        {
+          "pilot": "anthunder",
+          "pilot_id": "anthunder",
+          "title": "Consistent Threat",
+          "desc": "σταθερά στο top-3 της εβδομάδας"
+        }
+      ]
+    },
+    {
+      "week": "SimRushWeek7",
+      "awarded_at": "2026-11-14T18:06:00+02:00",
+      "titles": [
+        {
+          "pilot": "Exo_FPV",
+          "pilot_id": "exo-fpv",
+          "title": "Week Champion",
+          "desc": "πρωταθλητής εβδομάδας"
+        },
+        {
+          "pilot": "tomahok",
+          "pilot_id": "tomahok",
+          "title": "PB Machine",
+          "desc": "5+ βελτιώσεις στην πίστα"
+        }
+      ]
+    }
+  ]
+}
