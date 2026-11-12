@@ -703,7 +703,7 @@ main {
   align-items: center;
   justify-content: center;
   color: rgba(255,255,255,.6);
-  font-size: 19px;
+  font-size: var(--fs-h2);
   transition: all .2s;
 }
 .dr-close:hover {
@@ -2228,7 +2228,7 @@ h1.hero-title {
 }
 #timing .lb-row .rk {
   display: block;
-  font-size: 19px;
+  font-size: var(--fs-h2);
   font-weight: 900;
   color: rgba(255,255,255,.85);
   background: none;
@@ -2298,7 +2298,7 @@ h1.hero-title {
 #timing .lb-row .val {
   font-family: var(--font-display);
   font-weight: 900;
-  font-size: 19px;
+  font-size: var(--fs-h2);
   color: var(--cyan);
   text-align: right;
   font-variant-numeric: tabular-nums;
