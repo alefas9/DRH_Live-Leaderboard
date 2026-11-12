@@ -321,7 +321,7 @@ main {
 }
 .pod .block {
   width: 100%;
-  border-radius: 14px 14px 0 0;
+  border-radius: var(--r-lg) var(--r-lg) 0 0;
   margin-top: 12px;
   position: relative;
   overflow: hidden;
@@ -419,7 +419,7 @@ main {
   text-align: center;
   padding: 14px;
   margin-top: 14px;
-  border-radius: 14px;
+  border-radius: var(--r-md);
   color: var(--text-3);
   font-weight: 600;
   font-size: var(--fs-body-lg);
@@ -655,7 +655,7 @@ main {
   background-color: var(--surface-2);
   width: 118px;
   height: 118px;
-  border-radius: 32px;
+  border-radius: var(--r-xl);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -758,7 +758,7 @@ main {
   border: 1px solid rgba(52,211,153,.4);
   color: var(--text);
   padding: 13px 22px;
-  border-radius: 14px;
+  border-radius: var(--r-md);
   font-size: var(--fs-body);
   font-weight: 600;
   opacity: 0;
@@ -884,7 +884,7 @@ footer {
   flex-wrap: wrap;
   margin-bottom: 16px;
   padding: 5px;
-  border-radius: 14px;
+  border-radius: var(--r-md);
   background: rgba(255,255,255,.04);
   border: 1px solid rgba(255,255,255,.07);
   max-width: 100%;
@@ -894,7 +894,7 @@ footer {
   align-items: center;
   gap: 6px;
   padding: 9px 16px;
-  border-radius: 10px;
+  border-radius: var(--r-sm);
   font-size: var(--fs-small);
   font-weight: 800;
   letter-spacing: .08em;
