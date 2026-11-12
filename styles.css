@@ -537,7 +537,7 @@ main {
   border-color: var(--cyan);
 }
 .arc-week option {
-  background: #15151f;
+  background: var(--surface-2);
   color: var(--text);
 }
 .arc-head,.arc-row {
@@ -652,7 +652,7 @@ main {
 }
 .dr-avatar {
   /* Portrait frame: preserve the entire Discord avatar without cropping. */
-  background-color: #10151d;
+  background-color: var(--surface-2);
   width: 118px;
   height: 118px;
   border-radius: 32px;
@@ -754,7 +754,7 @@ main {
   left: 50%;
   transform: translate(-50%,80px);
   z-index: 120;
-  background: #161620;
+  background: var(--surface-1);
   border: 1px solid rgba(52,211,153,.4);
   color: var(--text);
   padding: 13px 22px;
@@ -1055,7 +1055,7 @@ footer {
 }
 .ob-card {
   width: min(560px,100%);
-  background: #111119;
+  background: var(--surface-1);
   border: 1px solid rgba(34,211,238,.24);
   border-radius: var(--r-xl);
   padding: 28px;
