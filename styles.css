@@ -3941,7 +3941,7 @@ main>section {
   text-transform: uppercase;
 }
 .drh-inline-radio .drh-radio-head time {
-  color: #8890a6;
+  color: var(--text-3);
   font-weight: 500;
   letter-spacing: .05em;
 }
@@ -3949,7 +3949,7 @@ main>section {
   font-size: clamp(14px,1.25vw,17px);
   font-weight: 750;
   line-height: 1.55;
-  color: #f3f5ff;
+  color: var(--text);
   margin-top: 6px;
   overflow-wrap: anywhere;
 }
@@ -4040,7 +4040,7 @@ main>section {
 }
 .drh-tune-panel p,.drh-tune-panel small {
   font: 12px/1.5 Inter,sans-serif;
-  color: #a4aabb;
+  color: var(--text-2);
 }
 .drh-tune-panel label {
   display: block;
@@ -4174,7 +4174,7 @@ main>section:not(:first-child) {
   color: var(--radio-color) ;
 }
 .drh-radio-item .drh-radio-text {
-  color: #f2f4ff ;
+  color: var(--text) ;
 }
 @media (max-width:600px) {
   #timing .pod .name {
