@@ -433,7 +433,7 @@ main {
   display: flex;
   align-items: center;
   gap: var(--s-3);
-  padding: 18px 4px;
+  padding: var(--s-4) var(--s-1);
   background: none;
   border-bottom: 1px solid rgba(255,255,255,.05);
   transition: background .2s;
@@ -496,7 +496,7 @@ main {
   font-weight: 700;
   font-size: var(--fs-h3);
   letter-spacing: .02em;
-  padding: 6px 16px;
+  padding: var(--s-2) var(--s-4);
   border-radius: var(--r-md);
   background: rgba(251,146,60,.12);
 }
