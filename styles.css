@@ -6233,7 +6233,7 @@ html,body {
 #hero > video.hero-video { z-index: 1 !important; opacity: 0; }
 #hero > video.hero-video.is-ready { opacity: 1 !important; }
 #hero > .hero-vignette { z-index: 2 !important; }
-#hero > :not(.hero-bg):not(.hero-vignette):not(script):not(.top-nav) { position: relative; z-index: 3; }
+#hero > :not(.hero-bg):not(.hero-vignette):not(script) { position: relative; z-index: 3; }
 @media (prefers-reduced-motion: reduce) { #hero > video.hero-video { display: none !important; } }
 
 
@@ -6734,7 +6734,7 @@ footer .drh-footer-logo { display: block; width: min(280px, 72vw); height: auto;
 /* V109 final navbar — behavior ported from the supplied Navbar.tsx.
    Keep existing DRH links, badge and typography; no hero padding strip. */
 #hero { padding-top: 0; }
-#hero .top-nav {
+.top-nav {
   position: fixed;
   top: 0;
   right: 0;
@@ -6752,29 +6752,29 @@ footer .drh-footer-logo { display: block; width: min(280px, 72vw); height: auto;
   transition: transform 400ms cubic-bezier(.22,1,.36,1), opacity 400ms ease,
               background-color 500ms ease, border-color 500ms ease;
 }
-#hero .top-nav.drh-nav-scrolled {
+.top-nav.drh-nav-scrolled {
   background: rgba(0,0,0,.80);
   border-bottom-color: rgba(255,255,255,.10);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
-#hero .top-nav.drh-nav-hidden {
+.top-nav.drh-nav-hidden {
   transform: translateY(-110%);
   opacity: 0;
   pointer-events: none;
 }
 @media (max-width: 1380px) {
-  #hero .top-nav { flex-wrap: wrap; }
+  .top-nav { flex-wrap: wrap; }
   #hero .hud-tele { display: flex; flex-wrap: wrap; gap: 8px 20px; }
 }
 @media (max-width: 800px) {
-  #hero .top-nav { gap: 8px 14px; }
+  .top-nav { gap: 8px 14px; }
   #hero .hud-tele { margin-left: 0; width: 100%; order: 3; }
   #hero .nav-links { margin-left: auto; }
 }
 @media (max-width: 560px) {
   .top-nav .drh-header-badge img { width: 40px; height: 40px; }
-  #hero .top-nav { padding: 10px 18px; }
+  .top-nav { padding: 10px 18px; }
   #hero .hud-tele { gap: 6px 12px; }
 }
 footer .drh-footer-logo { width: min(165px, 50vw); }
@@ -6782,5 +6782,8 @@ footer .drh-footer-logo { width: min(165px, 50vw); }
   footer .drh-footer-logo { width: min(125px, 45vw); }
 }
 @media (prefers-reduced-motion: reduce) {
-  #hero .top-nav { transition: none; }
+  .top-nav { transition: none; }
 }
+
+/* Navbar must sit above all normal content, not inside the isolated hero. */
+body > .top-nav { position: fixed; inset: 0 0 auto 0; z-index: 5000; }

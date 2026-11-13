@@ -23,10 +23,7 @@
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<!-- ======================= HERO ======================= -->
-<header id="hero">
-<img alt="" aria-hidden="true" class="hero-bg" src="neon-stadium-road.webp"/>
-<div class="hero-vignette"></div>
+<!-- Global fixed navigation: outside the isolated hero stacking context -->
 <nav class="top-nav">
 <a class="hud-brand drh-header-badge" href="#hero" aria-label="Drone Racing Hellas — Αρχική"><img src="drh-official-badge.png" alt="DRH Badge" width="52" height="52"/></a>
 <div class="hud-tele">
@@ -45,6 +42,11 @@
 <span class="live-pill" id="drh-feed-badge"><span class="dot"></span>CHECKING FEED</span>
 </div>
 </nav>
+<!-- ======================= HERO ======================= -->
+<header id="hero">
+<img alt="" aria-hidden="true" class="hero-bg" src="neon-stadium-road.webp"/>
+<div class="hero-vignette"></div>
+
 <div class="hero-center">
 <div class="hero-main">
 
