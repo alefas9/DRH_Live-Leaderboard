@@ -6802,3 +6802,6 @@ body > .top-nav .nav-links { margin-left: auto; }
   body > .top-nav { gap: 8px; }
   body > .top-nav .hud-tele { gap: 5px 9px; flex-wrap: wrap; }
 }
+
+/* Weekly titles: hide the entire section if the bot has not awarded this pilot a title. */
+#dr-weekly-awards[hidden] { display: none !important; }

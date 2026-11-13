@@ -1207,7 +1207,9 @@ function renderOfficialWeeklyAwards(pilotName, raw) {
   const demoTag = drhWeeklyDemoMode ? `<span class="drwa-demo">DEMO · MOCK DATA</span>` : "";
   const head = `<div class="drwa-head"><span>🎖️ ΕΠΙΣΗΜΟΙ ΤΙΤΛΟΙ ΕΒΔΟΜΑΔΑΣ</span>${demoTag}</div>`;
   if (!Array.isArray(weekly)) {
-    box.innerHTML = head + `<div class="drwa-empty">${drhWeeklyDemoMode ? "Φόρτωση δοκιμαστικών δεδομένων…" : "Αναμονή για το weekly_titles του bot."}</div>`;
+    box.hidden = true;
+    box.innerHTML = "";
+
     return;
   }
   const key = pilotKey(pilotName);
@@ -1221,9 +1223,12 @@ function renderOfficialWeeklyAwards(pilotName, raw) {
     }
   }
   if (!awards.length) {
-    box.innerHTML = head + `<div class="drwa-empty">${weekly.length ? "Δεν υπάρχουν απονεμημένοι τίτλοι για αυτόν τον πιλότο." : "Δεν έχει κλείσει ακόμη εβδομάδα με απονομές."}</div>`;
+    box.hidden = true;
+    box.innerHTML = "";
+
     return;
   }
+  box.hidden = false;
   const counts = new Map();
   for (const a of awards) counts.set(a.title, (counts.get(a.title) || 0) + 1);
   const countsHtml = [...counts].map(([title, count]) => `<span class="drwa-count">${DRH_WEEKLY_ICONS[title]} ${count}× ${esc(title)}</span>`).join("");
