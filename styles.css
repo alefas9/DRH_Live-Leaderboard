@@ -6470,3 +6470,35 @@ html,body {
   backdrop-filter: blur(9px);
   -webkit-backdrop-filter: blur(9px);
 }
+
+
+/* DRH V109 — Design Rules Step 11: mobile Duel readability.
+   Same layout for Active and Completed; desktop and typography untouched. */
+@media (max-width: 600px) {
+  #duels-active .duel,
+  #duels-resolved .duel {
+    min-width: 0;
+    gap: var(--s-3);
+  }
+  #duels-active .duel .who,
+  #duels-resolved .duel .who {
+    min-width: 0;
+  }
+  #duels-active .duel .who > .n,
+  #duels-resolved .duel .who > .n {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    text-overflow: clip;
+  }
+  #duels-active .duel .mid,
+  #duels-resolved .duel .mid {
+    min-width: 0;
+    max-width: 100%;
+    margin-top: var(--s-2);
+  }
+  #duels-active .duel .score,
+  #duels-resolved .duel .score {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+}
