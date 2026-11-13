@@ -1528,26 +1528,30 @@ function liveTabsInit() {
   }));
 }
 
-// V109 final: direction-aware navigation. Passive scroll, rAF throttling.
+// V109: match Navbar.tsx behavior without introducing React or GSAP.
+// Down after 100px => hide; up => show; top => transparent; after 50px => glass.
 function drhSmartNavInit() {
   const nav = document.querySelector(".top-nav");
   if (!nav) return;
-  let previousY = Math.max(0, window.scrollY);
-  let scheduled = false;
+  let lastY = Math.max(0, window.scrollY);
+  let queued = false;
   const update = () => {
-    scheduled = false;
-    const currentY = Math.max(0, window.scrollY);
-    const delta = currentY - previousY;
+    queued = false;
+    const y = Math.max(0, window.scrollY);
+    const delta = y - lastY;
     const menuOpen = nav.matches(":focus-within") || nav.classList.contains("menu-open") || document.body.classList.contains("menu-open");
-    if (currentY < 90 || menuOpen || delta < -3) nav.classList.remove("drh-nav-hidden");
-    else if (currentY > 140 && delta > 3) nav.classList.add("drh-nav-hidden");
-    previousY = currentY;
-    nav.classList.toggle("drh-nav-scrolled", currentY > 50);
+    nav.classList.toggle("drh-nav-scrolled", y > 50);
+    if (y <= 100 || menuOpen || delta < -1) {
+      nav.classList.remove("drh-nav-hidden");
+    } else if (delta > 1 && y > 100) {
+      nav.classList.add("drh-nav-hidden");
+    }
+    lastY = y;
   };
   window.addEventListener("scroll", () => {
-    if (!scheduled) { scheduled = true; requestAnimationFrame(update); }
+    if (!queued) { queued = true; requestAnimationFrame(update); }
   }, { passive: true });
-  window.addEventListener("resize", () => nav.classList.remove("drh-nav-hidden"), { passive: true });
+  window.addEventListener("resize", () => { lastY = Math.max(0, window.scrollY); nav.classList.remove("drh-nav-hidden"); }, { passive: true });
   nav.addEventListener("focusin", () => nav.classList.remove("drh-nav-hidden"));
   update();
 }
