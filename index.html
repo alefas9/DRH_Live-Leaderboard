@@ -26,27 +26,9 @@
 <!-- ======================= HERO ======================= -->
 <header id="hero">
 <img alt="" aria-hidden="true" class="hero-bg" src="neon-stadium-road.webp"/>
-<video class="hero-bg hero-video" aria-hidden="true" autoplay muted loop playsinline preload="metadata" poster="neon-stadium-road.webp">
-  <source src="drh-hero-racing.mp4" type="video/mp4"/>
-</video>
-<script>
-(function () {
-  var video = document.querySelector('#hero .hero-video');
-  if (!video) return;
-  var reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if (reducedMotion) { video.pause(); return; }
-  video.addEventListener('playing', function () { video.classList.add('is-ready'); });
-  video.addEventListener('error', function () { video.classList.remove('is-ready'); });
-  video.addEventListener('stalled', function () { video.classList.remove('is-ready'); });
-  var source = video.querySelector('source');
-  if (source) source.addEventListener('error', function () { video.classList.remove('is-ready'); });
-  var play = video.play();
-  if (play && typeof play.catch === 'function') play.catch(function () { video.classList.remove('is-ready'); });
-})();
-</script>
 <div class="hero-vignette"></div>
 <nav class="top-nav">
-<span class="hud-brand">DRH</span>
+<a class="hud-brand drh-header-badge" href="#hero" aria-label="Drone Racing Hellas — Αρχική"><img src="drh-official-badge.png" alt="DRH Badge" width="52" height="52"/></a>
 <div class="hud-tele">
 <span>SEASON <b id="hud-season">2026</b></span>
 <span>ROUND <b id="hud-round">—</b></span>
@@ -65,7 +47,7 @@
 </nav>
 <div class="hero-center">
 <div class="hero-main">
-<div class="hero-kick"><span class="hk-dot"></span>DRH / RACE BROADCAST<span class="hk-sep">—</span><span id="hero-season-text">2026 SEASON</span></div>
+
 <h1 class="hero-title">DRONE<br/>RACING<br/><span class="cy">HELLAS</span><span class="sq"></span></h1>
 <p class="hero-sub"><em>Δεν μετράμε απλώς γύρους.<br/><b>Κυνηγάμε το επόμενο χιλιοστό.</b></em></p>
 <button class="hero-cta" id="onboard-open" type="button" aria-haspopup="dialog" aria-controls="onboard-modal">ΠΩΣ ΣΥΜΜΕΤΕΧΩ <span class="ar">↗</span></button>
@@ -363,7 +345,7 @@
 <footer>
 <div class="foot-in">
 <div class="foot-l">
-<strong class="drh-footer-wordmark">DRH</strong>
+<img class="drh-footer-logo" src="drh-official-logo.png" alt="DRH — Drone Racing Hellas" width="280"/>
 <div class="t">© 2026 DRONE RACING HELLAS<br/>SIMRUSH SERIES · ALL RIGHTS RESERVED</div>
 </div>
 <div class="foot-links">

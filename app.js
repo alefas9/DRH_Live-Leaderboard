@@ -1530,6 +1530,30 @@ function liveTabsInit() {
   }));
 }
 
+// V109 final: direction-aware navigation. Passive scroll, rAF throttling.
+function drhSmartNavInit() {
+  const nav = document.querySelector(".top-nav");
+  if (!nav) return;
+  let previousY = Math.max(0, window.scrollY);
+  let scheduled = false;
+  const update = () => {
+    scheduled = false;
+    const currentY = Math.max(0, window.scrollY);
+    const delta = currentY - previousY;
+    const menuOpen = nav.matches(":focus-within") || nav.classList.contains("menu-open") || document.body.classList.contains("menu-open");
+    if (currentY < 90 || menuOpen || delta < -5) nav.classList.remove("drh-nav-hidden");
+    else if (currentY > 140 && delta > 5) nav.classList.add("drh-nav-hidden");
+    previousY = currentY;
+  };
+  window.addEventListener("scroll", () => {
+    if (!scheduled) { scheduled = true; requestAnimationFrame(update); }
+  }, { passive: true });
+  window.addEventListener("resize", () => nav.classList.remove("drh-nav-hidden"), { passive: true });
+  nav.addEventListener("focusin", () => nav.classList.remove("drh-nav-hidden"));
+}
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", drhSmartNavInit, { once: true });
+else drhSmartNavInit();
+
 // ------------------------------------------------------------------ reveal on scroll
 function revealInit() {
   const io = new IntersectionObserver(es => es.forEach(e => {
