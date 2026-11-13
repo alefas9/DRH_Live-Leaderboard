@@ -1848,7 +1848,7 @@ h1.hero-title {
 .podium-rd {
   max-width: none;
   margin-top: 20px;
-  border: 1px solid rgba(255,255,255,.08);
+  border: 1px solid var(--line);
   border-radius: 10px;
   padding: 14px 16px;
   background: rgba(34,211,238,.035);
@@ -2599,7 +2599,7 @@ h1.hero-title {
 }
 .arc-race {
   margin-top: 18px;
-  border: 1px solid rgba(255,255,255,.08);
+  border: 1px solid var(--line);
   border-radius: var(--r-md);
   padding: clamp(18px,2.6vw,28px);
   background: rgba(255,255,255,.018);
@@ -2694,7 +2694,7 @@ h1.hero-title {
   font-family: var(--font-display);
   font-weight: 900;
   font-size: var(--fs-h3);
-  color: rgba(255,255,255,.55);
+  color: var(--text-3);
 }
 .arc-row.m1 .r {
   color: var(--yellow);
@@ -3354,7 +3354,7 @@ main>section {
 .riv-vs {
   font-family: var(--font-display);
   letter-spacing: -.05em;
-  color: rgba(255,255,255,.14);
+  color: var(--line-strong);
   line-height: 1;
 
 
@@ -4255,7 +4255,7 @@ body.drh-editing, body.drh-editing * {
   font-family: var(--font-mono);
   font-size: var(--fs-label);
   letter-spacing: .1em;
-  color: rgba(255,255,255,.55);
+  color: var(--text-3);
   padding: 0 6px;
 }
 .layout-bar button {
@@ -4270,7 +4270,7 @@ body.drh-editing, body.drh-editing * {
   cursor: pointer;
 }
 .layout-bar button:hover {
-  background: rgba(255,255,255,.14);
+  background: var(--line-strong);
 }
 .drh-textedit {
   outline: 2px solid var(--yellow) ;
@@ -4324,7 +4324,7 @@ body.drh-editing, body.drh-editing * {
   font-family: var(--font-mono);
   font-size: var(--fs-label);
   letter-spacing: .14em;
-  color: rgba(255,255,255,.55);
+  color: var(--text-3);
   padding: 2px 4px 6px;
 }
 .layout-hidden-panel button {
@@ -4340,7 +4340,7 @@ body.drh-editing, body.drh-editing * {
   text-align: left;
 }
 .layout-hidden-panel button:hover {
-  background: rgba(255,255,255,.14);
+  background: var(--line-strong);
 }
 .layout-pop {
   position: fixed;
@@ -4708,7 +4708,7 @@ html {
 #timing .podium-card {
   background: linear-gradient(155deg,#1c2030,#11151f 60%,#0d121a) ;
   border: 1px solid rgba(165,177,197,.22) ;
-  box-shadow: inset 0 1px rgba(255,255,255,.08),0 18px 44px rgba(0,0,0,.2);
+  box-shadow: inset 0 1px var(--line),0 18px 44px rgba(0,0,0,.2);
 }
 
 #timing .pod .block::before {
@@ -6689,3 +6689,24 @@ html,body {
 /* Step 16: static presentation moved out of JS templates; values preserved. */
 .tf-placeholder-avatar { opacity: .3; }
 .rd-note--full-row { grid-column: 1 / -1; }
+
+/* Step 19: opt-in Design Rules §4 button system. Existing CTA selectors remain unchanged. */
+.btn-primary {
+  padding: var(--s-3) 18px;
+  border-radius: var(--r-md);
+  font: 700 var(--fs-body) var(--font-body);
+  color: var(--bg);
+  background: linear-gradient(110deg,var(--cyan),var(--fuchsia));
+  box-shadow: var(--glow-cyan);
+  transition: transform .2s,box-shadow .2s;
+}
+.btn-ghost {
+  padding: var(--s-3) 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  font: 700 var(--fs-body) var(--font-body);
+  color: var(--text-2);
+  background: transparent;
+  transition: transform .2s,box-shadow .2s,border-color .2s;
+}
+.btn-ghost:hover { border-color: var(--line-strong); }
