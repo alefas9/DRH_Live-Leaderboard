@@ -6502,3 +6502,122 @@ html,body {
     overflow-wrap: anywhere;
   }
 }
+
+
+/* DRH V109 / Step 12 — mobile-only layout repairs.
+   Keep desktop, typography scale, data and official standings untouched. */
+@media (max-width: 600px) {
+  /* ACTIVE and COMPLETED share the CLOSE RIVALRIES 3-column composition. */
+  #duels-active .duel, #duels-resolved .duel {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(86px, .9fr) minmax(0, 1fr);
+    align-items: start;
+    column-gap: 8px;
+    row-gap: 10px;
+    padding: var(--s-4) 0;
+    width: 100%;
+  }
+  #duels-active .duel .who, #duels-resolved .duel .who {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    text-align: center;
+    min-width: 0;
+    min-height: 0;
+    gap: 5px;
+  }
+  #duels-active .duel .who > .pav, #duels-resolved .duel .who > .pav {
+    width: 52px;
+    height: 52px;
+    flex: none;
+    margin: 0 auto;
+    object-fit: cover;
+  }
+  #duels-active .duel .who > .n, #duels-resolved .duel .who > .n {
+    width: 100%;
+    font-size: var(--fs-body-lg);
+    line-height: 1.3;
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-break: normal;
+    hyphens: none;
+    overflow: visible;
+    text-overflow: clip;
+  }
+  #duels-active .duel .who > .s, #duels-resolved .duel .who > .s {
+    width: 100%;
+    overflow-wrap: break-word;
+    word-break: normal;
+    line-height: 1.4;
+  }
+  #duels-active .duel .mid, #duels-resolved .duel .mid {
+    grid-column: 2;
+    grid-row: 1;
+    order: initial;
+    width: 100%;
+    min-width: 0;
+    margin: 10px 0 0;
+    flex-basis: auto;
+    align-self: center;
+  }
+  #duels-active .duel .score, #duels-resolved .duel .score {
+    padding: 8px 6px;
+    width: 100%;
+    text-align: center;
+    font-size: var(--fs-body-lg);
+    overflow-wrap: normal;
+  }
+  #duels-active .duel .score .d, #duels-resolved .duel .score .d { margin: 0 3px; }
+  #duels-active .duel .duel-track, #duels-resolved .duel .duel-track {
+    width: 100%;
+    text-align: center;
+    line-height: 1.45;
+    overflow-wrap: break-word;
+  }
+  /* Allow the full classification to keep its time column readable. */
+  #timing #lb-body:not(.season) .lb-row {
+    grid-template-columns: 28px minmax(0, 1fr) minmax(86px, auto);
+    column-gap: 8px;
+    align-items: center;
+  }
+  #timing #lb-body:not(.season) .lb-row > .gap,
+  #timing #lb-body:not(.season) .lb-row > .percent { display: none; }
+  #timing #lb-body:not(.season) .lb-row > .val {
+    grid-column: 3;
+    white-space: nowrap;
+    font-size: var(--fs-body-lg);
+  }
+  #timing #lb-body:not(.season) .lb-row .pl { min-width: 0; }
+  #timing #lb-body:not(.season) .lb-row .pl-tx { min-width: 0; }
+  #timing #lb-body:not(.season) .lb-row .nm {
+    overflow-wrap: break-word;
+    word-break: normal;
+  }
+  #timing #lb-body:not(.season) .lb-row .lb-awards-inline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    min-width: 0;
+  }
+  /* Rivalry Radar: aligned dot, label and status without right-edge collision. */
+  #battles .drh-inline-paddock .drh-radio-item {
+    padding: 0 26px 0 0;
+    min-width: 0;
+  }
+  #battles .drh-inline-paddock .drh-radio-item::before { right: 0; }
+  #battles .drh-inline-paddock .drh-radio-head {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 6px 12px;
+    min-width: 0;
+  }
+  #battles .drh-inline-paddock .drh-radio-head > * { max-width: 100%; }
+  #battles .drh-inline-paddock .drh-radio-text {
+    max-width: 100%;
+    overflow-wrap: break-word;
+    word-break: normal;
+    line-height: 1.5;
+  }
+}
