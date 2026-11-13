@@ -6764,3 +6764,30 @@ footer .drh-footer-logo { display: block; width: min(280px, 72vw); height: auto;
 @media (prefers-reduced-motion: reduce) {
   #hero .top-nav { transition: none; }
 }
+
+/* V109 release polish: transparent navbar at top, glass when scrolling.
+   Keep the Hero in its original position without a permanent black strip. */
+#hero { padding-top: 0; }
+#hero .top-nav {
+  background: transparent;
+  border-bottom-color: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  transition: transform 400ms cubic-bezier(.22,1,.36,1), opacity 400ms ease,
+              background-color 350ms ease, border-color 350ms ease;
+  opacity: 1;
+}
+#hero .top-nav.drh-nav-scrolled {
+  background: rgba(4,6,13,.82);
+  border-bottom-color: rgba(255,255,255,.10);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+#hero .top-nav.drh-nav-hidden { transform: translateY(-110%); opacity: 0; pointer-events: none; }
+footer .drh-footer-logo { width: min(165px, 50vw); }
+@media (max-width: 800px) { #hero { padding-top: 0; } }
+@media (max-width: 560px) {
+  #hero { padding-top: 0; }
+  footer .drh-footer-logo { width: min(125px, 45vw); }
+}
+@media (prefers-reduced-motion: reduce) { #hero .top-nav { transition: none; } }

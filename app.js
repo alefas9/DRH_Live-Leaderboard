@@ -257,8 +257,6 @@ function buildLeaderboard(d, raw, isErr) {
   const ltWeek = $("#lt-week"); if (ltWeek) ltWeek.textContent = "WEEK " + (d.weekNo != null ? d.weekNo : "—");
   const rcTrack = $("#rc-track"); if (rcTrack) rcTrack.textContent = String(trackName).toUpperCase();
   const rcGhost = $("#rc-ghost"); if (rcGhost) rcGhost.textContent = String(d.weekNo != null ? d.weekNo : "—").padStart(2, "0");
-  const fs = $("#foot-sync");
-  if (fs) fs.textContent = "SOURCE: site_data.json · SYNC " + syncLabel + (feedState === "verified" ? " · VERIFIED" : " · NOT VERIFIED");
 
   // rounds line + season intelligence tiles
   const rounds = d.roundsCompleted != null ? d.roundsCompleted : d.weeks.length;
@@ -1541,15 +1539,17 @@ function drhSmartNavInit() {
     const currentY = Math.max(0, window.scrollY);
     const delta = currentY - previousY;
     const menuOpen = nav.matches(":focus-within") || nav.classList.contains("menu-open") || document.body.classList.contains("menu-open");
-    if (currentY < 90 || menuOpen || delta < -5) nav.classList.remove("drh-nav-hidden");
-    else if (currentY > 140 && delta > 5) nav.classList.add("drh-nav-hidden");
+    if (currentY < 90 || menuOpen || delta < -3) nav.classList.remove("drh-nav-hidden");
+    else if (currentY > 140 && delta > 3) nav.classList.add("drh-nav-hidden");
     previousY = currentY;
+    nav.classList.toggle("drh-nav-scrolled", currentY > 50);
   };
   window.addEventListener("scroll", () => {
     if (!scheduled) { scheduled = true; requestAnimationFrame(update); }
   }, { passive: true });
   window.addEventListener("resize", () => nav.classList.remove("drh-nav-hidden"), { passive: true });
   nav.addEventListener("focusin", () => nav.classList.remove("drh-nav-hidden"));
+  update();
 }
 if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", drhSmartNavInit, { once: true });
 else drhSmartNavInit();
