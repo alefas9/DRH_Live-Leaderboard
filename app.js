@@ -1204,12 +1204,6 @@ function renderOfficialWeeklyAwards(pilotName, raw) {
     const anchor = document.getElementById("dr-badges");
     if (!anchor) return;
     anchor.insertAdjacentElement("afterend", box);
-    if (!document.getElementById("dr-weekly-awards-style")) {
-      const style = document.createElement("style");
-      style.id = "dr-weekly-awards-style";
-      style.textContent = `.dr-weekly-awards{margin:12px 16px 16px;padding:15px;border:1px solid rgba(34,211,238,.25);border-radius:13px;background:rgba(8,20,34,.8);color:#f1f5f9}.drwa-head{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:13px;font-weight:800;letter-spacing:.07em}.drwa-demo{font-size:10px;font-weight:800;color:#fbbf24;border:1px solid #fbbf24;padding:3px 6px;border-radius:6px}.drwa-sub{font-size:12px;color:#94a3b8;margin:6px 0 10px}.drwa-counts{display:flex;flex-wrap:wrap;gap:7px;margin:9px 0}.drwa-count{font-size:12px;border:1px solid rgba(148,163,184,.25);padding:6px 9px;border-radius:9px;background:rgba(148,163,184,.08)}.drwa-entry{padding:9px 0;border-top:1px solid rgba(148,163,184,.18)}.drwa-title{font-size:13px;font-weight:700}.drwa-meta{font-size:11px;color:#94a3b8;margin-top:4px}.drwa-empty{font-size:12px;color:#94a3b8;margin-top:8px}`;
-      document.head.appendChild(style);
-    }
   }
   const weekly = drhWeeklyDemoMode ? drhWeeklyDemo : raw?.weekly_titles;
   const demoTag = drhWeeklyDemoMode ? `<span class="drwa-demo">DEMO · MOCK DATA</span>` : "";
