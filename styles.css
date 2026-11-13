@@ -6421,7 +6421,7 @@ html,body {
   grid-row: 1 / span 2;
   width: 44px;
   height: 44px;
-  font-size: 13px;
+  font-size: var(--fs-body);
 }
 #duels-active .duel .who > .n,
 #duels-resolved .duel .who > .n { grid-column: 2; grid-row: 1; align-self: end; }
@@ -6637,12 +6637,12 @@ html,body {
   justify-content:space-between;
   align-items:center;
   gap:8px;
-  font-size:13px;
+  font-size:var(--fs-body);
   font-weight:800;
   letter-spacing:.07em;
 }
 .drwa-demo {
-  font-size:10px;
+  font-size:var(--fs-micro);
   font-weight:800;
   color:#fbbf24;
   border:1px solid #fbbf24;
@@ -6650,7 +6650,7 @@ html,body {
   border-radius:6px;
 }
 .drwa-sub {
-  font-size:12px;
+  font-size:var(--fs-small);
   color:#94a3b8;
   margin:6px 0 10px;
 }
@@ -6661,7 +6661,7 @@ html,body {
   margin:9px 0;
 }
 .drwa-count {
-  font-size:12px;
+  font-size:var(--fs-small);
   border:1px solid rgba(148,163,184,.25);
   padding:6px 9px;
   border-radius:9px;
@@ -6672,16 +6672,16 @@ html,body {
   border-top:1px solid rgba(148,163,184,.18);
 }
 .drwa-title {
-  font-size:13px;
+  font-size:var(--fs-body);
   font-weight:700;
 }
 .drwa-meta {
-  font-size:11px;
+  font-size:var(--fs-label);
   color:#94a3b8;
   margin-top:4px;
 }
 .drwa-empty {
-  font-size:12px;
+  font-size:var(--fs-small);
   color:#94a3b8;
   margin-top:8px;
 }
