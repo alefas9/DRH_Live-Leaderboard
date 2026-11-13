@@ -6233,7 +6233,7 @@ html,body {
 #hero > video.hero-video { z-index: 1 !important; opacity: 0; }
 #hero > video.hero-video.is-ready { opacity: 1 !important; }
 #hero > .hero-vignette { z-index: 2 !important; }
-#hero > :not(.hero-bg):not(.hero-vignette):not(script) { position: relative; z-index: 3; }
+#hero > :not(.hero-bg):not(.hero-vignette):not(script):not(.top-nav) { position: relative; z-index: 3; }
 @media (prefers-reduced-motion: reduce) { #hero > video.hero-video { display: none !important; } }
 
 
