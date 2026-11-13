@@ -6787,3 +6787,18 @@ footer .drh-footer-logo { width: min(165px, 50vw); }
 
 /* Navbar must sit above all normal content, not inside the isolated hero. */
 body > .top-nav { position: fixed; inset: 0 0 auto 0; z-index: 5000; }
+
+/* V109 final alignment: telemetry beside badge; hero copy aligned to title. */
+body > .top-nav { justify-content: flex-start; gap: 12px; }
+body > .top-nav .hud-tele { margin-left: 0; margin-right: 0; width: auto; order: initial; flex: 0 1 auto; display: flex; align-items: center; gap: clamp(10px,1.25vw,24px); }
+body > .top-nav .nav-links { margin-left: auto; }
+#hero .hero-main { text-align: left; }
+#hero .hero-main .hero-sub { margin-left: 0; margin-right: 0; text-align: left; }
+#hero .hero-main .hero-cta { margin-left: 0; margin-right: 0; }
+@media (max-width: 800px) {
+  body > .top-nav .hud-tele { width: auto; order: initial; margin-left: 0; }
+}
+@media (max-width: 560px) {
+  body > .top-nav { gap: 8px; }
+  body > .top-nav .hud-tele { gap: 5px 9px; flex-wrap: wrap; }
+}
