@@ -6685,3 +6685,7 @@ html,body {
   color:#94a3b8;
   margin-top:8px;
 }
+
+/* Step 16: static presentation moved out of JS templates; values preserved. */
+.tf-placeholder-avatar { opacity: .3; }
+.rd-note--full-row { grid-column: 1 / -1; }

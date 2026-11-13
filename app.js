@@ -218,7 +218,7 @@ function buildTitleFight(d, raw) {
   if (h2) h2.textContent = third ? "ΤΡΕΙΣ ΠΙΛΟΤΟΙ. ΕΝΑΣ ΤΙΤΛΟΣ." : "ΔΥΟ ΠΙΛΟΤΟΙ. ΕΝΑΣ ΤΙΤΛΟΣ.";
   const setName = (el, p) => { el.textContent = p || "—"; el.dataset.pilot = p || ""; };
   if (!b) {
-    arena.innerHTML = `<div class="tf-side a">${avHtml(a.pilot)}</div><div class="tf-vs2">👑</div><div class="tf-side b"><span class="pav" style="opacity:.3">?</span></div>`;
+    arena.innerHTML = `<div class="tf-side a">${avHtml(a.pilot)}</div><div class="tf-vs2">👑</div><div class="tf-side b"><span class="pav tf-placeholder-avatar">?</span></div>`;
     setName(nameA, a.pilot); setName(nameB, null);
     requestAnimationFrame(() => { $("#tf-pa").style.width = "100%"; $("#tf-pb").style.width = "0%"; const pc = $(".tf-bar2 .pc"); if (pc) pc.style.width = "0%"; });
     $("#tf-cap").textContent = `${a.points} POINTS · ΠΕΡΙΜΕΝΕΙ ΑΝΤΙΠΑΛΟ · ${classLabel(d.cls).toUpperCase()}`;
@@ -802,7 +802,7 @@ function buildSidebar(raw, d) {
       (!candidateNote.track || normalizeTrack(candidateNote.track) === currentTrack)
       ? candidateNote : null;
     const noteHtml = note
-      ? `<div class="rd-note" style="grid-column:1/-1"><span class="rdn-tag">RACE DIRECTOR / ${esc(rdLabel(note, "RIVAL WATCH"))}</span>${esc(rdClean(note.text))}</div>`
+      ? `<div class="rd-note rd-note--full-row"><span class="rdn-tag">RACE DIRECTOR / ${esc(rdLabel(note, "RIVAL WATCH"))}</span>${esc(rdClean(note.text))}</div>`
       : "";
     if (hb.length) {
       rivEl.innerHTML = hb.map(h => `<div class="riv-card">
