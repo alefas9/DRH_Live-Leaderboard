@@ -6825,3 +6825,71 @@ body > .top-nav .nav-links { margin-left: auto; }
 
 /* Weekly titles: hide the entire section if the bot has not awarded this pilot a title. */
 #dr-weekly-awards[hidden] { display: none !important; }
+
+
+/* DRH V109 — Balanced Motion + Neon (Preview) | CSS only
+   No DOM, data, or interaction changes. Respect reduced motion. */
+@media (prefers-reduced-motion: no-preference) {
+  /* Atmospheric lighting stays behind the existing hero content/video. */
+  #hero .hero-vignette {
+    animation: drh-motion-atmosphere 12s ease-in-out infinite alternate;
+    pointer-events: none;
+  }
+  #hero .hero-title .cy {
+    animation: drh-motion-title-glow 5.5s ease-in-out infinite;
+  }
+  #hero .hero-cta a:first-child,
+  #hero .hero-cta:first-child {
+    transition: box-shadow .28s ease, filter .28s ease, transform .28s ease;
+  }
+  #hero .hero-cta a:first-child:hover {
+    box-shadow: 0 0 20px rgba(0,224,255,.24), 0 0 42px rgba(0,224,255,.10);
+    filter: brightness(1.08);
+  }
+  /* Timing and race cards get responsive neon feedback, not constant movement. */
+  #timing .lb-row,
+  #timing .pod .block,
+  #battles .riv-card,
+  #battles .duel,
+  #track-reveal .reveal-card {
+    transition: box-shadow .3s ease, border-color .3s ease, filter .3s ease, background-color .3s ease;
+  }
+  @media (hover: hover) {
+    #timing .lb-row:hover,
+    #battles .riv-card:hover,
+    #battles .duel:hover {
+      box-shadow: inset 3px 0 0 rgba(0,226,255,.6), 0 0 20px rgba(0,210,255,.09);
+    }
+    #timing .pod:hover .block {
+      filter: drop-shadow(0 0 11px rgba(0,218,255,.23));
+    }
+    #track-reveal .reveal-card:hover {
+      box-shadow: 0 0 30px rgba(0,214,255,.11);
+    }
+  }
+  /* Race Director telemetry: slow, restrained neon signal. */
+  #battles .drh-inline-paddock .drh-radio-head,
+  #track-reveal #drh-inline-reveal .drh-radio-head {
+    animation: drh-motion-signal 6s ease-in-out infinite;
+  }
+}
+@keyframes drh-motion-atmosphere {
+  from { opacity: .84; filter: saturate(1); }
+  to   { opacity: 1; filter: saturate(1.16); }
+}
+@keyframes drh-motion-title-glow {
+  0%,100% { text-shadow: 0 0 10px rgba(0,225,255,.15); }
+  50% { text-shadow: 0 0 18px rgba(0,225,255,.34), 0 0 36px rgba(0,225,255,.12); }
+}
+@keyframes drh-motion-signal {
+  0%,100% { filter: drop-shadow(0 0 0 rgba(0,225,255,0)); }
+  50% { filter: drop-shadow(0 0 5px rgba(0,225,255,.25)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  #hero .hero-vignette,
+  #hero .hero-title .cy,
+  #battles .drh-inline-paddock .drh-radio-head,
+  #track-reveal #drh-inline-reveal .drh-radio-head {
+    animation: none !important;
+  }
+}
