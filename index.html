@@ -49,6 +49,13 @@
 <source src="drh-hero-kling.mp4" type="video/mp4"/>
 </video>
 <div class="hero-vignette"></div>
+<!-- Decorative broadcast telemetry; values below mirror the real site data. -->
+<div class="drh-broadcast-hud" aria-hidden="true">
+  <div class="drh-broadcast-hud__top"><span class="drh-broadcast-mark"><i></i> DRH // RACE CONTROL</span><span class="drh-broadcast-freq">SIMRUSH · DIGITAL TIMING</span></div>
+  <div class="drh-broadcast-hud__left"><span>FLIGHT DATA</span><b>DRH / 2026</b><span class="drh-broadcast-bars"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span></div>
+  <div class="drh-broadcast-hud__right"><span>TELEMETRY</span><b>RACING GRID</b><span>PRECISION // SPEED</span></div>
+  <span class="drh-broadcast-corner tl"></span><span class="drh-broadcast-corner tr"></span><span class="drh-broadcast-corner bl"></span><span class="drh-broadcast-corner br"></span>
+</div>
 
 <div class="hero-center">
 <div class="hero-main">
@@ -71,7 +78,8 @@
 <div class="fl-meta"><span>FASTEST LAP</span><span id="fl-track">—</span></div>
 </div>
 </div>
-<div class="hero-bar">
+<div class="hero-bar drh-broadcast-timing" aria-label="Current racing timing data">
+<span class="drh-broadcast-timing__lead" aria-hidden="true"><i></i> GRID TELEMETRY</span>
 <span>TRACK<b id="tk-track">—</b></span>
 <span>LEADER<b id="tk-leader">—</b></span>
 <span>BEST LAP<b id="tk-best">—</b></span>
@@ -186,11 +194,13 @@
 <div class="ch-top">
 <div class="sh-left">
 <div class="drh-inline-radio" id="drh-inline-duels" hidden></div>
+<div class="drh-broadcast-signal" id="drh-broadcast-signal" aria-live="off"><span class="drh-broadcast-signal__dot"></span><span id="drh-broadcast-signal-label">RACE CONTROL / STANDBY</span></div>
 <div class="kick" style="color:var(--orange)">RACE DIRECTOR / OFFICIAL RULINGS</div>
 <h2>OFFICIAL <span style="color:var(--orange)">CHALLENGES.</span></h2>
 </div>
 <span class="ch-meta mono">CONFIRMED DUELS ONLY</span>
 </div>
+<div class="drh-duel-spotlight" aria-hidden="true"><span>HEAD TO HEAD</span><b>VS</b><span>OFFICIAL RULINGS</span></div>
 <div class="drh-official-pair">
 <div class="card drh-official-active"><div class="card-head"><h3>ACTIVE <i>DUELS</i></h3><span class="tag">LIVE / OFFICIAL</span></div><div id="duels-active" class="drh-duels-list"></div></div>
 <div class="card drh-official-resolved"><div class="card-head"><h3>COMPLETED <i>DUELS</i></h3><span class="tag">RESULTS / ARCHIVE</span></div><div id="duels-resolved" class="drh-duels-list"></div></div>
@@ -368,6 +378,7 @@
 <script src="site-config.js"></script>
 <script src="data.js"></script>
 <script src="app.js"></script>
+<script src="broadcast-motion.js" defer></script>
 <script>/* The layout editor is development-only; never download or execute it for visitors. */
 if (new URLSearchParams(location.search).get("edit") === "1") {
   const editorScript = document.createElement("script");
