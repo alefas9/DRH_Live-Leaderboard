@@ -251,7 +251,7 @@ function buildLeaderboard(d, raw, isErr) {
   const sea = d.standings;
   const trackName = d.trackDisplay || d.currentTrack || raw.current_track || "—";
   const feedState = window.__drhFeedStatus || (isErr ? "snapshot" : "verified");
-  const syncLabel = parseTs(raw.generated_at).toLocaleString("el-GR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) + " · " + feedState.toUpperCase();
+  const syncLabel = parseTs(raw.generated_at).toLocaleString("el-GR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }) + " · " + feedState.toUpperCase();
   const lu = $("#live-updated"); if (lu) lu.textContent = syncLabel;
   const lcTag = $("#live-class-tag"); if (lcTag) lcTag.textContent = String(d.cls || "").toUpperCase() + " / CURRENT GRID";
   const ltWeek = $("#lt-week"); if (ltWeek) ltWeek.textContent = "WEEK " + (d.weekNo != null ? d.weekNo : "—");
@@ -346,33 +346,38 @@ function buildLeaderboard(d, raw, isErr) {
   const lh = $("#lb-head"); if (lh) lh.style.display = "";
   $("#lb-body").classList.toggle("season", lbMode === "season");
 
-  // Reuse the same Race Director weekly awards as the Spotlight card.
-  // Each award is attached to its real pilot; the closest battle belongs to both pilots.
-  const awardsByPilot = new Map();
-  const addAward = (pilot, award) => {
-    const key = String(pilot || "").trim().toLocaleLowerCase();
-    if (!key) return;
-    if (!awardsByPilot.has(key)) awardsByPilot.set(key, []);
-    awardsByPilot.get(key).push(award);
+  // RACE DIRECTOR column: official weekly title from the LAST COMPLETED week,
+  // taken verbatim from the bot export (raw.weekly_titles). The site never
+  // computes or infers titles from live timing statistics.
+  const weeklyTitleByPilot = new Map();
+  {
+    const titleWeeks = Array.isArray(raw.weekly_titles) ? raw.weekly_titles.filter(w => w && Array.isArray(w.titles)) : [];
+    const currentTrackKey = String(raw.current_track || d.currentTrack || "").toLowerCase();
+    const completed = titleWeeks.filter(w => String(w.week || "").toLowerCase() !== currentTrackKey);
+    completed.sort((a, b) => String(a.awarded_at || "").localeCompare(String(b.awarded_at || "")));
+    const last = completed[completed.length - 1];
+    if (last) {
+      for (const t of last.titles) {
+        if (!t || !Object.prototype.hasOwnProperty.call(DRH_WEEKLY_ICONS, t.title)) continue;
+        const key = pilotKey(t.pilot || t.pilot_id);
+        if (!key || weeklyTitleByPilot.has(key)) continue;
+        weeklyTitleByPilot.set(key, { icon: DRH_WEEKLY_ICONS[t.title], title: t.title, desc: String(t.desc || ""), week: String(last.week || "") });
+      }
+    }
+  }
+  const weeklyTitleHtml = pilot => {
+    const t = weeklyTitleByPilot.get(pilotKey(pilot));
+    if (!t) return `<span class="lb-no-award">—</span>`;
+    return `<span class="lb-award lb-award--title" title="${esc(t.title + " · " + t.week + (t.desc ? " · " + t.desc : ""))}"><span aria-hidden="true">${esc(t.icon)}</span> ${esc(t.title)}</span>`;
   };
-  const currentWeekAwards = []; // Season-wide raceAwards() must never be presented as weekly awards.
-  currentWeekAwards.forEach(award => {
-    if (award.pair) {
-      String(award.pilot).split(/\s+vs\s+/i).forEach(pilot => addAward(pilot, award));
-    } else addAward(award.pilot, award);
-  });
-  const pilotAwardsHtml = pilot => (awardsByPilot.get(String(pilot || "").trim().toLocaleLowerCase()) || [])
-    .map(award => `<span class="lb-award" title="${esc(award.label + " · " + award.value)}"><span aria-hidden="true">${esc(award.icon)}</span> ${esc(award.label)} <b>${esc(award.value)}</b></span>`)
-    .join("");
 
   // list: πλήρης κατάταξη από το rank 1 — top 8 ορατά, οι υπόλοιποι με «ΕΜΦΑΝΙΣΗ ΟΛΩΝ»
   const showN = lbExpanded ? 999 : 8;
-  const pilotTitleHtml = pilot => "";
   $("#lb-body").innerHTML = rows.slice(0, showN).map(r => `
     <div class="lb-row r${r.rank}${r.far ? " far" : ""}">
       <span class="rk">${String(r.rank).padStart(2, "0")}</span>
-      <span class="pl">${avHtml(r.pilot)}<span class="pl-tx"><span class="nm" data-pilot="${esc(r.pilot)}">${esc(r.pilot)}</span><span class="${lbMode === "season" ? "season-sub" : "qd"}">${esc(r.quad)}</span><span class="lb-awards lb-awards-inline">${pilotAwardsHtml(r.pilot)}</span></span></span>
-      ${lbMode === "current" ? `<span class="lb-awards"><span class="lb-no-award">—</span></span>` : ""}
+      <span class="pl">${avHtml(r.pilot)}<span class="pl-tx"><span class="nm" data-pilot="${esc(r.pilot)}">${esc(r.pilot)}</span><span class="${lbMode === "season" ? "season-sub" : "qd"}">${esc(r.quad)}</span><span class="lb-awards lb-awards-inline">${weeklyTitleHtml(r.pilot)}</span></span></span>
+      ${lbMode === "current" ? `<span class="lb-awards">${weeklyTitleHtml(r.pilot)}</span>` : ""}
       <span class="gap">${esc(r.gap)}</span>
       ${lbMode === "current" ? `<span class="percent">${esc(r.percent)}</span>` : ""}
       <span class="val">${esc(r.val)}</span>
@@ -769,8 +774,7 @@ function buildSidebar(raw, d) {
     let hb = Array.isArray(raw.hot_battles) ? raw.hot_battles.map(h => ({...h})) : [];
     hb = hb.filter(h => {
       // Bot marks a rivalry as opened when the watched gap has opened up.
-      // Only show bot-monitored, still-close pairs; never invent a local gap threshold.
-      if (h.opened === true) return false;
+      // Only show bot-monitored pairs; never invent a local gap threshold.
       if (h.class && h.class !== d.cls) return false;
       // Gateway battles can omit week/track; verify against current live times below instead.
       if (h.week != null && Number(h.week) !== currentWeek) return false;
@@ -780,6 +784,18 @@ function buildSidebar(raw, d) {
       if (!leader || !chaser || leader === chaser || !currentPilots.has(leader) || !currentPilots.has(chaser)) return false;
       const leaderTime = currentTimes.get(leader);
       const chaserTime = currentTimes.get(chaser);
+      if (h.opened === true) {
+        // Opened battle: the stored gap is historical (was_gap), so the strict
+        // live-gap verification does not apply. The card renders faded with an
+        // «ΑΝΟΙΞΕ» tag and the current gap re-derived from live times.
+        const was = Number(h.was_gap ?? h.gap);
+        if (!Number.isFinite(was) || was < 0) return false;
+        h.wasGap = Math.max(0, was);
+        // Roles may have flipped since the battle opened; a negative gap is not a valid display.
+        h.verifiedGap = Number.isFinite(leaderTime) && Number.isFinite(chaserTime) && chaserTime >= leaderTime
+          ? chaserTime - leaderTime : null;
+        return true;
+      }
       const reportedGap = Number(h.gap);
       if (!Number.isFinite(leaderTime) || !Number.isFinite(chaserTime) ||
           !Number.isFinite(reportedGap) || reportedGap < 0) return false;
@@ -788,7 +804,10 @@ function buildSidebar(raw, d) {
       if (actualGap < 0 || Math.abs(actualGap - reportedGap) > 0.002) return false;
       h.verifiedGap = Math.max(0, actualGap);
       return true;
-    }).slice(0, 3);
+    });
+    // Active battles first, opened (faded) ones after — bot order is kept within each group.
+    hb.sort((a, b) => (a.opened === true) - (b.opened === true));
+    hb = hb.slice(0, 3);
     // V76: No verified current-week rivalries: remove the empty column,
     // allowing the genuine weekly Breakthrough content to use the full row.
     const paddockPair = rivEl.closest('.drh-paddock-pair');
@@ -803,7 +822,11 @@ function buildSidebar(raw, d) {
       ? `<div class="rd-note rd-note--full-row"><span class="rdn-tag">RACE DIRECTOR / ${esc(rdLabel(note, "RIVAL WATCH"))}</span>${esc(rdClean(note.text))}</div>`
       : "";
     if (hb.length) {
-      rivEl.innerHTML = hb.map(h => `<div class="riv-card">
+      rivEl.innerHTML = hb.map(h => h.opened === true ? `<div class="riv-card is-opened">
+        <div class="riv-side">${avHtml(h.leader)}<span class="nm" data-pilot="${esc(h.leader)}">${esc(h.leader)}</span><span class="riv-tag">ΚΡΑΤΑΕΙ</span></div>
+        <div class="riv-mid"><span class="riv-vs">VS</span><span class="riv-gap">${h.verifiedGap != null ? "+" + h.verifiedGap.toFixed(3) + "s" : "—"}</span><span class="riv-opened-tag">ΑΝΟΙΞΕ · ήταν +${h.wasGap.toFixed(3)}s</span></div>
+        <div class="riv-side">${avHtml(h.chaser)}<span class="nm" data-pilot="${esc(h.chaser)}">${esc(h.chaser)}</span><span class="riv-tag">ΚΥΝΗΓΑΕΙ</span></div>
+      </div>` : `<div class="riv-card">
         <div class="riv-side">${avHtml(h.leader)}<span class="nm" data-pilot="${esc(h.leader)}">${esc(h.leader)}</span><span class="riv-tag">ΚΡΑΤΑΕΙ</span></div>
         <div class="riv-mid"><span class="riv-vs">VS</span><span class="riv-gap">+${h.verifiedGap.toFixed(3)}s</span>${h.days ? `<span class="riv-days">${h.days}Η ΗΜΕΡΑ</span>` : ""}</div>
         <div class="riv-side">${avHtml(h.chaser)}<span class="nm" data-pilot="${esc(h.chaser)}">${esc(h.chaser)}</span><span class="riv-tag">ΚΥΝΗΓΑΕΙ</span></div>
@@ -850,8 +873,8 @@ function buildDuels(raw, d) {
   const resolved = all.filter(p => {
     if (!(p.status ? ["resolved", "completed", "finished"].includes(String(p.status).toLowerCase()) : !!p.resolved)) return false;
     const week = duelRound(p);
-    return Number.isInteger(currentWeek) && currentWeek > 0 && week !== null && (week === currentWeek || week === currentWeek - 1);
-  }).slice().reverse(); // Μόνο επίσημα ολοκληρωμένα της τρέχουσας και προηγούμενης εβδομάδας
+    return Number.isInteger(currentWeek) && currentWeek > 0 && week !== null && week === currentWeek;
+  }).slice().reverse(); // Μόνο επίσημα ολοκληρωμένα της ΤΡΕΧΟΥΣΑΣ εβδομάδας — με νέα εβδομάδα καθαρίζουν
   const count = $("#duels-count");
   if (count) {
     count.textContent = active.length + " LIVE";
@@ -952,7 +975,7 @@ function buildDuels(raw, d) {
       }
     });
     if (!active.length) activeBox.insertAdjacentHTML("beforeend", '<div class="dr-empty">Δεν υπάρχουν ενεργά επίσημα duels αυτή τη στιγμή.</div>');
-    if (!resolved.length) resolvedBox.insertAdjacentHTML("beforeend", '<div class="dr-empty">Δεν υπάρχουν καταγεγραμμένα ολοκληρωμένα duels για αυτή και την προηγούμενη εβδομάδα.</div>');
+    if (!resolved.length) resolvedBox.insertAdjacentHTML("beforeend", '<div class="dr-empty">Δεν υπάρχουν καταγεγραμμένα ολοκληρωμένα duels για την τρέχουσα εβδομάδα.</div>');
   }
   hydrateAvatars(activeBox || box);
   if (resolvedBox) hydrateAvatars(resolvedBox);
@@ -1660,9 +1683,9 @@ function cardGlow() {
         raw.week_no, raw.season, raw.generated_at, raw.current_leaderboard,
         raw.insights, state.feedStatus, state.error, activeClass],
       competition: [raw.current_leaderboard, raw.season_standings, raw.insights,
-        raw.hot_battles, raw.duels, raw.pilot_profiles, raw.history, activeClass, state.error],
+        raw.hot_battles, raw.duels, raw.history, activeClass, state.error],
       season: [raw.history, raw.season_standings, raw.hall_of_fame,
-        raw.season_chart, raw.pilot_stats, raw.current_track, activeClass]
+        raw.pilot_stats, raw.current_track, activeClass]
     };
   }
   function renderSections(force = false) {
@@ -1787,18 +1810,6 @@ function rdMatchesCurrentWeek(message, raw) {
   return true;
 }
 
-// Official announcement retained from the user-supplied bot-data site_data.json export.
-// The live export can rotate older announcements out of race_director_messages.
-// This is NOT a live event: use only when the current live payload lacks its
-// own track_reveal announcement, and only for the exact matching week/track/season.
-const RD_TRACK_REVEAL_ARCHIVE = Object.freeze({"date":"2026-11-07T18:21:19+00:00","text":"📢 Νέο τεμάχιο: «SimRushWeek6»! Τα LIPO στον φορτιστή, τα νεύρα στο κόκκινο 🔋\n(Auto Leaderboard Upload: ON)","tag":"announcement","id":"rd-ca2ba2c103","event_type":"WEEK_ANNOUNCE","category":"track_reveal","priority":"high","pilots":[],"pilot_ids":[],"track":"SimRushWeek6","class":null,"week":6,"season":2026,"related_duel_id":null,"metadata":{},"created_at":"2026-11-07T18:21:19+00:00","expires_at":null});
-function trackRevealArchiveFor(raw, messages) {
-  if (messages.some(m => String(m.category || "").toLowerCase() === "track_reveal")) return null;
-  return rdMatchesCurrentWeek(RD_TRACK_REVEAL_ARCHIVE, raw)
-    ? { ...RD_TRACK_REVEAL_ARCHIVE, _archivedBotExport: true }
-    : null;
-}
-
 // V61 · Five contextual Race Director stations; only authentic messages are broadcast.
 // Empty stations remain visible with a neutral status, never an invented announcement.
 function renderInlineRaceRadio(raw) {
@@ -1815,8 +1826,6 @@ function renderInlineRaceRadio(raw) {
     seenText.add(text);
     messages.push(m);
   }
-  const archivedReveal = trackRevealArchiveFor(raw, messages);
-  if (archivedReveal) messages.push(archivedReveal);
   messages.sort((a,b) => parseTs(b.created_at || b.date).getTime() - parseTs(a.created_at || a.date).getTime());
   const used = new Set();
   if (window.__drhHeroMessage && String(window.__drhHeroMessage.category || "").toLowerCase() !== "track_reveal") {
@@ -1836,9 +1845,7 @@ function renderInlineRaceRadio(raw) {
     item.style.animationDelay=Math.min(i*90,540)+"ms";
     const head=document.createElement("div");head.className="drh-radio-head";
     const label=document.createElement("span");label.textContent="RACE DIRECTOR / "+(cat==="rivalries"?"RIVALRY RADAR":cat==="duels"?"OFFICIAL DUELS":cat.replace(/_/g," ")).toUpperCase();
-    const date=document.createElement("time");date.textContent=msg._archivedBotExport
-      ? "BOT ARCHIVE · " + fmtRdDate(msg.created_at||msg.date)
-      : fmtRdDate(msg.created_at||msg.date);
+    const date=document.createElement("time");date.textContent=fmtRdDate(msg.created_at||msg.date);
     head.append(label,date);
     const body=document.createElement("div");body.className="drh-radio-text";body.textContent=rdClean(msg.text);
     item.append(head,body);return item;

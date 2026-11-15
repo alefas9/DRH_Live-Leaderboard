@@ -115,6 +115,8 @@ button {
 }
 .mono {
   font-family: var(--font-mono);
+  /* Slashed zero: το 0 του JetBrains Mono δεν μοιάζει πια με 8 στα data contexts. */
+  font-feature-settings: "zero";
 }
 
 @keyframes bgDrift {
@@ -480,9 +482,14 @@ main {
 .duel-no-flight {
   color: var(--orange);
   font-family: var(--font-mono);
-  font-size: var(--fs-label);
+  font-size: var(--fs-micro);
   text-transform: uppercase;
-  letter-spacing: .08em;
+  letter-spacing: .12em;
+  white-space: nowrap;
+}
+@media (max-width: 700px) {
+  /* Στενή στήλη πιλότου: χωρίς tracking για να χωράει η ετικέτα σε μία γραμμή. */
+  .duel-no-flight { letter-spacing: 0; }
 }
 .duel .mid {
   display: flex;
@@ -3372,6 +3379,25 @@ main>section {
   font-variant-numeric: tabular-nums;
   color: var(--orange);
 }
+/* Opened hot battle: η μάχη άνοιξε — faded card με ιστορικό was_gap. */
+.riv-card.is-opened {
+  opacity: .55;
+  background: none;
+}
+.riv-card.is-opened .riv-gap {
+  color: var(--text-3);
+}
+.riv-opened-tag {
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--orange);
+  background: rgba(251,146,60,.12);
+  border: 1px solid rgba(251,146,60,.35);
+  border-radius: var(--r-pill);
+  padding: 2px var(--s-2);
+}
 .paddock-grid>.card:first-child {
   align-self: start;
 }
@@ -5310,6 +5336,11 @@ html,body {
 #timing .pod .ptime small,
 #hall-of-fame .hof-sub {
   /* Font size is owned by each component token, never by inherited 1em. */
+  /* Slashed zero: data contexts — το 0 δεν συγχέεται με 8. */
+  font-feature-settings: "zero";
+}
+.rc-ghost,#timing .pod .ppos {
+  font-feature-settings: "zero";
 }
 #lb-body .lb-row .nm,.hero-sub,.rc-copy,.sh-left p,.card-head h3,.rd-text,
 .drh-radio-text {
@@ -5318,6 +5349,12 @@ html,body {
 #lb-body .lb-row .lb-award {
   font-size: var(--fs-label) ;
   line-height: 1.35;
+}
+/* Official weekly title chip (RACE DIRECTOR column) — editorial violet accent. */
+#timing #lb-body .lb-row .lb-award--title {
+  border-color: rgba(167,139,250,.35);
+  background: rgba(167,139,250,.12);
+  color: var(--violet);
 }
 #lb-head {
   font-size: var(--fs-label) ;
@@ -6213,28 +6250,11 @@ html,body {
   #track-reveal .rc-cd #cd-digits { font-size: clamp(22px, 6vw, 34px); }
 }
 
-/* V109 preview: optional hero video. Original hero image remains the fallback. */
-#hero .hero-video {
-  z-index: -1;
-  opacity: 0;
-  animation: none;
-  transform: none;
-  transition: opacity .5s ease;
-  pointer-events: none;
-}
-#hero .hero-video.is-ready { opacity: 1; }
-@media (prefers-reduced-motion: reduce) {
-  #hero .hero-video { display: none; }
-}
-
-/* V109 HERO VIDEO FIX: explicit positive stacking; existing image is fallback. */
+/* V109 HERO STACK: static image background + vignette (hero video removed). */
 #hero { isolation: isolate; }
 #hero > img.hero-bg { z-index: 0 !important; }
-#hero > video.hero-video { z-index: 1 !important; opacity: 0; }
-#hero > video.hero-video.is-ready { opacity: 1 !important; }
 #hero > .hero-vignette { z-index: 2 !important; }
 #hero > :not(.hero-bg):not(.hero-vignette):not(script) { position: relative; z-index: 3; }
-@media (prefers-reduced-motion: reduce) { #hero > video.hero-video { display: none !important; } }
 
 
 /* DRH V109 — Step 5: Paddock contrast + unified Race Director cards.
