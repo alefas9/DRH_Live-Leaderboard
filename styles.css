@@ -6881,16 +6881,19 @@ body > .top-nav .nav-links { margin-left: auto; }
   pointer-events: none;
   background-image:
     radial-gradient(ellipse 45% 68% at var(--hex-x) var(--hex-y), rgba(21, 205, 255, .31), transparent 82%),
-    linear-gradient(120deg, rgba(4, 14, 27, .50), rgba(3, 17, 34, .28)),
+    linear-gradient(120deg, rgba(4, 14, 27, .20), rgba(3, 17, 34, .12)),
     url("dr-texture.webp");
   background-size: 100% 100%, 100% 100%, cover;
   background-position: center;
-  opacity: .88;
+  opacity: .95;
   animation: drh-rd-hex-pulse 5.5s ease-in-out infinite alternate;
 }
-#track-reveal .reveal-card > * { position: relative; z-index: 1; }
+/* Only the content layers are raised. Keep the decorative rc-ghost absolutely positioned. */
+#track-reveal .reveal-card > .rc-info,
+#track-reveal .reveal-card > #reveal-body { position: relative; z-index: 1; }
+#track-reveal .reveal-card > .rc-ghost { position: absolute; z-index: 0; }
 @keyframes drh-rd-hex-pulse {
-  0% { opacity: .50; filter: brightness(.8); }
+  0% { opacity: .70; filter: brightness(.9); }
   55% { opacity: 1; filter: brightness(1.28); }
   100% { opacity: .75; filter: brightness(1.05); }
 }
