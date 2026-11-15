@@ -101,7 +101,7 @@
 }
 ::-webkit-scrollbar-thumb {
   background: var(--scroll-thumb);
-  border-radius: 5px;
+  border-radius: var(--r-sm);
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--scroll-thumb-hover);
@@ -388,7 +388,7 @@ main {
 }
 .lb-row .nm {
   font-weight: 700;
-  font-size: 15px;
+  font-size: var(--fs-h3);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -464,7 +464,7 @@ main {
 }
 .duel .who .n {
   font-weight: 800;
-  font-size: 15px;
+  font-size: var(--fs-h3);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -880,7 +880,7 @@ footer {
 .cb-label {
   font-family: var(--font-mono);
   font-size: var(--fs-label);
-  letter-spacing: .25em;
+  letter-spacing: .12em;
   color: var(--text-3);
   text-transform: uppercase;
 }
@@ -956,7 +956,7 @@ footer {
 }
 .spot-award .sa-label {
   font-size: var(--fs-label);
-  letter-spacing: .14em;
+  letter-spacing: .12em;
   text-transform: uppercase;
   color: var(--text-3);
   font-weight: 800;
@@ -972,7 +972,7 @@ footer {
   position: relative;
   width: 100%;
   aspect-ratio: 16/9;
-  border-radius: 14px;
+  border-radius: var(--r-lg);
   overflow: hidden;
   border: 1px solid rgba(255,255,255,.1);
   background: var(--contrast-ink);
@@ -1024,7 +1024,7 @@ footer {
 }
 .spot-item {
   background: rgba(255,255,255,.03);
-  border-radius: 18px;
+  border-radius: var(--r-lg);
   padding: 18px;
   min-height: 150px;
   display: flex;
@@ -1101,7 +1101,7 @@ footer {
 .ob-n {
   width: 30px;
   height: 30px;
-  border-radius: 10px;
+  border-radius: var(--r-md);
   background: rgba(34,211,238,.1);
   color: var(--cyan);
   display: flex;
@@ -1176,7 +1176,7 @@ footer {
     font-size: var(--fs-body-lg);
   }
   .lb-row .rk {
-    font-size: 15px;
+    font-size: var(--fs-h3);
   }
   .pod .block {
     border-radius: 10px 10px 0 0;
@@ -1201,7 +1201,7 @@ footer {
   .dr-avatar {
     width: 96px;
     height: 96px;
-    border-radius: 26px;
+    border-radius: var(--r-xl);
     font-size: 36px;
   }
   .dr-h {
@@ -1332,7 +1332,7 @@ footer {
   }
   .ob-card {
     padding: 22px 18px;
-    border-radius: 20px;
+    border-radius: var(--r-xl);
   }
   .ob-t {
     font-size: var(--fs-stat);
@@ -1388,7 +1388,7 @@ footer {
 
   width: 36px;
   height: 36px;
-  border-radius: 10px;
+  border-radius: var(--r-md);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1520,7 +1520,7 @@ body::after {
 .lb-row .pav {
   width: 36px;
   height: 36px;
-  border-radius: 10px;
+  border-radius: var(--r-md);
   font-size: var(--fs-small);
 }
 @media (max-width:960px) {
@@ -1625,7 +1625,7 @@ body::after {
 }
 
 .card {
-  border-radius: 10px;
+  border-radius: var(--r-md);
 }
 
 #track-reveal {
@@ -1669,7 +1669,7 @@ body::after {
 }
 .riv-tag {
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: var(--fs-micro);
   letter-spacing: .16em;
   color: var(--text-3);
 }
@@ -1683,7 +1683,7 @@ body::after {
 
 
 .lb-row .pav,.arc-row .pav {
-  border-radius: 6px;
+  border-radius: var(--r-sm);
 }
 .foot-sync {
   margin-top: 14px;
@@ -1744,7 +1744,7 @@ body::after {
   .riv-side .pav {
     width: 64px;
     height: 64px;
-    font-size: 18px;
+    font-size: var(--fs-h2);
   }
 }
 .hero-center {
@@ -1856,7 +1856,7 @@ h1.hero-title {
   max-width: none;
   margin-top: 20px;
   border: 1px solid var(--line);
-  border-radius: 10px;
+  border-radius: var(--r-md);
   padding: 14px 16px;
   background: rgba(34,211,238,.035);
 }
@@ -1880,7 +1880,7 @@ h1.hero-title {
   background: rgba(9,13,20,.84);
   border: 1px solid rgba(255,255,255,.09);
   border-top: 3px solid var(--orange);
-  border-radius: 4px;
+  border-radius: var(--r-sm);
   padding: 20px 26px;
   min-width: 330px;
   backdrop-filter: blur(12px);
@@ -2035,7 +2035,7 @@ h1.hero-title {
 }
 .rc-cd b {
   color: var(--cyan);
-  font-size: 15px;
+  font-size: var(--fs-h3);
   font-variant-numeric: tabular-nums;
 }
 .rc-btn {
@@ -2046,7 +2046,7 @@ h1.hero-title {
   padding: 13px 22px;
   background: var(--sky-text);
   color: var(--night-blue);
-  border-radius: 6px;
+  border-radius: var(--r-sm);
   font-family: var(--font-mono);
   font-weight: 700;
   font-size: var(--fs-small);
@@ -2122,7 +2122,7 @@ h1.hero-title {
 
 #timing .pod .ppos {
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: var(--fs-micro);
   letter-spacing: .2em;
   color: var(--text-3);
 }
@@ -2141,7 +2141,7 @@ h1.hero-title {
 }
 #timing .pod .pmeta {
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: var(--fs-micro);
   letter-spacing: .08em;
   color: var(--text-3);
   margin-top: 4px;
@@ -2162,13 +2162,13 @@ h1.hero-title {
 }
 .itile {
   border: 1px solid rgba(255,255,255,.09);
-  border-radius: 10px;
+  border-radius: var(--r-md);
   padding: 16px;
   background: rgba(255,255,255,.02);
 }
 .it-k {
   display: block;
-  font-size: 9px;
+  font-size: var(--fs-micro);
   letter-spacing: .2em;
   color: var(--text-3);
 }
@@ -2277,7 +2277,7 @@ h1.hero-title {
 
 
   font-weight: 700;
-  font-size: 15px;
+  font-size: var(--fs-h3);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -2322,7 +2322,7 @@ h1.hero-title {
 }
 #timing .lb-table.season .lb-row .val {
   color: var(--text);
-  font-size: 17px;
+  font-size: var(--fs-h3);
 }
 #timing .mv,#timing .intv,#timing .fromlead,#timing .pilot-title {
   display: none;
@@ -2333,7 +2333,7 @@ h1.hero-title {
   margin-top: 16px;
   padding: 14px;
   border: 1px solid rgba(255,255,255,.12);
-  border-radius: 10px;
+  border-radius: var(--r-md);
   font-family: var(--font-mono);
   font-size: var(--fs-label);
   letter-spacing: .16em;
@@ -2500,7 +2500,7 @@ h1.hero-title {
 .margin-card {
   background: var(--sky-text);
   color: #0a1420;
-  border-radius: 10px;
+  border-radius: var(--r-md);
   padding: 26px 24px;
   display: flex;
   flex-direction: column;
@@ -2514,7 +2514,7 @@ h1.hero-title {
 .mc-t {
   font-family: var(--font-display);
   font-weight: 900;
-  font-size: 18px;
+  font-size: var(--fs-h2);
   letter-spacing: -.01em;
   margin-top: 8px;
 }
@@ -2652,7 +2652,7 @@ h1.hero-title {
 }
 .arc-w .aw-k {
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: var(--fs-micro);
   letter-spacing: .2em;
   color: var(--orange);
 }
@@ -2664,7 +2664,7 @@ h1.hero-title {
 .arc-w b {
   font-family: var(--font-display);
   font-weight: 900;
-  font-size: 18px;
+  font-size: var(--fs-h2);
   cursor: pointer;
 }
 .arc-class-h {
@@ -2678,7 +2678,7 @@ h1.hero-title {
 .arc-row {
 /* Consolidated 547 -> 2782 */
 
-  border-radius: 10px;
+  border-radius: var(--r-md);
   font-size: var(--fs-body);
 
 
@@ -2787,7 +2787,7 @@ h1.hero-title {
 }
 .hof-col .k {
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: var(--fs-micro);
   letter-spacing: .2em;
   color: var(--text-3);
   margin-top: 4px;
@@ -3176,7 +3176,7 @@ h1.hero-title,.hero-title {
   flex-wrap: wrap;
 
 
-  border-radius: 4px;
+  border-radius: var(--r-sm);
   min-height: 52px;
   display: inline-flex;
   align-items: center;
@@ -3219,7 +3219,7 @@ h1.hero-title,.hero-title {
   padding: 24px 26px;
 
 
-  border-radius: 3px;
+  border-radius: var(--r-sm);
   background: linear-gradient(130deg,rgba(15,18,29,.97),rgba(9,11,19,.92));
   border: 1px solid rgba(250,204,21,.25);
   border-top: 3px solid var(--yellow);
@@ -3475,7 +3475,7 @@ main>section {
     font-size: clamp(2.7rem,12vw,4.5rem) !important;
   }
   .hero-sub {
-    font-size: 15px;
+    font-size: var(--fs-h3);
   }
   .hero-bottom {
     padding: 0 18px 24px;
@@ -4092,7 +4092,7 @@ main>section {
   background: #222d40;
   border: 1px solid #475569;
   color: var(--text);
-  border-radius: 6px;
+  border-radius: var(--r-sm);
   padding: 10px;
   cursor: pointer;
   font: 700 10px var(--font-mono,monospace);
@@ -4337,7 +4337,7 @@ body.drh-editing, body.drh-editing * {
   gap: var(--s-1);
   background: rgba(10,12,20,.95);
   border: 1px solid rgba(255,255,255,.22);
-  border-radius: 10px;
+  border-radius: var(--r-md);
   padding: 8px;
   max-height: 40vh;
   overflow-y: auto;
@@ -4358,7 +4358,7 @@ body.drh-editing, body.drh-editing * {
   font-size: var(--fs-label);
   letter-spacing: .06em;
   padding: 7px 10px;
-  border-radius: 7px;
+  border-radius: var(--r-sm);
   border: 1px solid rgba(255,255,255,.15);
   background: rgba(255,255,255,.05);
   color: var(--text);
@@ -4375,7 +4375,7 @@ body.drh-editing, body.drh-editing * {
   gap: 6px;
   background: rgba(10,12,20,.95);
   border: 1px solid rgba(255,255,255,.22);
-  border-radius: 10px;
+  border-radius: var(--r-md);
   padding: 6px;
   backdrop-filter: blur(8px);
 }
@@ -4387,7 +4387,7 @@ body.drh-editing, body.drh-editing * {
   font-size: var(--fs-label);
   letter-spacing: .1em;
   padding: 7px 11px;
-  border-radius: 7px;
+  border-radius: var(--r-sm);
   border: 1px solid rgba(255,255,255,.18);
   background: rgba(255,255,255,.07);
   color: var(--text);
@@ -5104,7 +5104,7 @@ html,body {
 
 
   font-weight: 700;
-  font-size: 15px;
+  font-size: var(--fs-h3);
   line-height: 1.25;
   white-space: normal;
   overflow: visible;
@@ -5130,7 +5130,7 @@ html,body {
   margin: 0;
 }
 #timing #lb-body .lb-row .lb-award {
-  font-size: 9px;
+  font-size: var(--fs-micro);
   line-height: 1.25;
 
 
@@ -5183,7 +5183,7 @@ html,body {
 #timing #lb-body .lb-row > .val {
   font-family: var(--font-display);
   font-weight: 900;
-  font-size: 18px;
+  font-size: var(--fs-h2);
   color: var(--cyan);
   text-align: right;
   font-variant-numeric: tabular-nums;
@@ -5193,7 +5193,7 @@ html,body {
 #timing #lb-table.season .lb-row > .val,
 #timing #lb-body.season .lb-row > .val {
   color: var(--text);
-  font-size: 17px;
+  font-size: var(--fs-h3);
 }
 #timing #lb-head {
   font-size: var(--fs-label);
@@ -5647,7 +5647,7 @@ html,body {
   text-align: center;
   padding: 24px;
   border: 1px dashed rgba(147,214,239,.23);
-  border-radius: 10px;
+  border-radius: var(--r-md);
   background: rgba(8,15,24,.74);
   color: var(--text-2);
   font-size: var(--fs-body);
@@ -5958,7 +5958,7 @@ html,body {
   box-sizing: border-box;
   padding: 13px 14px;
   margin-bottom: 14px;
-  border-radius: 13px;
+  border-radius: var(--r-md);
   font-family: var(--font-body,Inter,sans-serif);
   line-height: 1.5;
   overflow-wrap: anywhere;
@@ -6648,7 +6648,7 @@ html,body {
   margin:12px 16px 16px;
   padding:15px;
   border:1px solid rgba(34,211,238,.25);
-  border-radius:13px;
+  border-radius:var(--r-md);
   background:rgba(8,20,34,.8);
   color:#f1f5f9;
 }
@@ -6667,7 +6667,7 @@ html,body {
   color:#fbbf24;
   border:1px solid #fbbf24;
   padding:3px 6px;
-  border-radius:6px;
+  border-radius:var(--r-sm);
 }
 .drwa-sub {
   font-size:var(--fs-small);
@@ -6684,7 +6684,7 @@ html,body {
   font-size:var(--fs-small);
   border:1px solid rgba(148,163,184,.25);
   padding:6px 9px;
-  border-radius:9px;
+  border-radius:var(--r-sm);
   background:rgba(148,163,184,.08);
 }
 .drwa-entry {
