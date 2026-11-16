@@ -61,10 +61,12 @@
 }
 
 /* Εξαίρεση: τέλειοι κύκλοι (avatars, dots) μένουν κυκλικοί */
-.pav,
+/* Avatars: ΔΕΝ χρειάζεται override.
+   Το .pav χρησιμοποιεί ήδη var(--r-sm)/var(--r-md) που έγιναν 2px.
+   Επιβεβαίωση από styles.css:1482,1520,1685,2260,2442.
+   Το μόνο που μένει ρητά κυκλικό: τα broadcast dots. */
 .drh-broadcast-mark i,
 .drh-broadcast-timing__lead i,
-.dot,
 .drh-broadcast-signal__dot {
   border-radius: 50% !important;
 }
@@ -147,15 +149,43 @@
    LEVEL 1 — Typography: italic στα section headings
    Ο hero τίτλος ΕΞΑΙΡΕΙΤΑΙ ρητά.
    ──────────────────────────────────────────────────────────────────────────── */
-.sh-left h2,
+/* ITALIC — ΜΟΝΟ στους 5 εγκεκριμένους τίτλους:
+     .ph-title          «BUILT FOR THE CHASE.»
+     #track-reveal h2   «TRACK REVEAL.»
+     #timing h2         «THE GRID & PODIUM»
+     #battles h2        «THE PADDOCK»
+     #hall-of-fame h2   «HALL OF FAME.»
+   ΟΛΑ ΤΑ ΑΛΛΑ: ΚΑΝΟΝΙΚΑ. */
+.ph-title,
+#track-reveal .sh-left h2,
+#timing .sh-left h2,
+#battles .sh-left h2,
+#hall-of-fame .sh-left h2 {
+  font-style: italic !important;
+  font-weight: 900;
+}
+
+/* Ρητή επαναφορά σε normal για όλα τα υπόλοιπα */
 .card-head h3,
 .pc-h,
 .tf-h,
 .mc-t,
-.ph-title,
-.eml-title {
-  font-style: italic;
+.eml-title,
+.sh-left h2,
+#challenges .sh-left h2,
+#championship .sh-left h2,
+#archive .sh-left h2 {
+  font-style: normal !important;
   font-weight: 900;
+}
+
+/* Το italic των 5 ξαναδηλώνεται για σιγουριά (specificity) */
+.ph-title,
+#track-reveal .sh-left h2,
+#timing .sh-left h2,
+#battles .sh-left h2,
+#hall-of-fame .sh-left h2 {
+  font-style: italic !important;
 }
 
 /* ΟΧΙ italic στον hero τίτλο — προστατευμένος */
