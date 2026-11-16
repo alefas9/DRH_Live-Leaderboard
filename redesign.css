@@ -1,0 +1,289 @@
+/* ============================================================================
+   DRH REDESIGN 17/11 — Levels 1+2+3
+   ----------------------------------------------------------------------------
+   Φορτώνεται ΜΕΤΑ το styles.css. Δεν τροποποιεί κανέναν υπάρχοντα κανόνα —
+   μόνο προσθέτει/υπερισχύει. Αφαίρεση του <link> = πλήρες revert.
+
+   ΠΡΟΣΤΑΤΕΥΜΕΝΟ: h1.hero-title «DRONE RACING HELLAS» — ΔΕΝ αγγίζεται.
+   ========================================================================== */
+
+/* ────────────────────────────────────────────────────────────────────────────
+   LEVEL 3 — Radius: 26 τιμές -> 2 τιμές
+   2px για όλα, 4px για μεγάλες επιφάνειες. Pills γίνονται τετράγωνα chips.
+   ──────────────────────────────────────────────────────────────────────────── */
+:root {
+  --r-sm: 2px;
+  --r-md: 2px;
+  --r-lg: 4px;
+  --r-xl: 4px;
+  --r-pill: 2px;
+}
+
+/* Ό,τι έχει hardcoded radius εκτός tokens */
+.card,
+.side-card,
+.podium,
+.hb-row,
+.feed-row,
+.duel,
+.riv-card,
+.intel-card,
+.podium-card,
+.reveal-card,
+.timing-left .card,
+.drh-breakthrough-panel,
+.drh-rivalry-panel,
+.drh-official-active,
+.drh-official-resolved,
+.modal,
+.drawer,
+.onboard,
+.tf-card,
+.margin-card,
+.hof-f,
+.lb-row,
+.arc-row {
+  border-radius: 2px !important;
+}
+
+.tag,
+.chip,
+.pill,
+.lb-award,
+.drh-count,
+.spot-award,
+.rc-btn,
+.btn,
+.btn-primary,
+.btn-ghost,
+#back-top {
+  border-radius: 2px !important;
+}
+
+/* Εξαίρεση: τέλειοι κύκλοι (avatars, dots) μένουν κυκλικοί */
+.pav,
+.drh-broadcast-mark i,
+.drh-broadcast-timing__lead i,
+.dot,
+.drh-broadcast-signal__dot {
+  border-radius: 50% !important;
+}
+
+/* ────────────────────────────────────────────────────────────────────────────
+   LEVEL 1 — Κουμπιά: slant clip + μονόχρωμο + glow μόνο στο hover
+   ──────────────────────────────────────────────────────────────────────────── */
+.btn-primary {
+  --slant: 12px;
+  padding: 14px 26px;
+  border-radius: 0 !important;
+  font: 800 var(--fs-body) var(--font-display);
+  font-style: italic;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: #0a0a0f;
+  background: var(--cyan);
+  box-shadow: none;
+  clip-path: polygon(var(--slant) 0, 100% 0, calc(100% - var(--slant)) 100%, 0 100%);
+  transition: background .18s ease, box-shadow .18s ease, transform .18s ease;
+}
+.btn-primary:hover {
+  background: #5eeaf7;
+  box-shadow: 0 0 0 1px var(--cyan), 0 10px 40px -12px var(--cyan);
+  transform: translateY(-1px);
+}
+.btn-primary:active { transform: translateY(0); }
+
+.btn-ghost {
+  --slant: 12px;
+  padding: 14px 26px;
+  border: 1px solid var(--line-strong);
+  border-radius: 0 !important;
+  font: 800 var(--fs-body) var(--font-display);
+  font-style: italic;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--text-2);
+  background: transparent;
+  clip-path: polygon(var(--slant) 0, 100% 0, calc(100% - var(--slant)) 100%, 0 100%);
+  transition: color .18s ease, border-color .18s ease, background .18s ease;
+}
+.btn-ghost:hover {
+  color: var(--text);
+  border-color: var(--cyan);
+  background: rgba(34,211,238,.06);
+}
+
+/* Τα υπόλοιπα CTA-like κουμπιά (hero, onboard, retry) */
+.hero-cta,
+#rc-btn,
+#onboard-open,
+.show-more,
+.lb-all,
+.arc-week,
+.lt-tab {
+  border-radius: 2px !important;
+  font-style: italic;
+  font-weight: 800;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.hero-cta {
+  --slant: 12px;
+  border-radius: 0 !important;
+  clip-path: polygon(var(--slant) 0, 100% 0, calc(100% - var(--slant)) 100%, 0 100%);
+  background: var(--cyan);
+  color: #0a0a0f;
+  box-shadow: none;
+  transition: background .18s ease, box-shadow .18s ease, transform .18s ease;
+}
+.hero-cta:hover {
+  background: #5eeaf7;
+  box-shadow: 0 0 0 1px var(--cyan), 0 10px 40px -12px var(--cyan);
+  transform: translateY(-1px);
+}
+
+/* ────────────────────────────────────────────────────────────────────────────
+   LEVEL 1 — Typography: italic στα section headings
+   Ο hero τίτλος ΕΞΑΙΡΕΙΤΑΙ ρητά.
+   ──────────────────────────────────────────────────────────────────────────── */
+.sh-left h2,
+.card-head h3,
+.pc-h,
+.tf-h,
+.mc-t,
+.ph-title,
+.eml-title {
+  font-style: italic;
+  font-weight: 900;
+}
+
+/* ΟΧΙ italic στον hero τίτλο — προστατευμένος */
+h1.hero-title,
+.hero-title,
+.hero-title .cy,
+.hero-title .sq,
+.hero-title * {
+  font-style: normal !important;
+  transform: none !important;
+  clip-path: none !important;
+  font-weight: 900 !important;
+  letter-spacing: -.065em !important;
+  line-height: .87 !important;
+}
+
+/* ────────────────────────────────────────────────────────────────────────────
+   LEVEL 1 — Glow μόνο στο hover (αφαίρεση μόνιμων glows από cards)
+   ──────────────────────────────────────────────────────────────────────────── */
+.card,
+.side-card,
+.intel-card,
+.podium-card,
+.reveal-card,
+.tf-card,
+.margin-card {
+  box-shadow: none !important;
+  transition: box-shadow .22s ease, border-color .22s ease;
+}
+.card:hover,
+.side-card:hover,
+.intel-card:hover,
+.podium-card:hover,
+.reveal-card:hover {
+  box-shadow: 0 0 0 1px rgba(34,211,238,.22), 0 12px 40px -18px rgba(34,211,238,.35) !important;
+}
+
+/* ────────────────────────────────────────────────────────────────────────────
+   LEVEL 2 — Μείωση χρώματος: το cyan επιστρέφει σε 7 ρόλους
+   Διατηρούνται: live/data, 1η θέση (yellow), PB (emerald), πτώση (red)
+   Αφαιρείται: cyan από labels, borders, διακοσμητικά
+   ──────────────────────────────────────────────────────────────────────────── */
+
+/* Labels/kickers: από cyan -> muted */
+.kick,
+.spot-k,
+.ob-k,
+.mc-kick,
+.pc-kick,
+.sec-no,
+.drh-broadcast-freq,
+.drh-broadcast-hud__left > span:first-child,
+.drh-broadcast-hud__right > span:first-child {
+  color: var(--text-3) !important;
+}
+
+/* Τα «kick» που σηματοδοτούν ενότητα κρατούν ένα διακριτικό accent */
+.sh-left .kick { color: var(--text-3) !important; }
+
+/* Hover σε ονόματα πιλότων: από cyan -> λευκό */
+.lb-row .nm:hover,
+.arc-row .nm:hover,
+.foot-links a:hover,
+.show-more:hover {
+  color: var(--text) !important;
+}
+
+/* Στατικά accents που δεν είναι «live» -> ουδέτερα */
+.duel .score b:first-child,
+.duel .score b:last-child,
+.lb-row .val,
+.feed-row .t,
+.pav,
+.rc-cd b,
+.hud-tele b,
+.ob-n,
+.ob-foot a,
+.dr-avatar,
+.spot-k {
+  color: var(--text-2) !important;
+}
+
+/* Κρατάμε cyan ΕΚΕΙ που σημαίνει «live / τρέχον» */
+#timing .lt-tab.on,
+.lt-tab.on,
+#timing .lb-row.r1,
+#timing .lb-row.r1 .rk,
+#hero .hero-bar > span > b,
+.drh-broadcast-mark i,
+.drh-broadcast-timing__lead i,
+.drh-broadcast-signal.is-active .drh-broadcast-signal__dot,
+.drh-broadcast-hud__left b,
+.drh-broadcast-hud__right b {
+  color: var(--cyan) !important;
+}
+
+/* Κρατάμε cyan στο selection (brand moment) */
+::selection { background: rgba(34,211,238,.28); }
+
+/* Τα section-head accent spans γίνονται ουδέτερα */
+.sh-left h2 span,
+.ph-title span,
+.eml-title span {
+  color: inherit !important;
+}
+
+/* ────────────────────────────────────────────────────────────────────────────
+   LEVEL 3 (bonus) — Αρίθμηση ενοτήτων
+   Χρησιμοποιεί το υπάρχον .sec-no όπου υπάρχει· προσθέτει όπου λείπει.
+   ──────────────────────────────────────────────────────────────────────────── */
+.section-head .sh-left { position: relative; }
+
+/* ────────────────────────────────────────────────────────────────────────────
+   ΑΣΦΑΛΕΙΑ — prefers-reduced-motion
+   ──────────────────────────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .btn-primary,
+  .btn-ghost,
+  .hero-cta,
+  .card,
+  .side-card,
+  .intel-card,
+  .podium-card,
+  .reveal-card {
+    transition: none !important;
+    transform: none !important;
+  }
+  .btn-primary:hover,
+  .btn-ghost:hover,
+  .hero-cta:hover { transform: none !important; }
+}

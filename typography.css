@@ -1,0 +1,137 @@
+/* ============================================================================
+   DRH TYPOGRAPHY SCALE 17/11 — Hellas FPV scale + rem units
+   ----------------------------------------------------------------------------
+   ΓΡΑΜΜΑΤΟΣΕΙΡΕΣ: ΑΜΕΤΑΒΛΗΤΕΣ (Archivo / Inter / JetBrains Mono)
+   ΑΛΛΑΖΟΥΝ ΜΟΝΟ: τα μεγέθη (px -> rem) και η κλίμακα.
+
+   Γιατί rem: 1rem = 16px (default). Αν ο χρήστης μεγαλώσει τη γραμματοσειρά
+   του browser, ΟΛΟ το site προσαρμόζεται. Με px θα αγνοούσε τη ρύθμιση.
+
+   ΠΑΛΙΑ ΣΚΑΛΑ          ΝΕΑ ΣΚΑΛΑ
+   fs-micro   10px  ->  0.75rem  (12px)  +20%
+   fs-label   11px  ->  0.75rem  (12px)  +9%   [ενοποίηση με micro]
+   fs-small   12px  ->  0.875rem (14px)  +17%
+   fs-body    13px  ->  0.875rem (14px)  +8%   [ενοποίηση με small]
+   fs-body-lg 14px  ->  1rem     (16px)  +14%
+   fs-h3      16px  ->  1.125rem (18px)  +13%
+   fs-h2      20px  ->  1.25rem  (20px)  =
+   fs-stat    24px  ->  1.5rem   (24px)  =
+
+   Αποτέλεσμα: 8 tokens -> 6 distinct τιμές (12/14/16/18/20/24)
+   ========================================================================== */
+
+:root {
+  /* ── Νέα κλίμακα σε rem ── */
+  --fs-micro:   0.75rem;    /* 12px  — micro-labels, overlines */
+  --fs-label:   0.75rem;    /* 12px  — labels, chips, meta */
+  --fs-small:   0.875rem;   /* 14px  — secondary text, feed meta */
+  --fs-body:    0.875rem;   /* 14px  — default κείμενο/πίνακες */
+  --fs-body-lg: 1rem;       /* 16px  — RD notes, έμφαση */
+  --fs-h3:      1.125rem;   /* 18px  — τίτλοι cards */
+  --fs-h2:      1.25rem;    /* 20px  — τίτλοι ενοτήτων (mobile) */
+  --fs-stat:    1.5rem;     /* 24px  — μεγάλα στατιστικά */
+}
+
+/* ────────────────────────────────────────────────────────────────────────────
+   ΓΡΑΜΜΑΤΟΣΕΙΡΕΣ — ρητή επαναβεβαίωση (δεν αλλάζουν, απλώς θωρακίζονται)
+   ──────────────────────────────────────────────────────────────────────────── */
+:root {
+  --font-display: "Archivo", sans-serif;
+  --font-body: "Inter", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+}
+
+/* ────────────────────────────────────────────────────────────────────────────
+   GUARDS — στενές στήλες που ΔΕΝ αντέχουν +2px
+   Οι χρόνοι/θέσεις μένουν στα παλιά μεγέθη για να μη σπάσει το grid.
+   ──────────────────────────────────────────────────────────────────────────── */
+
+/* Στήλη χρόνου στο live leaderboard: minmax(86px) — κρατά 16px */
+#timing #lb-body .lb-row > .val,
+#timing .lb-head > span:nth-child(6),
+#timing .lb-table.season .lb-row .val {
+  font-size: 1rem;          /* 16px — όχι 18px */
+  font-variant-numeric: tabular-nums;
+}
+
+/* Στήλη θέσης (POS): 40px πλάτος — κρατά 20px */
+#timing #lb-body .lb-row .rk,
+#timing .lb-row .rk {
+  font-size: 1.25rem;       /* 20px */
+}
+
+/* Ονόματα πιλότων: minmax(150px) — 17px αντί 18px για ασφάλεια */
+#timing #lb-body .lb-row .nm,
+.lb-row .nm {
+  font-size: 1.0625rem;     /* 17px */
+}
+
+/* Archive rows: 44px / 84px / 56px στήλες — αυστηρότερα */
+.arc-row .r,
+.arc-head > span:first-child {
+  font-size: 1.25rem;       /* 20px */
+}
+.arc-row .t,
+.arc-row .val {
+  font-size: 0.9375rem;     /* 15px */
+}
+
+/* Tags/badges: κρατούν 11px ώστε να μη φαρδύνουν.
+   ΠΡΟΣΟΧΗ: ΔΕΝ ορίζουμε letter-spacing εδώ — το .tag έχει ήδη .08em
+   και το .lb-award .01em. Το override προκαλούσε +13% πλάτος. */
+.tag,
+.drh-count,
+.spot-award,
+.live-pill,
+.rc-pre,
+.duel-no-flight,
+.riv-tag,
+.rc-kick,
+.pc-kick {
+  font-size: 0.6875rem;     /* 11px — intentional hold */
+}
+
+/* Το lb-award κρατά το δικό του tracking και αναδιπλώνεται αν χρειαστεί */
+.lb-award {
+  font-size: 0.6875rem;     /* 11px */
+  letter-spacing: .01em;    /* ίδιο με το original */
+}
+
+/* RD note labels σε στενές στήλες: συγκρατημένο tracking */
+.drh-radio-head > span:first-child,
+.rd-note .rdn-tag,
+.dr-sub {
+  font-size: 0.6875rem;     /* 11px */
+}
+
+/* ────────────────────────────────────────────────────────────────────────────
+   MOBILE — μικρότερη βάση για να μη σπάει σε 360px
+   ──────────────────────────────────────────────────────────────────────────── */
+@media (max-width: 480px) {
+  :root {
+    --fs-micro:   0.6875rem;  /* 11px */
+    --fs-label:   0.6875rem;  /* 11px */
+    --fs-small:   0.8125rem;  /* 13px */
+    --fs-body:    0.8125rem;  /* 13px */
+    --fs-body-lg: 0.9375rem;  /* 15px */
+    --fs-h3:      1rem;       /* 16px */
+  }
+  #timing #lb-body .lb-row .nm,
+  .lb-row .nm { font-size: 0.9375rem; }   /* 15px */
+  #timing #lb-body .lb-row > .val { font-size: 0.875rem; } /* 14px */
+}
+
+/* ────────────────────────────────────────────────────────────────────────────
+   ΠΡΟΣΤΑΣΙΑ HERO ΤΙΤΛΟΥ — δεν αγγίζεται
+   ──────────────────────────────────────────────────────────────────────────── */
+h1.hero-title,
+.hero-title,
+.hero-title .cy,
+.hero-title .sq,
+.hero-title * {
+  font-size: clamp(3.25rem, 8.8vw, 10rem) !important;
+  font-style: normal !important;
+  font-weight: 900 !important;
+  letter-spacing: -.065em !important;
+  line-height: .87 !important;
+}
