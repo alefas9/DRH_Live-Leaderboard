@@ -94,30 +94,6 @@
 #battles .sh-left h2,
 #hall-of-fame .sh-left h2 {
   font-style: italic !important;
-  font-weight: 900;
-}
-
-/* Ρητή επαναφορά σε normal για όλα τα υπόλοιπα */
-.card-head h3,
-.pc-h,
-.tf-h,
-.mc-t,
-.eml-title,
-.sh-left h2,
-#challenges .sh-left h2,
-#championship .sh-left h2,
-#archive .sh-left h2 {
-  font-style: normal !important;
-  font-weight: 900;
-}
-
-/* Το italic των 5 ξαναδηλώνεται για σιγουριά (specificity) */
-.ph-title,
-#track-reveal .sh-left h2,
-#timing .sh-left h2,
-#battles .sh-left h2,
-#hall-of-fame .sh-left h2 {
-  font-style: italic !important;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════

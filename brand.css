@@ -368,129 +368,139 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   13. BRAND MAPPING — εφαρμογή στα ΥΠΑΡΧΟΝΤΑ components
-   Το site χρησιμοποιεί .section-head / .kick / .sec-no / .tag / .card.
-   Εδώ τα μετατρέπουμε στο brand look ΧΩΡΙΣ αλλαγή HTML.
+   13. ΚΟΙΝΗ ΓΛΩΣΣΑ — «γραμμή αντί για περίγραμμα, χώρος αντί για κουτιά»
+   Το hero δίνει το DNA: gradient cyan→fuchsia + italic + κίνηση.
+   Τα υπόλοιπα sections το «τραγουδάνε» πιο ήσυχα:
+     — gradient ως λεπτό νήμα (όχι γεμάτα boxes)
+     — αριθμοί κεφαλαίων σε italic
+     — δεδομένα ανοιχτά, χωρίς κουτιά
    ═══════════════════════════════════════════════════════════════════════════ */
 
-/* ── GRID BACKGROUND (21px blueprint) πίσω από όλο το site ── */
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background-image:
-    linear-gradient(rgba(255,255,255,.045) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,.045) 1px, transparent 1px);
-  background-size: 42px 42px;
-  mask-image: radial-gradient(ellipse 120% 90% at 50% 0%, #000 0%, transparent 78%);
-  -webkit-mask-image: radial-gradient(ellipse 120% 90% at 50% 0%, #000 0%, transparent 78%);
-}
+/* ── Φόντο: καθαρό, σχεδόν μαύρο — ΟΧΙ grid παντού (θόρυβος) ── */
+body { background: #07080b; }
 
-/* ── SECTION HEAD — brand .sh look: κάτω γραμμή + αριθμός ── */
+/* ── SECTION HEAD — ανοιχτό, με gradient νήμα στην κορυφή ── */
 .section-head {
   align-items: baseline;
   gap: 22px;
-  margin: clamp(48px, 7vw, 96px) 0 clamp(28px, 4vw, 48px);
-  padding-bottom: 16px;
-  border-bottom: 1px solid var(--rule, rgba(255,255,255,.09));
+  margin: clamp(64px, 8vw, 120px) 0 clamp(32px, 4.5vw, 56px);
+  padding-top: 24px;
+  border-top: 1px solid rgba(255,255,255,.1);
+  border-bottom: 0;
+  position: relative;
 }
+/* Gradient νήμα — λεπτή γραμμή cyan→fuchsia στην κορυφή κάθε section */
+.section-head::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: 0;
+  width: clamp(120px, 20vw, 280px);
+  height: 1px;
+  background: linear-gradient(90deg, var(--cyan), var(--fuchsia));
+}
+
 .section-head .sh-left {
-  display: flex;
-  align-items: baseline;
-  gap: 20px;
+  display: block;
   flex: 1;
-  flex-wrap: wrap;
-}
-.section-head .sec-no {
-  font-family: var(--f-m, "JetBrains Mono", monospace);
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--cyan);
-  letter-spacing: .08em;
-  opacity: 1;
 }
 .section-head .kick {
-  display: inline-flex;
+  display: flex;
   align-items: baseline;
-  gap: 14px;
-  width: 100%;
-  margin-bottom: 10px;
+  gap: 12px;
+  margin-bottom: 16px;
   font-family: var(--f-m, "JetBrains Mono", monospace);
   font-size: 10px;
-  letter-spacing: .16em;
+  letter-spacing: .18em;
   text-transform: uppercase;
-  color: var(--dim, rgba(255,255,255,.32));
+  color: var(--text-3);
+}
+.section-head .sec-no {
+  font-family: var(--f-d, "Archivo", sans-serif);
+  font-style: italic;
+  font-weight: 900;
+  font-size: 14px;
+  color: var(--cyan);
+  letter-spacing: .02em;
+  opacity: 1;
 }
 .section-head h2 {
   font-family: var(--f-d, "Archivo", sans-serif);
   font-style: italic;
   font-weight: 900;
-  font-size: clamp(32px, 4.4vw, 58px) !important;
+  font-size: clamp(34px, 5vw, 64px) !important;
   line-height: .9 !important;
   letter-spacing: -.025em !important;
   text-transform: uppercase;
   margin: 0;
 }
-/* Ομοιομορφία: ΟΛΑ τα section h2 στο ίδιο μέγεθος */
+/* Ομοιομορφία σε ΟΛΑ τα section h2 */
+#track-reveal .section-head h2,
 #timing .section-head h2,
 #battles .section-head h2,
 #archive .section-head h2,
-#hall-of-fame .section-head h2,
-#track-reveal .section-head h2,
-#challenges .section-head h2 {
-  font-size: clamp(32px, 4.4vw, 58px) !important;
+#hall-of-fame .section-head h2 {
+  font-size: clamp(34px, 5vw, 64px) !important;
   line-height: .9 !important;
   letter-spacing: -.025em !important;
 }
 .section-head p {
   font-size: 15px;
   color: var(--text-2);
-  max-width: 46ch;
-  line-height: 1.5;
-  margin: 14px 0 0;
-  flex-basis: 100%;
+  max-width: 50ch;
+  line-height: 1.6;
+  margin: 16px 0 0;
 }
 
-/* ── TAG → BADGE (brand .badge look) ── */
+/* ── CARDS — ανοιχτά, χωρίς κουτί. Μόνο μια απαλή κάτω γραμμή όπου χρειάζεται ── */
+.card {
+  background: transparent !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  border: 0 !important;
+  border-bottom: 1px solid rgba(255,255,255,.08) !important;
+  padding: 0 0 clamp(24px, 3vw, 40px) 0 !important;
+}
+.card::after,
+.card::before {
+  display: none !important;
+}
+
+/* Τα «στενά» data panels (podium, intel, live) — ίδια γλώσσα, καμία διαφορά */
+.podium-card,
+.intel-card,
+.reveal-card,
+.tf-card,
+.margin-card,
+#live-card,
+.drh-official-active,
+.drh-official-resolved,
+.drh-breakthrough-panel,
+.drh-rivalry-panel {
+  background: transparent !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  border: 0 !important;
+  border-bottom: 1px solid rgba(255,255,255,.08) !important;
+}
+
+/* ── TAG → λιτό label (όχι κουτί) ── */
 .tag {
   font-family: var(--f-m, "JetBrains Mono", monospace);
   font-size: 9px;
   font-weight: 700;
-  letter-spacing: .14em;
+  letter-spacing: .16em;
   text-transform: uppercase;
-  padding: 6px 10px;
+  padding: 0;
   line-height: 1;
-  border-radius: 2px;
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,.16);
-  color: var(--text-2);
+  border-radius: 0;
+  box-shadow: none;
+  color: var(--text-3);
   background: transparent;
   border: 0;
 }
 
-/* ── CARD — instrument look: corner ticks + καθαρό border ── */
-.card {
-  background: rgba(255,255,255,.02);
-  box-shadow: inset 0 0 0 1px var(--rule-2, rgba(255,255,255,.16));
-  border-radius: 2px;
-}
-.card::before {
-  display: none !important;   /* το παλιό LED border sweep είναι νεκρό */
-}
-
-/* ── COUNTDOWN (.rc-cd) — brand .count look ── */
-.rc-cd {
-  font-family: var(--f-m, "JetBrains Mono", monospace);
-  font-variant-numeric: tabular-nums;
-}
-.rc-cd b {
-  font-size: clamp(26px, 3.2vw, 40px);
-  font-weight: 700;
-  letter-spacing: -.02em;
-}
-
-/* ── KICKERS (pc-kick, mc-kick, arc-kick) — brand .lab ── */
+/* ── KICKERS → mono label ── */
 .pc-kick,
 .mc-kick,
 .arc-kick,
@@ -504,77 +514,157 @@ body::before {
   color: var(--text-3);
 }
 
-/* ── Section αρίθμηση: τα sections με data-layout-group μένουν ── */
-main > section { position: relative; }
-
-/* ── LIVE CARD — instrument header ── */
-#live-card {
-  background: rgba(255,255,255,.02);
-  box-shadow: inset 0 0 0 1px var(--rule-2, rgba(255,255,255,.16));
-  border-radius: 2px;
+/* ── COUNTDOWN ── */
+.rc-cd b {
+  font-family: var(--f-m, "JetBrains Mono", monospace);
+  font-variant-numeric: tabular-nums;
+  font-size: clamp(28px, 3.4vw, 44px);
+  font-weight: 700;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   14. ΔΡΑΜΑΤΙΚΑ ΣΤΟΙΧΕΙΑ — corner ticks + έντονο grid + section markers
+   14. ΕΥΘΥΓΡΑΜΜΙΣΗ — #challenges & #championship στην ίδια γλώσσα
+   Αυτά τα 2 sections δεν έχουν .section-head· τους δίνουμε το ίδιο
+   «γραμμή αντί για περίγραμμα» look.
    ═══════════════════════════════════════════════════════════════════════════ */
 
-/* Grid background — πιο ορατό */
-body::before {
-  background-size: 42px 42px;
-  background-image:
-    linear-gradient(rgba(34,211,238,.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(34,211,238,.05) 1px, transparent 1px);
-  mask-image: radial-gradient(ellipse 130% 100% at 50% 0%, #000 0%, transparent 85%);
-  -webkit-mask-image: radial-gradient(ellipse 130% 100% at 50% 0%, #000 0%, transparent 85%);
+/* ── #challenges — το ch-card ανοίγει, το ch-top γίνεται section-head ── */
+#challenges .ch-card {
+  background: transparent !important;
+  box-shadow: none !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  border-bottom: 1px solid rgba(255,255,255,.08) !important;
+  padding: 0 0 clamp(24px,3vw,40px) 0 !important;
 }
-
-/* Corner ticks σε κάθε card — instrument αίσθηση */
-.card {
+#challenges .ch-top {
+  margin: 0 0 clamp(24px,3vw,40px) 0;
+  padding-top: 24px;
+  border-top: 1px solid rgba(255,255,255,.1);
   position: relative;
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,.1) !important;
-  background: linear-gradient(180deg, rgba(255,255,255,.025) 0%, rgba(255,255,255,.01) 100%) !important;
 }
-.card::after {
+#challenges .ch-top::before {
   content: "";
   position: absolute;
-  inset: 0;
-  pointer-events: none;
-  border-radius: 2px;
-  background:
-    linear-gradient(var(--cyan) 0 0) top left / 14px 1px,
-    linear-gradient(var(--cyan) 0 0) top left / 1px 14px,
-    linear-gradient(var(--fuchsia) 0 0) top right / 14px 1px,
-    linear-gradient(var(--fuchsia) 0 0) top right / 1px 14px,
-    linear-gradient(var(--cyan) 0 0) bottom right / 14px 1px,
-    linear-gradient(var(--cyan) 0 0) bottom right / 1px 14px,
-    linear-gradient(var(--fuchsia) 0 0) bottom left / 14px 1px,
-    linear-gradient(var(--fuchsia) 0 0) bottom left / 1px 14px;
-  background-repeat: no-repeat;
-  opacity: .55;
+  top: -1px;
+  left: 0;
+  width: clamp(120px, 20vw, 280px);
+  height: 1px;
+  background: linear-gradient(90deg, var(--cyan), var(--fuchsia));
 }
-
-/* Section αριθμός — μεγάλο ghost marker στο πλάι */
-main > section { position: relative; }
-main > section::before {
-  content: "";
-  position: absolute;
-  right: 0;
-  top: -20px;
+#challenges .ch-top .kick {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 16px;
+  font-family: var(--f-m, "JetBrains Mono", monospace);
+  font-size: 10px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--text-3) !important;
+}
+#challenges .ch-top .sec-no {
   font-family: var(--f-d, "Archivo", sans-serif);
-  font-weight: 900;
   font-style: italic;
-  font-size: clamp(120px, 16vw, 240px);
-  line-height: 1;
-  color: rgba(255,255,255,.03);
-  pointer-events: none;
-  z-index: 0;
+  font-weight: 900;
+  font-size: 14px;
+  color: var(--cyan);
+  letter-spacing: .02em;
+  opacity: 1;
+}
+#challenges .ch-top h2 {
+  font-family: var(--f-d, "Archivo", sans-serif);
+  font-style: italic;
+  font-weight: 900;
+  font-size: clamp(34px, 5vw, 64px) !important;
+  line-height: .9;
+  letter-spacing: -.025em;
+  text-transform: uppercase;
+  margin: 0;
+}
+#challenges .ch-meta {
+  font-family: var(--f-m, "JetBrains Mono", monospace);
+  font-size: 9.5px;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--dim);
 }
 
-/* Κάθε section παίρνει τον αριθμό του */
-#track-reveal::before    { content: "01"; }
-#timing::before          { content: "02"; }
-#challenges::before      { content: "03"; }
-#championship::before    { content: "04"; }
-#battles::before         { content: "05"; }
-#archive::before         { content: "06"; }
-#hall-of-fame::before    { content: "07"; }
+/* Τα εσωτερικά cards των duels ανοίγουν επίσης */
+#challenges .drh-official-active,
+#challenges .drh-official-resolved {
+  background: transparent !important;
+  box-shadow: none !important;
+  border: 0 !important;
+  border-bottom: 1px solid rgba(255,255,255,.08) !important;
+  border-radius: 0 !important;
+}
+
+/* ── #championship — tf-card & margin-card ανοίγουν, τίτλοι italic ── */
+#championship .tf-card,
+#championship .margin-card {
+  background: transparent !important;
+  box-shadow: none !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+}
+#championship .tf-card {
+  border-bottom: 1px solid rgba(255,255,255,.08) !important;
+  padding-bottom: clamp(24px,3vw,40px) !important;
+}
+#championship .tf-wrap {
+  border-top: 1px solid rgba(255,255,255,.1);
+  padding-top: 24px;
+  position: relative;
+}
+#championship .tf-wrap::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: 0;
+  width: clamp(120px, 20vw, 280px);
+  height: 1px;
+  background: linear-gradient(90deg, var(--cyan), var(--fuchsia));
+}
+#championship .tf-card .kick {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  font-family: var(--f-m, "JetBrains Mono", monospace);
+  font-size: 10px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--text-3) !important;
+}
+#championship .tf-card .sec-no {
+  font-family: var(--f-d, "Archivo", sans-serif);
+  font-style: italic;
+  font-weight: 900;
+  font-size: 14px;
+  color: var(--cyan);
+  letter-spacing: .02em;
+  opacity: 1;
+}
+#championship .tf-h {
+  font-family: var(--f-d, "Archivo", sans-serif);
+  font-style: italic;
+  font-weight: 900;
+  font-size: clamp(34px, 5vw, 64px) !important;
+  line-height: .9;
+  letter-spacing: -.025em;
+  text-transform: uppercase;
+}
+#championship .mc-t {
+  font-family: var(--f-d, "Archivo", sans-serif);
+  font-style: italic;
+  font-weight: 900;
+  font-size: clamp(20px, 2.6vw, 30px);
+  letter-spacing: -.02em;
+}
+#championship .mc-kick {
+  font-family: var(--f-m, "JetBrains Mono", monospace);
+  font-size: 10px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
