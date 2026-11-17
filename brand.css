@@ -376,8 +376,16 @@
      — δεδομένα ανοιχτά, χωρίς κουτιά
    ═══════════════════════════════════════════════════════════════════════════ */
 
-/* ── Φόντο: καθαρό, σχεδόν μαύρο — ΟΧΙ grid παντού (θόρυβος) ── */
-body { background: #07080b; }
+/* ── Φόντο: σκούρο, ΑΛΛΑ με χρωματιστά glows (όχι flat μαύρο) ── */
+body {
+  background: #0a0b10;
+  background-image:
+    radial-gradient(ellipse 70% 45% at 50% -8%, rgba(34,211,238,.16), transparent 62%),
+    radial-gradient(ellipse 55% 40% at 50% 108%, rgba(232,121,249,.12), transparent 60%),
+    radial-gradient(ellipse 45% 38% at 88% 52%, rgba(167,139,250,.09), transparent 58%),
+    radial-gradient(ellipse 45% 38% at 8% 60%, rgba(34,211,238,.06), transparent 58%);
+  background-attachment: fixed;
+}
 
 /* ── SECTION HEAD — ανοιχτό, με gradient νήμα στην κορυφή ── */
 .section-head {
@@ -395,9 +403,10 @@ body { background: #07080b; }
   position: absolute;
   top: -1px;
   left: 0;
-  width: clamp(120px, 20vw, 280px);
-  height: 1px;
+  width: clamp(160px, 24vw, 340px);
+  height: 2px;
   background: linear-gradient(90deg, var(--cyan), var(--fuchsia));
+  box-shadow: 0 0 18px rgba(34,211,238,.35);
 }
 
 .section-head .sh-left {
@@ -419,10 +428,14 @@ body { background: #07080b; }
   font-family: var(--f-d, "Archivo", sans-serif);
   font-style: italic;
   font-weight: 900;
-  font-size: 14px;
-  color: var(--cyan);
+  font-size: 15px;
   letter-spacing: .02em;
   opacity: 1;
+  background: linear-gradient(90deg, var(--cyan), var(--fuchsia));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
 }
 .section-head h2 {
   font-family: var(--f-d, "Archivo", sans-serif);
@@ -454,12 +467,24 @@ body { background: #07080b; }
 
 /* ── CARDS — ανοιχτά, χωρίς κουτί. Μόνο μια απαλή κάτω γραμμή όπου χρειάζεται ── */
 .card {
-  background: transparent !important;
+  background: linear-gradient(180deg, rgba(34,211,238,.05) 0%, rgba(232,121,249,.02) 50%, rgba(255,255,255,.012) 100%) !important;
   box-shadow: none !important;
   border-radius: 0 !important;
   border: 0 !important;
-  border-bottom: 1px solid rgba(255,255,255,.08) !important;
-  padding: 0 0 clamp(24px, 3vw, 40px) 0 !important;
+  border-bottom: 1px solid rgba(255,255,255,.1) !important;
+  padding: clamp(20px, 3vw, 32px) clamp(16px, 2.5vw, 28px) clamp(24px, 3vw, 40px) !important;
+}
+.podium-card,
+.intel-card,
+#live-card,
+.tf-card,
+.margin-card,
+.ch-card,
+.drh-official-active,
+.drh-official-resolved,
+.drh-breakthrough-panel,
+.drh-rivalry-panel {
+  background-image: linear-gradient(180deg, #22d3ee14 0%, #e879f90a 50%, #ffffff03 100%) !important;
 }
 .card::after,
 .card::before {
@@ -477,7 +502,6 @@ body { background: #07080b; }
 .drh-official-resolved,
 .drh-breakthrough-panel,
 .drh-rivalry-panel {
-  background: transparent !important;
   box-shadow: none !important;
   border-radius: 0 !important;
   border: 0 !important;
@@ -530,7 +554,6 @@ body { background: #07080b; }
 
 /* ── #challenges — το ch-card ανοίγει, το ch-top γίνεται section-head ── */
 #challenges .ch-card {
-  background: transparent !important;
   box-shadow: none !important;
   border: 0 !important;
   border-radius: 0 !important;
@@ -593,7 +616,6 @@ body { background: #07080b; }
 /* Τα εσωτερικά cards των duels ανοίγουν επίσης */
 #challenges .drh-official-active,
 #challenges .drh-official-resolved {
-  background: transparent !important;
   box-shadow: none !important;
   border: 0 !important;
   border-bottom: 1px solid rgba(255,255,255,.08) !important;
@@ -603,7 +625,6 @@ body { background: #07080b; }
 /* ── #championship — tf-card & margin-card ανοίγουν, τίτλοι italic ── */
 #championship .tf-card,
 #championship .margin-card {
-  background: transparent !important;
   box-shadow: none !important;
   border: 0 !important;
   border-radius: 0 !important;
