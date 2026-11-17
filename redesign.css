@@ -199,26 +199,6 @@ h1.hero-title,
   #hero::after { animation: none; opacity: 0; }
 }
 
-/* ────────────────────────────────────────────────────────────────────────────
-   LEVEL 1 — Glow μόνο στο hover (αφαίρεση μόνιμων glows από cards)
-   ──────────────────────────────────────────────────────────────────────────── */
-.card,
-.side-card,
-.intel-card,
-.podium-card,
-.reveal-card,
-.tf-card,
-.margin-card {
-  box-shadow: none !important;
-  transition: box-shadow .22s ease, border-color .22s ease;
-}
-.card:hover,
-.side-card:hover,
-.intel-card:hover,
-.podium-card:hover,
-.reveal-card:hover {
-  box-shadow: 0 0 0 1px rgba(34,211,238,.22), 0 12px 40px -18px rgba(34,211,238,.35) !important;
-}
 
 /* ────────────────────────────────────────────────────────────────────────────
    LEVEL 2 — Μείωση χρώματος: το cyan επιστρέφει σε 7 ρόλους
