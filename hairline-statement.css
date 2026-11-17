@@ -1,14 +1,13 @@
 /* ═══════════════════════════════════════════════════════════════════════════
-   HAIRLINE — STATEMENT (εναλλακτική, πιο έντονη)
+   HAIRLINE — STATEMENT v2 (χωρίς bullet, με skew box αριθμού)
    ---------------------------------------------------------------------------
-   Φόρτωσέ το ΜΕΤΑ το brand.css. Αντικαθιστά το λεπτό hairline με ένα
-   πιο «statement»: πιο παχύ, πιο μακρύ, τριπλό gradient, πιο δυνατό glow,
-   και ο αριθμός του section κάθεται ΠΑΝΩ στη γραμμή (mile marker).
-
-   Αλλαγή: μόνο η γραμμή στην κορυφή κάθε section — τίποτα άλλο.
+   Φόρτωσέ το ΜΕΤΑ το brand.css.
+   - Πιο statement hairline (3px, τριπλό gradient, δυνατό glow)
+   - Στην αρχή της γραμμής: ένα skew box (όπως τα buttons) με τον αριθμό
+     του section (01–07), τοποθετημένο από την πάνω μεριά.
    ═══════════════════════════════════════════════════════════════════════════ */
 
-/* ── 1. Η γραμμή γίνεται πιο statement ── */
+/* ── 1. Statement hairline ── */
 .section-head::before,
 #challenges .ch-top::before,
 #championship .tf-wrap::before {
@@ -22,38 +21,47 @@
   border-radius: 2px;
 }
 
-/* ── 2. Το σημείο τέλους της γραμμής «ανάβει» (bullet) ── */
-.section-head::after,
-#challenges .ch-top::after,
-#championship .tf-wrap::after {
-  content: "";
-  position: absolute;
-  top: -3px;
-  left: clamp(240px, 40vw, 600px);
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--fuchsia);
-  box-shadow: 0 0 12px rgba(232,121,249,.8);
-}
-
-/* ── 3. Ο αριθμός του section κάθεται πάνω δεξιά — σαν mile marker ── */
+/* ── 2. Skew box με τον αριθμό — πάνω στην αρχή της γραμμής ── */
 .section-head .sec-no,
 #challenges .ch-top .sec-no,
 #championship .tf-card .sec-no {
-  font-size: 16px;
-  letter-spacing: .04em;
-  padding-right: 4px;
+  position: absolute;
+  top: -17px;            /* πάνω από τη γραμμή */
+  left: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  height: 26px;
+  padding: 0 14px;
   background: linear-gradient(90deg, var(--cyan), var(--fuchsia));
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
+  color: #0a0710;
+  font-family: var(--f-m, "JetBrains Mono", monospace);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  transform: skewX(-12deg);
+  z-index: 2;
+}
+/* Counter-skew — το κείμενο μένει ίσιο */
+.section-head .sec-no b,
+#challenges .ch-top .sec-no b,
+#championship .tf-card .sec-no b {
+  display: inline-block;
+  transform: skewX(12deg);
 }
 
-/* ── 4. Ανάβει πιο έντονα στο hover του section ── */
-main > section:hover .section-head::before,
-main > section:hover .ch-top::before,
-main > section:hover .tf-wrap::before {
-  box-shadow: 0 0 34px rgba(34,211,238,.75);
+/* ── 3. Το kick κείμενο πάει δεξιά του box ── */
+.section-head .kick,
+#challenges .ch-top .kick,
+#championship .tf-card .kick {
+  padding-left: 58px;     /* αφήνει χώρο για το box */
+  min-height: 26px;
+}
+
+/* ── 4. Ελαφρύ lift του box στο hover ── */
+main > section:hover .section-head .sec-no,
+main > section:hover .ch-top .sec-no,
+main > section:hover .tf-card .sec-no {
+  box-shadow: 0 0 20px rgba(34,211,238,.5);
 }
