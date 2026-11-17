@@ -398,15 +398,19 @@ body {
   position: relative;
 }
 /* Gradient νήμα — λεπτή γραμμή cyan→fuchsia στην κορυφή κάθε section */
-.section-head::before {
+/* ΤΥΠΟΠΟΙΗΜΕΝΟ GRADIENT HAIRLINE — ίδιο σε ΟΛΑ τα sections */
+.section-head::before,
+#challenges .ch-top::before,
+#championship .tf-wrap::before {
   content: "";
   position: absolute;
   top: -1px;
   left: 0;
-  width: clamp(160px, 24vw, 340px);
+  width: clamp(180px, 22vw, 320px);
   height: 2px;
   background: linear-gradient(90deg, var(--cyan), var(--fuchsia));
   box-shadow: 0 0 18px rgba(34,211,238,.35);
+  border-radius: 1px;
 }
 
 .section-head .sh-left {
@@ -597,15 +601,6 @@ main > section::before {
   border-top: 1px solid rgba(255,255,255,.1);
   position: relative;
 }
-#challenges .ch-top::before {
-  content: "";
-  position: absolute;
-  top: -1px;
-  left: 0;
-  width: clamp(120px, 20vw, 280px);
-  height: 1px;
-  background: linear-gradient(90deg, var(--cyan), var(--fuchsia));
-}
 #challenges .ch-top .kick {
   display: flex;
   align-items: baseline;
@@ -668,15 +663,6 @@ main > section::before {
   border-top: 1px solid rgba(255,255,255,.1);
   padding-top: 24px;
   position: relative;
-}
-#championship .tf-wrap::before {
-  content: "";
-  position: absolute;
-  top: -1px;
-  left: 0;
-  width: clamp(120px, 20vw, 280px);
-  height: 1px;
-  background: linear-gradient(90deg, var(--cyan), var(--fuchsia));
 }
 #championship .tf-card .kick {
   display: flex;

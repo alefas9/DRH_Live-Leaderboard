@@ -1,0 +1,59 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   HAIRLINE — STATEMENT (εναλλακτική, πιο έντονη)
+   ---------------------------------------------------------------------------
+   Φόρτωσέ το ΜΕΤΑ το brand.css. Αντικαθιστά το λεπτό hairline με ένα
+   πιο «statement»: πιο παχύ, πιο μακρύ, τριπλό gradient, πιο δυνατό glow,
+   και ο αριθμός του section κάθεται ΠΑΝΩ στη γραμμή (mile marker).
+
+   Αλλαγή: μόνο η γραμμή στην κορυφή κάθε section — τίποτα άλλο.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── 1. Η γραμμή γίνεται πιο statement ── */
+.section-head::before,
+#challenges .ch-top::before,
+#championship .tf-wrap::before {
+  height: 3px;
+  width: clamp(240px, 40vw, 600px);
+  background: linear-gradient(90deg,
+    var(--cyan) 0%,
+    var(--violet) 50%,
+    var(--fuchsia) 100%);
+  box-shadow: 0 0 26px rgba(34,211,238,.55);
+  border-radius: 2px;
+}
+
+/* ── 2. Το σημείο τέλους της γραμμής «ανάβει» (bullet) ── */
+.section-head::after,
+#challenges .ch-top::after,
+#championship .tf-wrap::after {
+  content: "";
+  position: absolute;
+  top: -3px;
+  left: clamp(240px, 40vw, 600px);
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--fuchsia);
+  box-shadow: 0 0 12px rgba(232,121,249,.8);
+}
+
+/* ── 3. Ο αριθμός του section κάθεται πάνω δεξιά — σαν mile marker ── */
+.section-head .sec-no,
+#challenges .ch-top .sec-no,
+#championship .tf-card .sec-no {
+  font-size: 16px;
+  letter-spacing: .04em;
+  padding-right: 4px;
+  background: linear-gradient(90deg, var(--cyan), var(--fuchsia));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+/* ── 4. Ανάβει πιο έντονα στο hover του section ── */
+main > section:hover .section-head::before,
+main > section:hover .ch-top::before,
+main > section:hover .tf-wrap::before {
+  box-shadow: 0 0 34px rgba(34,211,238,.75);
+}
