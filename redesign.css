@@ -120,8 +120,11 @@
   font-style: italic !important;
 }
 
-/* HERO ΤΙΤΛΟΣ — FULL BRAND (brand book .cover h1)
-   Archivo · italic · 900 · clamp(60px,13vw,186px) · lh .8 · ls -.035em */
+/* ═══════════════════════════════════════════════════════════════════════════
+   HERO — FULL BRAND + ΔΙΑΓΩΝΙΟ GRADIENT (Γ)
+   Archivo italic 900 · clamp(60px,13vw,186px) · lh .8 · ls -.035em
+   Gradient: cyan → violet → fuchsia, 120deg, σε ΟΛΟ τον τίτλο.
+   ═══════════════════════════════════════════════════════════════════════════ */
 h1.hero-title,
 .hero-title {
   font-family: var(--f-d, "Archivo", sans-serif) !important;
@@ -133,15 +136,67 @@ h1.hero-title,
   text-transform: uppercase;
   transform: none !important;
   clip-path: none !important;
+  background: linear-gradient(120deg,
+    var(--cyan) 0%, var(--cyan) 18%,
+    var(--violet) 48%,
+    var(--fuchsia) 82%, var(--fuchsia) 100%) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  color: transparent !important;
+  /* Το μαύρο text-shadow θολώνει το gradient — αφαιρείται */
+  text-shadow: none !important;
+  filter: drop-shadow(0 0 26px rgba(34,211,238,.18)) !important;
 }
-/* Τα γράμματα/spanes μέσα δεν παίρνουν δικό τους style */
+
+/* Κάθε γράμμα κληρονομεί το gradient — δεν ορίζει δικό του */
 .hero-title .l,
-.hero-title .cy,
-.hero-title .sq {
+.hero-title .cy {
   font-style: inherit !important;
   font-family: inherit !important;
   font-weight: inherit !important;
   letter-spacing: inherit !important;
+  background: none !important;
+  -webkit-background-clip: initial !important;
+  background-clip: initial !important;
+  -webkit-text-fill-color: inherit !important;
+  color: inherit !important;
+}
+
+/* Η κίτρινη τελεία μένει solid */
+.hero-title .sq {
+  background: var(--yellow) !important;
+  -webkit-text-fill-color: var(--yellow) !important;
+  color: var(--yellow) !important;
+  display: inline-block;
+  width: .15em;
+  height: .15em;
+  margin-left: .07em;
+}
+
+/* SCAN LINE — λωρίδα φωτός που κατεβαίνει πάνω από το hero */
+#hero::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 96px;
+  pointer-events: none;
+  z-index: 4;
+  background: linear-gradient(to bottom,
+    rgba(34,211,238,.10) 0%,
+    rgba(232,121,249,.04) 55%,
+    transparent 100%);
+  animation: drhScanLine 9s linear infinite;
+}
+@keyframes drhScanLine {
+  0%   { transform: translateY(-96px); opacity: 0; }
+  8%   { opacity: 1; }
+  92%  { opacity: 1; }
+  100% { transform: translateY(100vh); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #hero::after { animation: none; opacity: 0; }
 }
 
 /* ────────────────────────────────────────────────────────────────────────────
