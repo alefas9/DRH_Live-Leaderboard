@@ -122,16 +122,6 @@
 }
 
 /* ────────────────────────────────────────────────────────────────────────────
-   ΠΡΟΣΤΑΣΙΑ HERO ΤΙΤΛΟΥ — δεν αγγίζεται
+   HERO ΤΙΤΛΟΣ — τον χειρίζεται το redesign.css (FULL BRAND).
+   ΔΕΝ ορίζουμε τίποτα εδώ, ώστε να μην ακυρώνουμε το italic του brand.
    ──────────────────────────────────────────────────────────────────────────── */
-h1.hero-title,
-.hero-title,
-.hero-title .cy,
-.hero-title .sq,
-.hero-title * {
-  font-size: clamp(3.25rem, 8.8vw, 10rem) !important;
-  font-style: normal !important;
-  font-weight: 900 !important;
-  letter-spacing: -.065em !important;
-  line-height: .87 !important;
-}

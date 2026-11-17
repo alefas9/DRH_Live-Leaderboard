@@ -74,76 +74,8 @@
 /* ────────────────────────────────────────────────────────────────────────────
    LEVEL 1 — Κουμπιά: slant clip + μονόχρωμο + glow μόνο στο hover
    ──────────────────────────────────────────────────────────────────────────── */
-.btn-primary {
-  --slant: 12px;
-  padding: 14px 26px;
-  border-radius: 0 !important;
-  font: 800 var(--fs-body) var(--font-display);
-  font-style: italic;
-  text-transform: uppercase;
-  letter-spacing: .06em;
-  color: #0a0a0f;
-  background: var(--cyan);
-  box-shadow: none;
-  clip-path: polygon(var(--slant) 0, 100% 0, calc(100% - var(--slant)) 100%, 0 100%);
-  transition: background .18s ease, box-shadow .18s ease, transform .18s ease;
-}
-.btn-primary:hover {
-  background: #5eeaf7;
-  box-shadow: 0 0 0 1px var(--cyan), 0 10px 40px -12px var(--cyan);
-  transform: translateY(-1px);
-}
-.btn-primary:active { transform: translateY(0); }
-
-.btn-ghost {
-  --slant: 12px;
-  padding: 14px 26px;
-  border: 1px solid var(--line-strong);
-  border-radius: 0 !important;
-  font: 800 var(--fs-body) var(--font-display);
-  font-style: italic;
-  text-transform: uppercase;
-  letter-spacing: .06em;
-  color: var(--text-2);
-  background: transparent;
-  clip-path: polygon(var(--slant) 0, 100% 0, calc(100% - var(--slant)) 100%, 0 100%);
-  transition: color .18s ease, border-color .18s ease, background .18s ease;
-}
-.btn-ghost:hover {
-  color: var(--text);
-  border-color: var(--cyan);
-  background: rgba(34,211,238,.06);
-}
 
 /* Τα υπόλοιπα CTA-like κουμπιά (hero, onboard, retry) */
-.hero-cta,
-#rc-btn,
-#onboard-open,
-.show-more,
-.lb-all,
-.arc-week,
-.lt-tab {
-  border-radius: 2px !important;
-  font-style: italic;
-  font-weight: 800;
-  letter-spacing: .06em;
-  text-transform: uppercase;
-}
-
-.hero-cta {
-  --slant: 12px;
-  border-radius: 0 !important;
-  clip-path: polygon(var(--slant) 0, 100% 0, calc(100% - var(--slant)) 100%, 0 100%);
-  background: var(--cyan);
-  color: #0a0a0f;
-  box-shadow: none;
-  transition: background .18s ease, box-shadow .18s ease, transform .18s ease;
-}
-.hero-cta:hover {
-  background: #5eeaf7;
-  box-shadow: 0 0 0 1px var(--cyan), 0 10px 40px -12px var(--cyan);
-  transform: translateY(-1px);
-}
 
 /* ────────────────────────────────────────────────────────────────────────────
    LEVEL 1 — Typography: italic στα section headings
@@ -188,18 +120,28 @@
   font-style: italic !important;
 }
 
-/* ΟΧΙ italic στον hero τίτλο — προστατευμένος */
+/* HERO ΤΙΤΛΟΣ — FULL BRAND (brand book .cover h1)
+   Archivo · italic · 900 · clamp(60px,13vw,186px) · lh .8 · ls -.035em */
 h1.hero-title,
-.hero-title,
-.hero-title .cy,
-.hero-title .sq,
-.hero-title * {
-  font-style: normal !important;
+.hero-title {
+  font-family: var(--f-d, "Archivo", sans-serif) !important;
+  font-style: italic !important;
+  font-weight: 900 !important;
+  font-size: clamp(60px, 13vw, 186px) !important;
+  line-height: .8 !important;
+  letter-spacing: -.035em !important;
+  text-transform: uppercase;
   transform: none !important;
   clip-path: none !important;
-  font-weight: 900 !important;
-  letter-spacing: -.065em !important;
-  line-height: .87 !important;
+}
+/* Τα γράμματα/spanes μέσα δεν παίρνουν δικό τους style */
+.hero-title .l,
+.hero-title .cy,
+.hero-title .sq {
+  font-style: inherit !important;
+  font-family: inherit !important;
+  font-weight: inherit !important;
+  letter-spacing: inherit !important;
 }
 
 /* ────────────────────────────────────────────────────────────────────────────
@@ -302,9 +244,6 @@ h1.hero-title,
    ΑΣΦΑΛΕΙΑ — prefers-reduced-motion
    ──────────────────────────────────────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
-  .btn-primary,
-  .btn-ghost,
-  .hero-cta,
   .card,
   .side-card,
   .intel-card,
@@ -313,7 +252,4 @@ h1.hero-title,
     transition: none !important;
     transform: none !important;
   }
-  .btn-primary:hover,
-  .btn-ghost:hover,
-  .hero-cta:hover { transform: none !important; }
 }
