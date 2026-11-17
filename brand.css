@@ -465,15 +465,13 @@ body {
   margin: 16px 0 0;
 }
 
-/* ── CARDS — ανοιχτά, χωρίς κουτί. Μόνο μια απαλή κάτω γραμμή όπου χρειάζεται ── */
-.card {
-  background: linear-gradient(180deg, rgba(34,211,238,.05) 0%, rgba(232,121,249,.02) 50%, rgba(255,255,255,.012) 100%) !important;
-  box-shadow: none !important;
-  border-radius: 0 !important;
-  border: 0 !important;
-  border-bottom: 1px solid rgba(255,255,255,.1) !important;
-  padding: clamp(20px, 3vw, 32px) clamp(16px, 2.5vw, 28px) clamp(24px, 3vw, 40px) !important;
-}
+/* ═══════════════════════════════════════════════════════════════════════════
+   Α) ΑΤΜΟΣΦΑΙΡΙΚΕΣ ΖΩΝΕΣ — χρώμα στο φόντο κάθε section, ΟΧΙ στα cards
+   Β) TIMING BOARD — τα data γίνονται γραμμές, τα cards εξαφανίζονται
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Β. Τα cards γίνονται ΑΟΡΑΤΑ — μόνο χώρος, κανένα κουτί, κανένα tint ── */
+.card,
 .podium-card,
 .intel-card,
 #live-card,
@@ -484,28 +482,61 @@ body {
 .drh-official-resolved,
 .drh-breakthrough-panel,
 .drh-rivalry-panel {
-  background-image: linear-gradient(180deg, #22d3ee14 0%, #e879f90a 50%, #ffffff03 100%) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  padding: 0 0 clamp(28px, 3.5vw, 48px) 0 !important;
 }
 .card::after,
 .card::before {
   display: none !important;
 }
 
-/* Τα «στενά» data panels (podium, intel, live) — ίδια γλώσσα, καμία διαφορά */
-.podium-card,
-.intel-card,
-.reveal-card,
-.tf-card,
-.margin-card,
-#live-card,
-.drh-official-active,
-.drh-official-resolved,
-.drh-breakthrough-panel,
-.drh-rivalry-panel {
-  box-shadow: none !important;
-  border-radius: 0 !important;
-  border: 0 !important;
-  border-bottom: 1px solid rgba(255,255,255,.08) !important;
+/* ── Α. Ατμοσφαιρική ζώνη πίσω από ΚΑΘΕ section ── */
+main > section {
+  position: relative;
+}
+main > section::before {
+  content: "";
+  position: absolute;
+  inset: -8% -6vw;
+  z-index: -1;
+  pointer-events: none;
+}
+/* Κάθε section με δικό του χρώμα — εναλλάξ cyan / fuchsia / violet */
+#track-reveal::before {
+  background: radial-gradient(ellipse 55% 50% at 50% 30%, rgba(34,211,238,.06), transparent 65%);
+}
+#timing::before {
+  background: radial-gradient(ellipse 60% 55% at 50% 30%, rgba(232,121,249,.05), transparent 65%);
+}
+#challenges::before {
+  background: radial-gradient(ellipse 55% 50% at 50% 30%, rgba(167,139,250,.06), transparent 65%);
+}
+#championship::before {
+  background: radial-gradient(ellipse 55% 50% at 50% 35%, rgba(34,211,238,.05), transparent 65%);
+}
+#battles::before {
+  background: radial-gradient(ellipse 60% 55% at 50% 30%, rgba(52,211,153,.045), transparent 65%);
+}
+#archive::before {
+  background: radial-gradient(ellipse 55% 50% at 50% 30%, rgba(34,211,238,.055), transparent 65%);
+}
+#hall-of-fame::before {
+  background: radial-gradient(ellipse 60% 55% at 50% 35%, rgba(250,204,21,.04), transparent 65%);
+}
+
+/* ── Β. TIMING BOARD — οι γραμμές του leaderboard γίνονται το βασικό στοιχείο ── */
+#live-card .lb-head,
+#live-card .lb-row {
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+#live-card .lb-row:last-child {
+  border-bottom: 0;
+}
+#live-card .lb-head {
+  border-bottom: 1px solid rgba(255,255,255,.14);
 }
 
 /* ── TAG → λιτό label (όχι κουτί) ── */
